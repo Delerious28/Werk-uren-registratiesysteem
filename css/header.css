@@ -1,13 +1,30 @@
-/*Logo&Uitlog*/
+/*Header.php (logo and logout btn*/
 
 body{
     margin: 0;
+    overflow: hidden;
+    background-image: url("../img/achtergrond.jpg");
+    background-repeat: no-repeat;
+    background-size: 100vw 100vh;
+}
+
+header{
+    margin: 0;
     display: flex;
     justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background-color: #f0f0f0;
-    overflow: hidden;
+}
+
+main{
+    display: flex;
+    justify-content: center;
+}
+
+.content-container{
+    height: 100%;
+    max-width: 1024px;
+    margin: 50px;
+    position: relative;
+    background-color: red;
 }
 
 .header-container {
