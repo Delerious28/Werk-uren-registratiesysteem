@@ -54,9 +54,9 @@ main{
 
 .image-right {
     right: -200px;
-    width: 200px;
+    width: 270px;
     background-color: transparent;
-    z-index: 9;
+    z-index: 8;
 }
 
 .header-container:hover .image-left {
