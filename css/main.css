@@ -1,1 +1,27 @@
+main{
+    display: flex;
+    justify-content: center;
+}
 
+.content-container{
+    height: 100%;
+    max-width: 1024px;
+    margin: 50px;
+    position: relative;
+    background-color: red;
+    color: white;
+}
+
+.week-container{
+    margin-top: 30px;
+    width: 100%;
+}
+
+.dag{
+    height: 50px;
+    width: 150px;
+    border-radius: 10px;
+    color: black;
+    border: none;
+    background-color: #F0EFEF;
+}

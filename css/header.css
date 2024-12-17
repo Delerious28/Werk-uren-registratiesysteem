@@ -14,19 +14,6 @@ header{
     justify-content: center;
 }
 
-main{
-    display: flex;
-    justify-content: center;
-}
-
-.content-container{
-    height: 100%;
-    max-width: 1024px;
-    margin: 50px;
-    position: relative;
-    background-color: red;
-}
-
 .header-container {
     position: relative;
     height: 150px;
