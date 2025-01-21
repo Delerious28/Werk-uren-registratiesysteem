@@ -12,7 +12,7 @@
 
 <div class="header-container">
     <img src="../img/Chief2.png" alt="Image Left" class="image image-left">
-    <img src="../img/chiefs4.png" alt="Image Right" class="image image-right">
+    <img src="../img/chief1.png" alt="Image Right" class="image image-right">
     <button class="button">Uitloggen</button>
 </div>
 

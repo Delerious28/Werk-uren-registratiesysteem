@@ -4,10 +4,12 @@
     <meta charset="UTF-8">
     <title>Home</title>
     <link rel="stylesheet" href="css/main.css">
+    <link href="css/header.css" rel="stylesheet">
+
 </head>
 <body>
 
-<?php include "template/index-header.php"; ?>
+<?php include "template/header.php"; ?>
 
 <main>
     <div class="content-container">
