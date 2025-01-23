@@ -1,6 +1,7 @@
-<?php include_once "../template/header.php"; ?>
 <title>Registreren</title>
 <link href="../css/inloggen.css" rel="stylesheet">
+<body>
+<?php include_once "../template/header.php"; ?>
 
 <main>
     <h1 class="form-h">Registreren</h1>
@@ -21,7 +22,7 @@
         <button type="submit" class="submit-btn">Registreren</button>
     </form>
 </main>
-
+</body>
 <?php
 include "../db/conn.php";
 
