@@ -1,0 +1,48 @@
+main{
+    display: flex;
+    justify-content: center;
+}
+
+.content-container{
+    height: 100%;
+    max-width: 1024px;
+    margin: 50px;
+    position: relative;
+    color: white;
+}
+
+.week-container{
+    margin-top: 30px;
+    width: 100%;
+}
+
+.dag{
+    height: 50px;
+    width: 150px;
+    border-top-right-radius: 10px;
+    border-top-left-radius: 10px;
+    color: black;
+    border: none;
+    background-color: #F0EFEF;
+    cursor: pointer;
+}
+
+.highlight {
+    background-color: #6D0F10;
+    font-weight: bold;
+    color: white;
+}
+
+.dag-formulier{
+    margin: 0;
+}
+
+.uren-form{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background-color: gray;
+    height: 200px;
+    width: 150px;
+    margin: 0;
+}
