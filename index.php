@@ -21,23 +21,35 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
         $hours = $_POST['hours'];
         $date = $_POST['date'];
 
-        // Zorg ervoor dat user_id is ingesteld voordat ik doorga met het invoegen van de database.
         if ($user_id) {
-            // Ingangen opschonen (SQL-injectie voorkomen).
-            $hours = intval($hours); // Zorg ervoor dat uren een geheel getal (Integer) zijn.
-            // Het is niet nodig om de datum handmatig te zuiveren, aangezien deze door PDO wordt afgehandeld in de voorbereide verklaring.
+            // Ingangen opschonen (SQL-injectie voorkomen)
+            $hours = intval($hours);
 
-            // Gegevens invoeren in de database in (urentabel).
-            $stmt = $pdo->prepare("INSERT INTO hours (user_id, date, hours) VALUES (?, ?, ?)");
+            // Controleer of er al uren zijn ingevoerd voor deze dag
+            $stmt = $pdo->prepare("SELECT * FROM hours WHERE user_id = ? AND date = ?");
             $stmt->bindParam(1, $user_id, PDO::PARAM_INT);
             $stmt->bindParam(2, $date, PDO::PARAM_STR);
-            $stmt->bindParam(3, $hours, PDO::PARAM_INT);
+            $stmt->execute();
+            $existingEntry = $stmt->fetch();
 
-            if ($stmt->execute()) {
-                // Success bericht.
-                $success_message = "Uren succesvol ingevoerd voor $date.";
+            if ($existingEntry) {
+                // Als er al een record bestaat, geef een foutmelding
+                echo "<script> 
+                                   var removeBtn = document.getElementById('indien-btn');
+                                removeBtn.style.display = 'none';
+                    </script>";
             } else {
-                echo "<p>Er is een fout opgetreden bij het invoeren van de uren: " . $stmt->errorInfo()[2] . "</p>";
+                // Gegevens invoeren in de database als er nog geen record bestaat
+                $stmt = $pdo->prepare("INSERT INTO hours (user_id, date, hours) VALUES (?, ?, ?)");
+                $stmt->bindParam(1, $user_id, PDO::PARAM_INT);
+                $stmt->bindParam(2, $date, PDO::PARAM_STR);
+                $stmt->bindParam(3, $hours, PDO::PARAM_INT);
+
+                if ($stmt->execute()) {
+                    $success_message = "Uren succesvol ingevoerd voor $date.";
+                } else {
+                    echo "<p>Er is een fout opgetreden bij het invoeren van de uren: " . $stmt->errorInfo()[2] . "</p>";
+                }
             }
         } else {
             echo "<p>Er is een probleem met je gebruikersgegevens.</p>";
@@ -47,74 +59,6 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
     }
 }
 ?>
-
-<script>
-    function showInputForm(dayOffset) {
-        const today = new Date();
-        const dayOfWeek = today.getDay(); // 0 (Zondag) tot 6 (Zaterdag).
-
-        // Het begin van de huidige week berekenen (maandag).
-        let monday = new Date(today);
-        let adjustment = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-        monday.setDate(today.getDate() + adjustment);
-
-        // De geselecteerde datum op basis van de verschuiving vanaf maandag berekenen.
-        const selectedDate = new Date(monday);
-        selectedDate.setDate(monday.getDate() + dayOffset); // De offset toevoegen om de specifieke weekdag te krijgen.
-
-        // De geselecteerde dag en datum weergeven.
-        document.getElementById('selected-day').innerText = selectedDate.toDateString();
-
-        // De verborgen datuminvoerwaarde instellen (in JJJJ-MM-DD formaat).
-        const formattedDate = selectedDate.toISOString().split('T')[0]; // Formaat naar YYYY-MM-DD.
-        document.getElementById('date-input').value = formattedDate;
-
-        // De form weergeven.
-        document.getElementById('day-form').style.display = 'block';
-    }
-
-    // Functie om de weergegeven datums voor maandag tot en met vrijdag bij te werken.
-    function updateWeekdays() {
-        const today = new Date();
-        const dayOfWeek = today.getDay();
-        let adjustment = (dayOfWeek === 0) ? -6 : 1 - dayOfWeek;
-
-        let monday = new Date(today);
-        monday.setDate(today.getDate() + adjustment);
-
-        const weekdays = ['Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag'];
-        const buttons = document.querySelectorAll('.dag'); // Alle knoppen selecteren
-
-        buttons.forEach((button, index) => {
-            let weekdayDate = new Date(monday);
-            weekdayDate.setDate(monday.getDate() + index);
-            button.innerText = weekdays[index]; // Alleen de dag tonen
-
-            // **Highlight de huidige dag**
-            if (weekdayDate.toDateString() === today.toDateString()) {
-                button.classList.add("highlight");
-            } else {
-                button.classList.remove("highlight");
-            }
-
-            // **Toon de datum en activeer het formulier bij klik**
-            button.onclick = function () {
-                // Toon de geselecteerde dag
-                document.getElementById('selected-day').innerText =
-                    `${weekdays[index]} ${weekdayDate.toLocaleDateString('nl-NL')}`;
-
-                // Zet de juiste datum in het verborgen inputveld
-                document.getElementById('date-input').value = weekdayDate.toISOString().split('T')[0];
-
-                // Maak het formulier zichtbaar
-                document.getElementById('day-form').style.display = 'block';
-            };
-        });
-    }
-
-    window.onload = updateWeekdays;
-
-</script>
 
 <!DOCTYPE html>
 <html lang="nl">
@@ -129,7 +73,6 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 
 <main>
     <div class="content-container">
-        <!-- Ingelogde gebruikersnaam weergeven -->
         <div class="welcome-message">
             Welkom, <?php echo htmlspecialchars($user_name); ?>!
         </div>
@@ -143,25 +86,67 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
         <?php endif; ?>
 
         <div class="week-container">
-            <button class="dag" onclick="showInputForm(0)">Maandag</button>
-            <button class="dag" onclick="showInputForm(1)">Dinsdag</button>
-            <button class="dag" onclick="showInputForm(2)">Woensdag</button>
-            <button class="dag" onclick="showInputForm(3)">Donderdag</button>
-            <button class="dag" onclick="showInputForm(4)">Vrijdag</button>
+            <?php
+            $weekdagen = ["Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag"];
+            foreach ($weekdagen as $dag) {
+                echo "<div><button class='dag'>$dag</button></div>";
+            }
+            ?>
         </div>
 
         <div class="date-ctn">
-            <form id="day-form" action="index.php" method="POST" style="display: none;">
+            <form id="day-form" action="index.php" method="POST">
                 <div class="uren-form">
                     <div id="selected-day"></div>
-                <input type="number" name="hours" min="0" max="24" required placeholder="Enter hours">
-                <input type="hidden" name="date" id="date-input">
-                <button type="submit">Indienen</button>
+                    <input type="number" name="hours" min="0" max="24" required placeholder="Voer uren in">
+                    <input type="hidden" name="date" id="date-input">
+                    <button type="submit" id="indien-btn">Indienen</button>
                 </div>
             </form>
         </div>
     </div>
 </main>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const buttons = document.querySelectorAll('.dag');
+        const dateCtn = document.querySelector('.date-ctn');
+        let activeButton = null;  // Variabele om de actieve knop bij te houden
+
+        buttons.forEach((button, index) => {
+            button.addEventListener("click", function () {
+                // Verwijder de highlight van alle knoppen (behalve de actieve knop)
+                buttons.forEach(btn => btn.classList.remove('highlight'));
+
+                // Als het formulier al zichtbaar is onder dezelfde knop, verberg het en verwijder de highlight
+                if (dateCtn.style.display === "block" && dateCtn.parentElement === button.parentNode) {
+                    dateCtn.style.display = "none"; // Verberg het formulier
+                    button.classList.remove('highlight'); // Verwijder de highlight
+                    activeButton = null; // Geen actieve knop meer
+                } else {
+                    // Voeg de highlight toe aan de aangeklikte knop
+                    button.classList.add('highlight');
+                    activeButton = button;  // Markeer deze knop als actief
+
+                    // Verplaats de date-ctn onder de aangeklikte knop
+                    button.parentNode.insertBefore(dateCtn, button.nextSibling);
+                    dateCtn.style.display = "block"; // Maak het zichtbaar
+                }
+
+                // Zet de geselecteerde dag in het formulier
+                const weekdays = ["Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag"];
+                const today = new Date();
+                const monday = new Date(today.setDate(today.getDate() - today.getDay() + 1));
+                let selectedDate = new Date(monday);
+                selectedDate.setDate(monday.getDate() + index);
+
+                document.getElementById('date-input').value = selectedDate.toISOString().split('T')[0];
+                document.getElementById('selected-day').innerText = `Geselecteerde dag: ${weekdays[index]} (${selectedDate.toLocaleDateString('nl-NL')})`;
+            });
+        });
+    });
+
+</script>
 
 </body>
 </html>
