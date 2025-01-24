@@ -1,12 +1,16 @@
-<title>Registreren</title>
+<?php
+include_once "../template/header.php";
+include "../db/conn.php"; // Include the PDO connection
+
+$title = "Registreren";
+?>
+<title><?php echo $title; ?></title>
 <link href="../css/inloggen.css" rel="stylesheet">
-<body>
-<?php include_once "../template/header.php"; ?>
 
 <main>
-    <h1 class="form-h">Registreren</h1>
+    <h1 class="form-h"><?php echo $title; ?></h1>
 
-    <form action="../auth/registreren.php" method="POST" class="form">
+    <form action="registreren.php" method="POST" class="form">
         <div class="form-row">
             <input type="text" name="name" class="form-input" placeholder="Gebruikersnaam" required>
         </div>
@@ -22,10 +26,9 @@
         <button type="submit" class="submit-btn">Registreren</button>
     </form>
 </main>
-</body>
-<?php
-include "../db/conn.php";
 
+<?php
+// Process form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name']);
     $password = $_POST['password'];
@@ -33,21 +36,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!empty($name) && !empty($password) && !empty($confirm_password)) {
         if ($password === $confirm_password) {
-            $name = mysqli_real_escape_string($conn, $name);
-            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+            // Use PDO to query the database and hash the password
+            try {
+                // Check if the username already exists
+                $stmt = $pdo->prepare("SELECT * FROM users WHERE name = :name");
+                $stmt->bindParam(':name', $name, PDO::PARAM_STR);
+                $stmt->execute();
 
-            $check_user_sql = "SELECT * FROM users WHERE name = '$name'";
-            $check_result = mysqli_query($conn, $check_user_sql);
+                if ($stmt->rowCount() == 0) {
+                    // If user doesn't exist, hash the password and insert into the database
+                    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+                    $insert_sql = "INSERT INTO users (name, password, role) VALUES (:name, :password, 'user')";
+                    $insert_stmt = $pdo->prepare($insert_sql);
+                    $insert_stmt->bindParam(':name', $name, PDO::PARAM_STR);
+                    $insert_stmt->bindParam(':password', $hashed_password, PDO::PARAM_STR);
 
-            if (mysqli_num_rows($check_result) == 0) {
-                $insert_sql = "INSERT INTO users (name, password, role) VALUES ('$name', '$hashed_password', 'user')";
-                if (mysqli_query($conn, $insert_sql)) {
-                    header("location: inloggen.php");
+                    if ($insert_stmt->execute()) {
+                        header("Location: inloggen.php");
+                        exit();
+                    } else {
+                        echo "<p>Er is een fout opgetreden. Probeer het later opnieuw.</p>";
+                    }
                 } else {
-                    echo "<p>Er is een fout opgetreden. Probeer het later opnieuw.</p>";
+                    echo "<p>Gebruikersnaam bestaat al. Kies een andere naam.</p>";
                 }
-            } else {
-                echo "<p>Gebruikersnaam bestaat al. Kies een andere naam.</p>";
+            } catch (PDOException $e) {
+                echo "<p>Fout bij databaseverbinding: " . $e->getMessage() . "</p>";
             }
         } else {
             echo "<p>Wachtwoorden komen niet overeen.</p>";
@@ -57,4 +71,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-
