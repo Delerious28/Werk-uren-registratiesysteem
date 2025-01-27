@@ -27,6 +27,7 @@ if ($filter === 'vandaag') {
 // SQL query with filter condition
 $sql = "
     SELECT 
+        hours.hours_id,
         hours.user_id, 
         users.name, 
         hours.hours, 
@@ -44,6 +45,34 @@ try {
 } catch (PDOException $e) {
     die("Error retrieving data: " . $e->getMessage());
 }
+
+// Handle form submissions for editing or completing
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['edit_hours'])) {
+        // Update hours in the database
+        $new_hours = htmlspecialchars($_POST['new_hours'], ENT_QUOTES, 'UTF-8');
+        $hours_id = intval($_POST['hours_id']);
+
+        $update_sql = "UPDATE hours SET hours = :hours WHERE hours_id = :hours_id";
+        $stmt = $pdo->prepare($update_sql);
+        $stmt->execute([':hours' => $new_hours, ':hours_id' => $hours_id]);
+
+        header("Location: " . $_SERVER['PHP_SELF'] . "?filter=" . urlencode($filter));
+        exit();
+    }
+
+    if (isset($_POST['complete_status'])) {
+        // Update accord status to 'Completed'
+        $hours_id = intval($_POST['hours_id']);
+
+        $update_sql = "UPDATE hours SET accord = 'Approved' WHERE hours_id = :hours_id";
+        $stmt = $pdo->prepare($update_sql);
+        $stmt->execute([':hours_id' => $hours_id]);
+
+        header("Location: " . $_SERVER['PHP_SELF'] . "?filter=" . urlencode($filter));
+        exit();
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -52,6 +81,7 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
+
 </head>
 <body>
     <div class="container">
@@ -80,8 +110,26 @@ try {
                 <?php endif; ?>
 
                 <div class="record">
-                    <p><strong>Name:</strong> <?= htmlspecialchars($row["name"]) ?></p>
-                    <p><strong>Hours Worked:</strong> <?= htmlspecialchars($row["hours"]) ?></p>
+                    <div>
+                        <p><strong>Name:</strong> <?= htmlspecialchars($row["name"]) ?></p>
+                        <p><strong>Hours Worked:</strong> <?= htmlspecialchars($row["hours"]) ?></p>
+                        <p><strong>Date:</strong> <?= htmlspecialchars($row["date"]) ?></p>
+                        <p><strong>Status:</strong> <?= htmlspecialchars($row["accord"]) ?></p>
+                    </div>
+                    <div class="buttons">
+                        <!-- Edit Hours Form -->
+                        <form method="POST" action="">
+                            <input type="hidden" name="hours_id" value="<?= htmlspecialchars($row['hours_id']) ?>">
+                            <input type="number" name="new_hours" value="<?= htmlspecialchars($row['hours']) ?>" min="0" max="24" required>
+                            <button type="submit" name="edit_hours">Edit</button>
+                        </form>
+
+                        <!-- Complete Status Form -->
+                        <form method="POST" action="">
+                            <input type="hidden" name="hours_id" value="<?= htmlspecialchars($row['hours_id']) ?>">
+                            <button type="submit" name="complete_status">Approved</button>
+                        </form>
+                    </div>
                 </div>
             <?php endforeach; ?>
         <?php else: ?>
