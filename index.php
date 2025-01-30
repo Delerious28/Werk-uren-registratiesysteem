@@ -5,7 +5,7 @@ include "db/conn.php"; // Database Connectie.
 // Check als de gebruiker ingelogd is:
 if (!isset($_SESSION['user_id'])) {
     echo "<p>Er is een probleem met uw inloggegevens. Log opnieuw in.</p>";
-    header("Location: auth/inloggen.php");
+    header("Location: inloggen.php");
     exit();
 }
 
@@ -14,11 +14,11 @@ $user_name = $_SESSION['user']; // Haal de gebruiker's naam op uit de sessie.
 
 // Bereken gewerkte uren per week
 $stmt_week = $pdo->prepare("
-    SELECT YEAR(date) AS jaar, WEEK(date, 1) AS week_nummer, SUM(hours) AS totaal_uren
+    SELECT YEARWEEK(date, 1) AS week_nummer, SUM(hours) AS totaal_uren
     FROM hours
     WHERE user_id = ?
-    GROUP BY jaar, week_nummer
-    ORDER BY jaar DESC, week_nummer DESC
+    GROUP BY week_nummer
+    ORDER BY week_nummer DESC
     LIMIT 5
 ");
 $stmt_week->execute([$user_id]);
@@ -69,6 +69,20 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
         echo "<p>Vul alle velden in!</p>";
     }
 }
+
+// Verkrijg de huidige week
+$current_date = new DateTime();
+$current_week_start = (clone $current_date)->modify('Monday this week');
+
+// Verkrijg de vorige week
+$previous_week_start = (clone $current_week_start)->modify('-1 week');
+
+// Verkrijg de volgende week (maar zet deze vast op de huidige week)
+$next_week_start = (clone $current_week_start)->modify('+1 week');
+
+// Verkrijg de laatste geselecteerde week (initieel op huidige week)
+$selected_week_start = $current_week_start;
+
 ?>
 
 <!DOCTYPE html>
@@ -80,15 +94,13 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 </head>
 <body>
 
-<?php include "template/header.php"; ?>
+<?php include "header.php"; ?>
 
 <main>
     <div class="content-container">
         <div class="welcome-message">
             Welkom, <?php echo htmlspecialchars($user_name); ?>!
         </div>
-
-        <div><?php echo date("d F Y"); ?></div>
 
         <?php if ($success_message): ?>
             <div class="success-message">
@@ -105,7 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
             </tr>
             <?php foreach ($week_uren as $week): ?>
                 <tr>
-                    <td><?php echo htmlspecialchars($week['jaar']) . '-W' . str_pad($week['week_nummer'], 2, '0', STR_PAD_LEFT); ?></td>
+                    <td><?php echo htmlspecialchars($week['week_nummer']); ?></td>
                     <td><?php echo htmlspecialchars($week['totaal_uren']); ?></td>
                 </tr>
             <?php endforeach; ?>
@@ -126,14 +138,16 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
             <?php endforeach; ?>
         </table>
 
-        <!-- Formulier om nieuwe uren in te voeren -->
+        <!-- Week navigatie knoppen -->
         <div class="week-container">
+            <button id="previous-week">Vorige week</button>
             <?php
             $weekdagen = ["Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag"];
             foreach ($weekdagen as $dag) {
                 echo "<div><button class='dag'>$dag</button></div>";
             }
             ?>
+            <button id="next-week">Volgende week</button>
         </div>
 
         <div class="date-ctn">
@@ -149,30 +163,10 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
     </div>
 </main>
 
+<script src="js/main.js"></script>
+
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const buttons = document.querySelectorAll('.dag');
-        const dateCtn = document.querySelector('.date-ctn');
-
-        buttons.forEach((button, index) => {
-            button.addEventListener("click", function () {
-                buttons.forEach(btn => btn.classList.remove('highlight'));
-                button.classList.add('highlight');
-
-                button.parentNode.insertBefore(dateCtn, button.nextSibling);
-                dateCtn.style.display = "block";
-
-                const weekdays = ["Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag"];
-                const today = new Date();
-                const monday = new Date(today.setDate(today.getDate() - today.getDay() + 1));
-                let selectedDate = new Date(monday);
-                selectedDate.setDate(monday.getDate() + index);
-
-                document.getElementById('date-input').value = selectedDate.toISOString().split('T')[0];
-                document.getElementById('selected-day').innerText = `Geselecteerde dag: ${weekdays[index]} (${selectedDate.toLocaleDateString('nl-NL')})`;
-            });
-        });
-    });
+    let selectedWeekStartDate = new Date('<?php echo $selected_week_start->format('Y-m-d'); ?>');
 </script>
 
 </body>

@@ -1,11 +1,11 @@
 <?php
-include_once "../template/header.php";
-include "../db/conn.php"; // Include the PDO connection
+include_once "header.php";
+include "db/conn.php"; // Include the PDO connection
 
 $title = "Registreren";
 ?>
 <title><?php echo $title; ?></title>
-<link href="../css/inloggen.css" rel="stylesheet">
+<link href="css/inloggen.css" rel="stylesheet">
 
 <main>
     <h1 class="form-h"><?php echo $title; ?></h1>
