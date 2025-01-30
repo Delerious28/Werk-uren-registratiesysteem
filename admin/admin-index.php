@@ -8,7 +8,7 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Sanitize session data awdawd
+// Sanitize session data
 $user_id = htmlspecialchars($_SESSION['user_id'], ENT_QUOTES, 'UTF-8'); 
 $user_name = htmlspecialchars($_SESSION['user'], ENT_QUOTES, 'UTF-8');
 
