@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `werk-uren-registratiesysteem`
+CREATE database `werk_uren_registratiesysteem`
 --
 
 -- --------------------------------------------------------
@@ -98,6 +98,7 @@ ALTER TABLE `users`
 --
 ALTER TABLE `hours`
     ADD CONSTRAINT `hours_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
