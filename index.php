@@ -5,12 +5,36 @@ include "db/conn.php"; // Database Connectie.
 // Check als de gebruiker ingelogd is:
 if (!isset($_SESSION['user_id'])) {
     echo "<p>Er is een probleem met uw inloggegevens. Log opnieuw in.</p>";
-    header("Location: auth/inloggen.php");
+    header("Location: inloggen.php");
     exit();
 }
 
 $user_id = $_SESSION['user_id']; // Haal de gebruiker's id op uit de sessie.
 $user_name = $_SESSION['user']; // Haal de gebruiker's naam op uit de sessie.
+
+// Bereken gewerkte uren per week
+$stmt_week = $pdo->prepare("
+    SELECT YEARWEEK(date, 1) AS week_nummer, SUM(hours) AS totaal_uren
+    FROM hours
+    WHERE user_id = ?
+    GROUP BY week_nummer
+    ORDER BY week_nummer DESC
+    LIMIT 5
+");
+$stmt_week->execute([$user_id]);
+$week_uren = $stmt_week->fetchAll(PDO::FETCH_ASSOC);
+
+// Bereken gewerkte uren per maand
+$stmt_month = $pdo->prepare("
+    SELECT DATE_FORMAT(date, '%Y-%m') AS maand, SUM(hours) AS totaal_uren
+    FROM hours
+    WHERE user_id = ?
+    GROUP BY maand
+    ORDER BY maand DESC
+    LIMIT 5
+");
+$stmt_month->execute([$user_id]);
+$maand_uren = $stmt_month->fetchAll(PDO::FETCH_ASSOC);
 
 // Initialiseer de succesberichtvariabele
 $success_message = '';
@@ -21,100 +45,45 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
         $hours = $_POST['hours'];
         $date = $_POST['date'];
 
-        // Zorg ervoor dat user_id is ingesteld voordat ik doorga met het invoegen van de database.
         if ($user_id) {
-            // Ingangen opschonen (SQL-injectie voorkomen).
-            $hours = intval($hours); // Zorg ervoor dat uren een geheel getal (Integer) zijn.
-            // Het is niet nodig om de datum handmatig te zuiveren, aangezien deze door PDO wordt afgehandeld in de voorbereide verklaring.
+            $hours = intval($hours);
 
-            // Gegevens invoeren in de database in (urentabel).
-            $stmt = $pdo->prepare("INSERT INTO hours (user_id, date, hours) VALUES (?, ?, ?)");
-            $stmt->bindParam(1, $user_id, PDO::PARAM_INT);
-            $stmt->bindParam(2, $date, PDO::PARAM_STR);
-            $stmt->bindParam(3, $hours, PDO::PARAM_INT);
+            // Controleer of er al uren zijn ingevoerd voor deze dag
+            $stmt = $pdo->prepare("SELECT * FROM hours WHERE user_id = ? AND date = ?");
+            $stmt->execute([$user_id, $date]);
+            $existingEntry = $stmt->fetch();
 
-            if ($stmt->execute()) {
-                // Success bericht.
-                $success_message = "Uren succesvol ingevoerd voor $date.";
+            if ($existingEntry) {
+                echo "<p>Je hebt al uren ingevoerd voor deze dag.</p>";
             } else {
-                echo "<p>Er is een fout opgetreden bij het invoeren van de uren: " . $stmt->errorInfo()[2] . "</p>";
+                // Gegevens invoeren in de database als er nog geen record bestaat
+                $stmt = $pdo->prepare("INSERT INTO hours (user_id, date, hours) VALUES (?, ?, ?)");
+                if ($stmt->execute([$user_id, $date, $hours])) {
+                    $success_message = "Uren succesvol ingevoerd voor $date.";
+                } else {
+                    echo "<p>Er is een fout opgetreden bij het invoeren van de uren.</p>";
+                }
             }
-        } else {
-            echo "<p>Er is een probleem met je gebruikersgegevens.</p>";
         }
     } else {
         echo "<p>Vul alle velden in!</p>";
     }
 }
+
+// Verkrijg de huidige week
+$current_date = new DateTime();
+$current_week_start = (clone $current_date)->modify('Monday this week');
+
+// Verkrijg de vorige week
+$previous_week_start = (clone $current_week_start)->modify('-1 week');
+
+// Verkrijg de volgende week (maar zet deze vast op de huidige week)
+$next_week_start = (clone $current_week_start)->modify('+1 week');
+
+// Verkrijg de laatste geselecteerde week (initieel op huidige week)
+$selected_week_start = $current_week_start;
+
 ?>
-
-<script>
-    function showInputForm(dayOffset) {
-        const today = new Date();
-        const dayOfWeek = today.getDay(); // 0 (Zondag) tot 6 (Zaterdag).
-
-        // Het begin van de huidige week berekenen (maandag).
-        let monday = new Date(today);
-        let adjustment = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-        monday.setDate(today.getDate() + adjustment);
-
-        // De geselecteerde datum op basis van de verschuiving vanaf maandag berekenen.
-        const selectedDate = new Date(monday);
-        selectedDate.setDate(monday.getDate() + dayOffset); // De offset toevoegen om de specifieke weekdag te krijgen.
-
-        // De geselecteerde dag en datum weergeven.
-        document.getElementById('selected-day').innerText = selectedDate.toDateString();
-
-        // De verborgen datuminvoerwaarde instellen (in JJJJ-MM-DD formaat).
-        const formattedDate = selectedDate.toISOString().split('T')[0]; // Formaat naar YYYY-MM-DD.
-        document.getElementById('date-input').value = formattedDate;
-
-        // De form weergeven.
-        document.getElementById('day-form').style.display = 'block';
-    }
-
-    // Functie om de weergegeven datums voor maandag tot en met vrijdag bij te werken.
-    function updateWeekdays() {
-        const today = new Date();
-        const dayOfWeek = today.getDay();
-        let adjustment = (dayOfWeek === 0) ? -6 : 1 - dayOfWeek;
-
-        let monday = new Date(today);
-        monday.setDate(today.getDate() + adjustment);
-
-        const weekdays = ['Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag'];
-        const buttons = document.querySelectorAll('.dag'); // Alle knoppen selecteren
-
-        buttons.forEach((button, index) => {
-            let weekdayDate = new Date(monday);
-            weekdayDate.setDate(monday.getDate() + index);
-            button.innerText = weekdays[index]; // Alleen de dag tonen
-
-            // **Highlight de huidige dag**
-            if (weekdayDate.toDateString() === today.toDateString()) {
-                button.classList.add("highlight");
-            } else {
-                button.classList.remove("highlight");
-            }
-
-            // **Toon de datum en activeer het formulier bij klik**
-            button.onclick = function () {
-                // Toon de geselecteerde dag
-                document.getElementById('selected-day').innerText =
-                    `${weekdays[index]} ${weekdayDate.toLocaleDateString('nl-NL')}`;
-
-                // Zet de juiste datum in het verborgen inputveld
-                document.getElementById('date-input').value = weekdayDate.toISOString().split('T')[0];
-
-                // Maak het formulier zichtbaar
-                document.getElementById('day-form').style.display = 'block';
-            };
-        });
-    }
-
-    window.onload = updateWeekdays;
-
-</script>
 
 <!DOCTYPE html>
 <html lang="nl">
@@ -125,16 +94,13 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 </head>
 <body>
 
-<?php include "template/header.php"; ?>
+<?php include "header.php"; ?>
 
 <main>
     <div class="content-container">
-        <!-- Ingelogde gebruikersnaam weergeven -->
         <div class="welcome-message">
             Welkom, <?php echo htmlspecialchars($user_name); ?>!
         </div>
-
-        <div><?php echo date("d F Y"); ?></div>
 
         <?php if ($success_message): ?>
             <div class="success-message">
@@ -142,26 +108,66 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
             </div>
         <?php endif; ?>
 
+        <!-- Overzicht van gewerkte uren per week -->
+        <h2>Gewerkte uren per week</h2>
+        <table>
+            <tr>
+                <th>Week</th>
+                <th>Totaal uren</th>
+            </tr>
+            <?php foreach ($week_uren as $week): ?>
+                <tr>
+                    <td><?php echo htmlspecialchars($week['week_nummer']); ?></td>
+                    <td><?php echo htmlspecialchars($week['totaal_uren']); ?></td>
+                </tr>
+            <?php endforeach; ?>
+        </table>
+
+        <!-- Overzicht van gewerkte uren per maand -->
+        <h2>Gewerkte uren per maand</h2>
+        <table>
+            <tr>
+                <th>Maand</th>
+                <th>Totaal uren</th>
+            </tr>
+            <?php foreach ($maand_uren as $maand): ?>
+                <tr>
+                    <td><?php echo htmlspecialchars($maand['maand']); ?></td>
+                    <td><?php echo htmlspecialchars($maand['totaal_uren']); ?></td>
+                </tr>
+            <?php endforeach; ?>
+        </table>
+
+        <!-- Week navigatie knoppen -->
         <div class="week-container">
-            <button class="dag" onclick="showInputForm(0)">Maandag</button>
-            <button class="dag" onclick="showInputForm(1)">Dinsdag</button>
-            <button class="dag" onclick="showInputForm(2)">Woensdag</button>
-            <button class="dag" onclick="showInputForm(3)">Donderdag</button>
-            <button class="dag" onclick="showInputForm(4)">Vrijdag</button>
+            <button id="previous-week">Vorige week</button>
+            <?php
+            $weekdagen = ["Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag"];
+            foreach ($weekdagen as $dag) {
+                echo "<div><button class='dag'>$dag</button></div>";
+            }
+            ?>
+            <button id="next-week">Volgende week</button>
         </div>
 
         <div class="date-ctn">
-            <form id="day-form" action="index.php" method="POST" style="display: none;">
+            <form id="day-form" action="index.php" method="POST">
                 <div class="uren-form">
                     <div id="selected-day"></div>
-                <input type="number" name="hours" min="0" max="24" required placeholder="Enter hours">
-                <input type="hidden" name="date" id="date-input">
-                <button type="submit">Indienen</button>
+                    <input type="number" name="hours" min="0" max="24" required placeholder="Voer uren in">
+                    <input type="hidden" name="date" id="date-input">
+                    <button type="submit" id="indien-btn">Indienen</button>
                 </div>
             </form>
         </div>
     </div>
 </main>
+
+<script src="js/main.js"></script>
+
+<script>
+    let selectedWeekStartDate = new Date('<?php echo $selected_week_start->format('Y-m-d'); ?>');
+</script>
 
 </body>
 </html>
