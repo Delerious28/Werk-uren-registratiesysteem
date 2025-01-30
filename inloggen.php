@@ -1,7 +1,7 @@
 <?php
 session_start(); // Start session at the top for session management
 
-include "../db/conn.php"; // Include the PDO connection
+include "db/conn.php"; // Include the PDO connection
 
 if ($_SERVER['REQUEST_METHOD'] === "POST") {
     if (!empty($_POST['name']) && !empty($_POST['password'])) {
@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
                 $_SESSION['role'] = $user['role']; // Store user role
 
                 // Redirect to the home page after successful login
-                header("Location: ../index.php");
+                header("Location: index.php");
                 exit();
             } else {
                 $error_message = "Ongeldig wachtwoord!"; // Invalid password message
@@ -42,10 +42,10 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 <html lang="nl">
 <head>
     <title>Inloggen</title>
-    <link href="../css/inloggen.css" rel="stylesheet">
+    <link href="css/inloggen.css" rel="stylesheet">
 </head>
 <body>
-<?php include_once "../template/header.php"; ?>
+<?php include_once "header.php"; ?>
 
 <main>
     <h1 class="form-h">Inloggen</h1>
