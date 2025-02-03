@@ -1,7 +1,7 @@
 <?php
 $servername = "localhost";
-$username = "root";
-$password = "";
+$username = "bit_acadmey";
+$password = "bit_acadmey";
 $dbname = "werk_uren_registratiesysteem";
 
 // Create PDO connection
