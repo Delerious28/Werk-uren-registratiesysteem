@@ -1,5 +1,6 @@
 <?php
 session_start();
+require('../fpdf/fpdf.php'); // Adjust the path if needed
 include "../db/conn.php"; // Database Connection
 
 // Check if the user is logged in
@@ -91,13 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </form>
 
     <?php if (count($rows) > 0): ?>
-        <?php $currentDay = ''; ?>
         <?php foreach ($rows as $row): ?>
-            <?php if ($filter === 'week' && date('l', strtotime($row["date"])) !== $currentDay): ?>
-                <h3><?= htmlspecialchars(date('l', strtotime($row["date"]))) ?></h3>
-                <?php $currentDay = date('l', strtotime($row["date"])); ?>
-            <?php endif; ?>
-
             <div class="container user-row">
                 <div class="div username"><strong>Name:</strong> <?= htmlspecialchars($row["name"]) ?></div>
                 <div class="div hours"><strong>Hours Worked:</strong> <?= htmlspecialchars($row["hours"]) ?></div>
@@ -105,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <form method="POST" action="">
                         <input type="hidden" name="hours_id" value="<?= htmlspecialchars($row['hours_id']) ?>">
                         <input type="number" name="new_hours" value="<?= htmlspecialchars($row['hours']) ?>" min="0" max="24" required>
-                        <button type="submit" name="edit_hours" class="div edit button">Edit</button>
+                        <button type="submit" name="edit_hours">Edit</button>
                     </form>
                 </div>
                 <div class="div approve">
@@ -119,6 +114,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php else: ?>
         <p>No records found.</p>
     <?php endif; ?>
-</div>
+
+    <!-- Download PDF Button -->
+    <div style="margin:20px 0;">
+        <a href="downloadPDF.php?filter=<?= urlencode($filter) ?>" class="download-button">
+            Download PDF Rapport
+        </a>
+    </div>
+
 </body>
 </html>
