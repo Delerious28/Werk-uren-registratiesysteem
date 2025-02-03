@@ -83,6 +83,11 @@ $next_week_start = (clone $current_week_start)->modify('+1 week');
 // Verkrijg de laatste geselecteerde week (initieel op huidige week)
 $selected_week_start = $current_week_start;
 
+// Datum van de week, maand en jaar voor "div class="datum" verkrijgen.
+$weekNum = $selected_week_start->format("W"); // Weeknummer
+$month = $selected_week_start->format("F");   // Maand (volledig)
+$year = $selected_week_start->format("Y");    // Jaar
+
 ?>
 
 <!DOCTYPE html>
@@ -91,6 +96,9 @@ $selected_week_start = $current_week_start;
     <meta charset="UTF-8">
     <title>Home</title>
     <link rel="stylesheet" href="css/main.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -98,8 +106,11 @@ $selected_week_start = $current_week_start;
 
 <main>
     <div class="content-container">
-        <div class="welcome-message">
-            Welkom, <?php echo htmlspecialchars($user_name); ?>!
+        <div class="datum">
+            <span id="week-text"></span>
+            <form action="uitloggen.php" method="POST">
+                <button type="submit" class="uitlog-btn">Uitloggen</button>
+            </form>
         </div>
 
         <?php if ($success_message): ?>
@@ -108,55 +119,34 @@ $selected_week_start = $current_week_start;
             </div>
         <?php endif; ?>
 
-        <!-- Overzicht van gewerkte uren per week -->
-        <h2>Gewerkte uren per week</h2>
-        <table>
-            <tr>
-                <th>Week</th>
-                <th>Totaal uren</th>
-            </tr>
-            <?php foreach ($week_uren as $week): ?>
-                <tr>
-                    <td><?php echo htmlspecialchars($week['week_nummer']); ?></td>
-                    <td><?php echo htmlspecialchars($week['totaal_uren']); ?></td>
-                </tr>
-            <?php endforeach; ?>
-        </table>
-
-        <!-- Overzicht van gewerkte uren per maand -->
-        <h2>Gewerkte uren per maand</h2>
-        <table>
-            <tr>
-                <th>Maand</th>
-                <th>Totaal uren</th>
-            </tr>
-            <?php foreach ($maand_uren as $maand): ?>
-                <tr>
-                    <td><?php echo htmlspecialchars($maand['maand']); ?></td>
-                    <td><?php echo htmlspecialchars($maand['totaal_uren']); ?></td>
-                </tr>
-            <?php endforeach; ?>
-        </table>
-
         <!-- Week navigatie knoppen -->
         <div class="week-container">
-            <button id="previous-week">Vorige week</button>
+            <button id="previous-week" class="nav-week-btn">
+                <img src="img/links-pijl.png" alt="pijl" class="nav-pijl">
+            </button>
+
             <?php
             $weekdagen = ["Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag"];
             foreach ($weekdagen as $dag) {
                 echo "<div><button class='dag'>$dag</button></div>";
             }
             ?>
-            <button id="next-week">Volgende week</button>
+
+            <button id="next-week" class="nav-week-btn">
+                <img src="img/rechts-pijl.png" alt="pijl" class="nav-pijl">
+            </button>
         </div>
 
         <div class="date-ctn">
             <form id="day-form" action="index.php" method="POST">
                 <div class="uren-form">
                     <div id="selected-day"></div>
-                    <input type="number" name="hours" min="0" max="24" required placeholder="Voer uren in">
+                    <div class="input-icon-div">
+                    <input type="number" name="hours" min="0" max="24" required placeholder="Uren">
+                        <img src="img/uren-icon.png" alt="uren icon" class="uren-icon">
+                    </div>
                     <input type="hidden" name="date" id="date-input">
-                    <button type="submit" id="indien-btn">Indienen</button>
+                    <button type="submit" id="indien-btn" class="indienen-btn">Indienen</button>
                 </div>
             </form>
         </div>
@@ -168,6 +158,34 @@ $selected_week_start = $current_week_start;
 <script>
     let selectedWeekStartDate = new Date('<?php echo $selected_week_start->format('Y-m-d'); ?>');
 </script>
+
+<!--<h2>Gewerkte uren per week</h2>-->
+<!--<table>-->
+<!--    <tr>-->
+<!--        <th>Week</th>-->
+<!--        <th>Totaal uren</th>-->
+<!--    </tr>-->
+<!--    --><?php //foreach ($week_uren as $week): ?>
+<!--        <tr>-->
+<!--            <td>--><?php //echo htmlspecialchars($week['week_nummer']); ?><!--</td>-->
+<!--            <td>--><?php //echo htmlspecialchars($week['totaal_uren']); ?><!--</td>-->
+<!--        </tr>-->
+<!--    --><?php //endforeach; ?>
+<!--</table>-->
+<!---->
+<!--<h2>Gewerkte uren per maand</h2>-->
+<!--<table>-->
+<!--    <tr>-->
+<!--        <th>Maand</th>-->
+<!--        <th>Totaal uren</th>-->
+<!--    </tr>-->
+<!--    --><?php //foreach ($maand_uren as $maand): ?>
+<!--        <tr>-->
+<!--            <td>--><?php //echo htmlspecialchars($maand['maand']); ?><!--</td>-->
+<!--            <td>--><?php //echo htmlspecialchars($maand['totaal_uren']); ?><!--</td>-->
+<!--        </tr>-->
+<!--    --><?php //endforeach; ?>
+<!--</table>-->
 
 </body>
 </html>
