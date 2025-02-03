@@ -3,12 +3,18 @@ document.addEventListener("DOMContentLoaded", function () {
     const nextWeekBtn = document.getElementById('next-week');
     const buttons = document.querySelectorAll('.dag');
     const dateCtn = document.querySelector('.date-ctn');
-    const weekDateDiv = document.querySelector('.content-container div');
 
     function updateWeekDate(weekStartDate) {
         const endOfWeek = new Date(weekStartDate);
         endOfWeek.setDate(weekStartDate.getDate() + 6);
-        weekDateDiv.textContent = `${weekStartDate.toLocaleDateString('nl-NL')} - ${endOfWeek.toLocaleDateString('nl-NL')}`;
+        updateDateDisplay(weekStartDate);
+    }
+
+    function resetSelection() {
+        // Verwijder highlight van de dagknoppen
+        buttons.forEach(btn => btn.classList.remove('highlight'));
+        // Verberg de date container
+        dateCtn.style.display = "none";
     }
 
     // Vorige week knop
@@ -16,6 +22,7 @@ document.addEventListener("DOMContentLoaded", function () {
         selectedWeekStartDate.setDate(selectedWeekStartDate.getDate() - 7);
         updateWeekDate(selectedWeekStartDate);
         updateDagButtons(selectedWeekStartDate);
+        resetSelection(); // Reset selectie bij wisselen van week
     });
 
     // Volgende week knop
@@ -23,15 +30,14 @@ document.addEventListener("DOMContentLoaded", function () {
         const currentDate = new Date();
         const currentWeekStart = new Date(currentDate.setDate(currentDate.getDate() - currentDate.getDay() + 1)); // Start van de huidige week (maandag)
 
-        // Vergelijk de geselecteerde week met de huidige week
         if (selectedWeekStartDate.getTime() < currentWeekStart.getTime()) {
             selectedWeekStartDate.setDate(selectedWeekStartDate.getDate() + 7);
             updateWeekDate(selectedWeekStartDate);
             updateDagButtons(selectedWeekStartDate);
+            resetSelection(); // Reset selectie bij wisselen van week
         }
     });
 
-    // Update dagknoppen op basis van week
     function updateDagButtons(weekStartDate) {
         const dagButtons = document.querySelectorAll('.dag');
         for (let i = 0; i < dagButtons.length; i++) {
@@ -41,34 +47,42 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // Dagknoppen functionaliteit
-    buttons.forEach((button, index) => {
+    function updateDateDisplay(weekStartDate) {
+        const weekNum = getWeekNumber(weekStartDate);
+        const month = weekStartDate.toLocaleString('nl-NL', { month: 'long' });
+        const year = weekStartDate.getFullYear();
+        document.getElementById('week-text').textContent = `Week ${weekNum} - ${month} ${year}`;
+    }
+
+    function getWeekNumber(date) {
+        const tempDate = new Date(date.getTime());
+        tempDate.setHours(0, 0, 0, 0);
+        tempDate.setDate(tempDate.getDate() + 4 - (tempDate.getDay() || 7)); // Maandag als start
+        const yearStart = new Date(tempDate.getFullYear(), 0, 1);
+        return Math.ceil((((tempDate - yearStart) / 86400000) + 1) / 7);
+    }
+
+    buttons.forEach((button) => {
         button.addEventListener('click', function () {
-            // Als de knop al geselecteerd is, deselecteer deze en sluit het formulier
             if (button.classList.contains('highlight')) {
                 button.classList.remove('highlight');
-                document.getElementById('selected-day').innerText = '';  // Leeg de geselecteerde dag
-                dateCtn.style.display = "none";  // Sluit het formulier
+                document.getElementById('selected-day').innerText = '';
+                dateCtn.style.display = "none";
                 return;
             }
 
-            // Deseleccteer alle knoppen
             buttons.forEach(btn => btn.classList.remove('highlight'));
-
-            // Markeer de geselecteerde knop
             button.classList.add('highlight');
 
             button.parentNode.insertBefore(dateCtn, button.nextSibling);
             dateCtn.style.display = "block";
 
-            const weekdays = ["Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag"];
             const selectedDate = new Date(button.dataset.date);
             document.getElementById('date-input').value = selectedDate.toISOString().split('T')[0];
-            document.getElementById('selected-day').innerText = `Geselecteerde dag: ${weekdays[index]} (${selectedDate.toLocaleDateString('nl-NL')})`;
+            document.getElementById('selected-day').innerText = `${selectedDate.toLocaleDateString('nl-NL')}`;
         });
     });
 
-    // Initialiseer de weekknoppen
     updateWeekDate(selectedWeekStartDate);
     updateDagButtons(selectedWeekStartDate);
 });
