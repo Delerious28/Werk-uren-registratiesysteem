@@ -7,21 +7,27 @@ body {
 
 .container {
     display: flex;
+    width: 65%;
+    margin: auto;
+    padding: 5px;
+    min-height: 80vh;
 }
 
 .sidebar {
-    width: 200px;
+    width: 160px;
     background-color: #8B0000;
-    padding: 20px;
+    padding: 8px;
     color: white;
-    height: 100vh;
+    height: 85vh;
     display: flex;
     flex-direction: column;
+    justify-content: flex-start;
 }
 
 .menu-item {
-    padding: 10px;
-    margin: 5px 0;
+    font-size: 13px;
+    padding: 6px;
+    margin: 3px 0;
     cursor: pointer;
 }
 
@@ -31,17 +37,20 @@ body {
 
 .content {
     flex-grow: 1;
-    padding: 20px;
+    padding: 10px;
+    font-size: 13px;
     background: white;
-    margin: 20px;
-    border-radius: 10px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    margin: 10px;
+    border-radius: 8px;
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+    min-height: 60vh;
 }
 
 table {
-    width: 100%;
+    width: 85%;
     border-collapse: collapse;
-    margin-top: 20px;
+    margin-top: 10px;
+    font-size: 13px;
 }
 
 table, th, td {
@@ -49,7 +58,7 @@ table, th, td {
 }
 
 th, td {
-    padding: 10px;
+    padding: 4px;
     text-align: center;
 }
 
@@ -60,25 +69,32 @@ th {
 
 button {
     border: none;
-    padding: 5px 10px;
+    padding: 4px 8px;
+    font-size: 13px;
     cursor: pointer;
-    border-radius: 5px;
+    border-radius: 4px;
 }
 
 button:hover {
     opacity: 0.8;
 }
+
 .filter-form {
-    margin-bottom: 15px;
+    margin-bottom: 8px;
 }
 
 .filter-form label {
-    font-size: 16px;
+    font-size: 13px;
     font-weight: bold;
 }
 
 .filter-form select {
-    padding: 5px;
-    font-size: 16px;
-    border-radius: 5px;
+    padding: 4px;
+    font-size: 13px;
+    border-radius: 4px;
+}
+
+.logo img {
+    width: 90px;
+    height: auto;
 }
