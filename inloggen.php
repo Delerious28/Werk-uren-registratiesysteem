@@ -23,9 +23,15 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
                 $_SESSION['user_id'] = $user['user_id']; // Store user_id in session
                 $_SESSION['role'] = $user['role']; // Store user role
 
-                // Redirect to the home page after successful login
-                header("Location: index.php");
-                exit();
+                // Redirect based on the user's role
+                if ($_SESSION['role'] == "admin") {
+                    // Redirect to admin dashboard if role is admin
+                    header("Location: admin/admin-index.php");
+                } else {
+                    // Redirect to user homepage if role is user
+                    header("Location: index.php");
+                }
+                exit(); // Ensure no further code runs after redirection
             } else {
                 $error_message = "Ongeldig wachtwoord!"; // Invalid password message
             }
