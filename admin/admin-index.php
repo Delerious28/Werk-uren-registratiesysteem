@@ -4,10 +4,10 @@ require('../fpdf/fpdf.php'); // Adjust the path if needed
 include "../db/conn.php"; // Database Connection
 
 // Check if the user is logged in
-//if (!isset($_SESSION['user_id'])) {
-//    header("Location: ../inloggen.php");
-//    exit();
-//}
+ if (!isset($_SESSION['user_id'])) {
+     header("Location: ../inloggen.php");
+     exit();
+ }
 
 // Sanitize session data
 $user_id = htmlspecialchars($_SESSION['user_id'], ENT_QUOTES, 'UTF-8');
@@ -86,6 +86,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
     <div class="content">
         <h1>Week activiteiten</h1>
+
+        <!-- Filter Form -->
+        <form method="GET" action="" class="filter-form">
+            <label for="filter">Filter op:</label>
+            <select name="filter" id="filter" onchange="this.form.submit()">
+                <option value="all" <?= $filter === 'all' ? 'selected' : '' ?>>Alles</option>
+                <option value="vandaag" <?= $filter === 'vandaag' ? 'selected' : '' ?>>Vandaag</option>
+                <option value="week" <?= $filter === 'week' ? 'selected' : '' ?>>Week</option>
+                <option value="maand" <?= $filter === 'maand' ? 'selected' : '' ?>>Maand</option>
+            </select>
+        </form>
+
         <table>
             <tr>
                 <th>Naam</th>
