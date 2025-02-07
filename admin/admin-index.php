@@ -83,14 +83,6 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
     <link rel="stylesheet" href="admin-index.css">
-    <style>
-        /* Inline CSS for arrow styling; move to your external stylesheet if preferred */
-        .prev, .next {
-            cursor: pointer;
-            font-size: 1.2em;
-            padding: 0 5px;
-        }
-    </style>
 </head>
 <body>
 <div class="container">
@@ -149,9 +141,7 @@ try {
                 <tr>
                     <th class="cell">Naam</th>
                     <th class="cell">
-                        <span class="prev">&#9664;</span>
-                        Totaal
-                        <span class="next">&#9654;</span>
+                        <span class="prev">&#9664;</span> Totaal <span class="next">&#9654;</span>
                     </th>
                 </tr>
                 </thead>
@@ -168,22 +158,17 @@ try {
             </table>
 
         <?php else: ?>
-            <!-- When filtering by week, display Name, Weekdays (with arrows next to Ma and Vr), and Totaal separately -->
+            <!-- When filtering by week, display Name, weekdays with arrows for Monday and Friday, and Totaal -->
             <table>
                 <thead>
-                <!-- First header row separates Name and Total from weekdays -->
                 <tr>
-                    <th rowspan="2" class="cell">Naam</th>
-                    <th colspan="5" class="cell">Weekdagen</th>
-                    <th rowspan="2" class="cell">Totaal</th>
-                </tr>
-                <!-- Second header row shows the weekdays with arrows next to Ma and Vr -->
-                <tr>
-                    <th class="cell">Ma <span class="prev">&#9664;</span></th>
+                    <th class="cell">Naam</th>
+                    <th class="cell"><span class="prev">&#9664;</span> Ma</th>
                     <th class="cell">Di</th>
                     <th class="cell">Wo</th>
                     <th class="cell">Do</th>
                     <th class="cell">Vr <span class="next">&#9654;</span></th>
+                    <th class="cell">Totaal</th>
                 </tr>
                 </thead>
                 <tbody>
