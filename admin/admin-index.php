@@ -83,6 +83,14 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
     <link rel="stylesheet" href="admin-index.css">
+    <style>
+        /* Inline CSS for arrow styling; move to your external stylesheet if preferred */
+        .prev, .next {
+            cursor: pointer;
+            font-size: 1.2em;
+            padding: 0 5px;
+        }
+    </style>
 </head>
 <body>
 <div class="container">
@@ -92,8 +100,11 @@ try {
         <div class="menu-item"><a href="admin-gebruikers.php">Gebruikers</a></div>
         <div class="menu-item"><a href="../uitloggen.php">Uitloggen</a></div>
     </div>
+
     <div class="content">
-        <h1>Activiteiten</h1>
+        <div class="header">
+            <div class="name">Activiteiten Overzicht</div>
+        </div>
 
         <!-- Filter Form -->
         <form method="GET" action="" class="filter-form">
@@ -105,47 +116,95 @@ try {
             </select>
         </form>
 
-        <?php if ($filter === 'maand' || $filter === 'vandaag'): ?>
-            <!-- When filtering by month or today, display only Name and Total -->
+        <?php if ($filter === 'vandaag'): ?>
+            <!-- When filtering by today, display only Name and Total -->
             <table>
+                <thead>
+                <tr class="navigation">
+                    <th colspan="2">
+                        <span class="prev">&#9664;</span>
+                        <span class="title">Vandaag Activiteiten</span>
+                        <span class="next">&#9654;</span>
+                    </th>
+                </tr>
                 <tr>
                     <th>Naam</th>
                     <th>Totaal</th>
                 </tr>
+                </thead>
+                <tbody>
                 <?php foreach ($rows as $row): ?>
                     <tr>
                         <td><?= htmlspecialchars($row["name"]) ?></td>
                         <td><?= htmlspecialchars($row["totaal"]) ?></td>
                     </tr>
                 <?php endforeach; ?>
+                </tbody>
             </table>
-        <?php else: ?>
-            <!-- When filtering by week, display the weekday's -->
+
+        <?php elseif ($filter === 'maand'): ?>
+            <!-- When filtering by month, display Name and Total with arrows next to Totaal -->
             <table>
+                <thead>
                 <tr>
-                    <th>Naam</th>
-                    <th>Ma</th>
-                    <th>Di</th>
-                    <th>Wo</th>
-                    <th>Do</th>
-                    <th>Vr</th>
-                    <th>Totaal</th>
+                    <th class="cell">Naam</th>
+                    <th class="cell">
+                        <span class="prev">&#9664;</span>
+                        Totaal
+                        <span class="next">&#9654;</span>
+                    </th>
                 </tr>
+                </thead>
+                <tbody>
+                <?php foreach ($rows as $row): ?>
+                    <tr>
+                        <td class="name">
+                            <span class="icon">&#128100;</span><?= htmlspecialchars($row["name"]) ?>
+                        </td>
+                        <td class="cell"><?= htmlspecialchars($row["totaal"]) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+
+        <?php else: ?>
+            <!-- When filtering by week, display Name, Weekdays (with arrows next to Ma and Vr), and Totaal separately -->
+            <table>
+                <thead>
+                <!-- First header row separates Name and Total from weekdays -->
+                <tr>
+                    <th rowspan="2" class="cell">Naam</th>
+                    <th colspan="5" class="cell">Weekdagen</th>
+                    <th rowspan="2" class="cell">Totaal</th>
+                </tr>
+                <!-- Second header row shows the weekdays with arrows next to Ma and Vr -->
+                <tr>
+                    <th class="cell">Ma <span class="prev">&#9664;</span></th>
+                    <th class="cell">Di</th>
+                    <th class="cell">Wo</th>
+                    <th class="cell">Do</th>
+                    <th class="cell">Vr <span class="next">&#9654;</span></th>
+                </tr>
+                </thead>
+                <tbody>
                 <?php foreach ($rows as $row): ?>
                     <?php
                     // Calculate total hours for the week.
                     $total = $row["Ma"] + $row["Di"] + $row["Wo"] + $row["Do"] + $row["Vr"];
                     ?>
                     <tr>
-                        <td><?= htmlspecialchars($row["name"]) ?></td>
-                        <td><?= htmlspecialchars($row["Ma"]) ?></td>
-                        <td><?= htmlspecialchars($row["Di"]) ?></td>
-                        <td><?= htmlspecialchars($row["Wo"]) ?></td>
-                        <td><?= htmlspecialchars($row["Do"]) ?></td>
-                        <td><?= htmlspecialchars($row["Vr"]) ?></td>
-                        <td><strong><?= htmlspecialchars($total) ?></strong></td>
+                        <td class="name">
+                            <span class="icon">&#128100;</span><?= htmlspecialchars($row["name"]) ?>
+                        </td>
+                        <td class="cell"><?= htmlspecialchars($row["Ma"]) ?></td>
+                        <td class="cell"><?= htmlspecialchars($row["Di"]) ?></td>
+                        <td class="cell"><?= htmlspecialchars($row["Wo"]) ?></td>
+                        <td class="cell"><?= htmlspecialchars($row["Do"]) ?></td>
+                        <td class="cell"><?= htmlspecialchars($row["Vr"]) ?></td>
+                        <td class="cell"><strong><?= htmlspecialchars($total) ?></strong></td>
                     </tr>
                 <?php endforeach; ?>
+                </tbody>
             </table>
         <?php endif; ?>
     </div>
