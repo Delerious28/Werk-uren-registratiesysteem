@@ -38,6 +38,7 @@ $maand_uren = $stmt_month->fetchAll(PDO::FETCH_ASSOC);
 
 // Initialiseer de succesberichtvariabele
 $success_message = '';
+$fail_message = '';
 
 // Formulierinzending afhandelen
 if ($_SERVER['REQUEST_METHOD'] === "POST") {
@@ -54,12 +55,14 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
             $existingEntry = $stmt->fetch();
 
             if ($existingEntry) {
-                echo "<p>Je hebt al uren ingevoerd voor deze dag.</p>";
+                $fail_message = "U heeft de uren voor $date al ingevoerd!";
+                header('Refresh: 4');
             } else {
                 // Gegevens invoeren in de database als er nog geen record bestaat
                 $stmt = $pdo->prepare("INSERT INTO hours (user_id, date, hours) VALUES (?, ?, ?)");
                 if ($stmt->execute([$user_id, $date, $hours])) {
                     $success_message = "Uren succesvol ingevoerd voor $date.";
+                    header('Refresh: 4');
                 } else {
                     echo "<p>Er is een fout opgetreden bij het invoeren van de uren.</p>";
                 }
@@ -116,6 +119,12 @@ $year = $selected_week_start->format("Y");    // Jaar
         <?php if ($success_message): ?>
             <div class="success-message">
                 <?php echo htmlspecialchars($success_message); ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($fail_message): ?>
+            <div class="fail-message">
+                <?php echo htmlspecialchars($fail_message); ?>
             </div>
         <?php endif; ?>
 
