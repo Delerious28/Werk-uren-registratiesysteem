@@ -49,10 +49,21 @@ main {
     text-align: center;
     background-color: darkseagreen;
     border-radius: 10px;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.fail-message{
+    margin: 10px auto;
+    width: 400px;
+    padding: 10px;
+    text-align: center;
+    background-color: #fd2424;
+    border-radius: 10px;
+    transition: opacity 0.5s ease-in-out;
 }
 
 .week-container {
-    margin-top: 30px;
+    margin-top: 20px;
     width: 100%;
     display: flex;
     justify-content: space-evenly;
