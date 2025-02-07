@@ -16,9 +16,8 @@ $user_name = htmlspecialchars($_SESSION['user'], ENT_QUOTES, 'UTF-8');
 // Handle filter selection
 $filter = isset($_GET['filter']) ? $_GET['filter'] : 'week'; // Default to 'week'
 
-// Depending on the filter, build the query accordingly.
 if ($filter === 'maand') {
-    // For month, we only want to display the total hours for the current month.
+    // For month: show only the total hours for the current month.
     $sql = "
         SELECT 
             u.user_id,
@@ -33,15 +32,23 @@ if ($filter === 'maand') {
         GROUP BY u.user_id, u.name
         ORDER BY u.name ASC
     ";
-} else {
-    // For 'vandaag' (today) or 'week' filters, use the daily.
-    $on_date_condition = "";
-    if ($filter === 'vandaag') {
-        $on_date_condition = "AND DATE(h.date) = CURDATE()";
-    } elseif ($filter === 'week') {
-        $on_date_condition = "AND YEARWEEK(h.date, 1) = YEARWEEK(CURDATE(), 1)";
-    }
-
+} elseif ($filter === 'vandaag') {
+    // For today: show only the total hours for the current day.
+    $sql = "
+        SELECT 
+            u.user_id,
+            u.name,
+            COALESCE(SUM(h.hours), 0) AS totaal
+        FROM users u
+        LEFT JOIN hours h 
+            ON u.user_id = h.user_id 
+            AND DATE(h.date) = CURDATE()
+        WHERE u.role = 'user'
+        GROUP BY u.user_id, u.name
+        ORDER BY u.name ASC
+    ";
+} else { // week filter
+    // For week: display hours per weekday (Monday through Friday).
     $sql = "
         SELECT 
             u.user_id,
@@ -52,7 +59,9 @@ if ($filter === 'maand') {
             COALESCE(SUM(CASE WHEN DAYOFWEEK(h.date) = 5 THEN h.hours ELSE 0 END), 0) AS Do,
             COALESCE(SUM(CASE WHEN DAYOFWEEK(h.date) = 6 THEN h.hours ELSE 0 END), 0) AS Vr
         FROM users u
-        LEFT JOIN hours h ON u.user_id = h.user_id $on_date_condition
+        LEFT JOIN hours h 
+            ON u.user_id = h.user_id 
+            AND YEARWEEK(h.date, 1) = YEARWEEK(CURDATE(), 1)
         WHERE u.role = 'user'
         GROUP BY u.user_id, u.name
         ORDER BY u.name ASC
@@ -84,7 +93,7 @@ try {
         <div class="menu-item"><a href="../uitloggen.php">Uitloggen</a></div>
     </div>
     <div class="content">
-        <h1>Week activiteiten</h1>
+        <h1>Activiteiten</h1>
 
         <!-- Filter Form -->
         <form method="GET" action="" class="filter-form">
@@ -95,8 +104,9 @@ try {
                 <option value="maand" <?= $filter === 'maand' ? 'selected' : '' ?>>Maand</option>
             </select>
         </form>
-        <!--  filtering by month, display Name and Total -->
-        <?php if ($filter === 'maand'): ?>
+
+        <?php if ($filter === 'maand' || $filter === 'vandaag'): ?>
+            <!-- When filtering by month or today, display only Name and Total -->
             <table>
                 <tr>
                     <th>Naam</th>
@@ -110,7 +120,7 @@ try {
                 <?php endforeach; ?>
             </table>
         <?php else: ?>
-            <!-- When filtering by today or week -->
+            <!-- When filtering by week, display the weekday's -->
             <table>
                 <tr>
                     <th>Naam</th>
@@ -123,7 +133,7 @@ try {
                 </tr>
                 <?php foreach ($rows as $row): ?>
                     <?php
-                    // Calculate total hours for the week
+                    // Calculate total hours for the week.
                     $total = $row["Ma"] + $row["Di"] + $row["Wo"] + $row["Do"] + $row["Vr"];
                     ?>
                     <tr>
