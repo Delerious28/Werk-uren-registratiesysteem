@@ -74,7 +74,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <div class="container">
     <div class="sidebar">
         <div class="menu-item"><a href="admin-index.php">Dashboard</a></div>
-        <div class="menu-item active"><a href="admin-download.php">Download</a></div>
+        <div class="menu-item active"><a href="admin-download.php">download</a></div>
         <div class="menu-item"><a href="admin-gebruikers.php">Gebruikers</a></div>
         <div class="menu-item"><a href="../uitloggen.php">Uitloggen</a></div>
     </div>
