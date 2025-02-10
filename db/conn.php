@@ -3,7 +3,7 @@ $servername = "localhost";
 $username = "root";
 $password = "";
 $dbname = "werk_uren_registratiesysteem";
-
+// ""
 // Create PDO connection
 try {
     $pdo = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
