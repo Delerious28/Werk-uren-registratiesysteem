@@ -115,7 +115,7 @@ try {
                         <td><?= htmlspecialchars($row["Vr"]) ?></td>
                         <td><strong><?= htmlspecialchars($total) ?> Totaal</strong></td>
                     <?php else: ?>
-                        <td><?= htmlspecialchars($row["totaal"]) ?> totaal</td>
+                        <td><?= htmlspecialchars($row["totaal"]) ?> Totaal</td>
                     <?php endif; ?>
                 </tr>
             <?php endforeach; ?>
