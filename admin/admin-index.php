@@ -12,16 +12,19 @@ $user_id = htmlspecialchars($_SESSION['user_id'], ENT_QUOTES, 'UTF-8');
 $user_name = htmlspecialchars($_SESSION['user'], ENT_QUOTES, 'UTF-8');
 
 $filter = isset($_GET['filter']) ? $_GET['filter'] : 'week';
+$month = isset($_GET['month']) ? (int)$_GET['month'] : date('n');
+$year = date('Y');
 
 if ($filter === 'maand') {
     $sql = "
         SELECT u.user_id, u.name, COALESCE(SUM(h.hours), 0) AS totaal
         FROM users u
-        LEFT JOIN hours h ON u.user_id = h.user_id AND MONTH(h.date) = MONTH(CURDATE()) AND YEAR(h.date) = YEAR(CURDATE())
+        LEFT JOIN hours h ON u.user_id = h.user_id AND MONTH(h.date) = :month AND YEAR(h.date) = :year
         WHERE u.role = 'user'
         GROUP BY u.user_id, u.name
         ORDER BY u.name ASC
     ";
+    $params = [':month' => $month, ':year' => $year];
 } elseif ($filter === 'vandaag') {
     $sql = "
         SELECT u.user_id, u.name, COALESCE(SUM(h.hours), 0) AS totaal
@@ -31,6 +34,7 @@ if ($filter === 'maand') {
         GROUP BY u.user_id, u.name
         ORDER BY u.name ASC
     ";
+    $params = [];
 } else {
     $sql = "
         SELECT u.user_id, u.name,
@@ -45,10 +49,12 @@ if ($filter === 'maand') {
         GROUP BY u.user_id, u.name
         ORDER BY u.name ASC
     ";
+    $params = [];
 }
 
 try {
-    $stmt = $pdo->query($sql);
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     die("Error retrieving data: " . $e->getMessage());
@@ -76,7 +82,6 @@ try {
         <div class="header">
             <div class="name">Activiteiten Overzicht</div>
             <form method="GET" action="" class="filter-form">
-                <label for="filter">Filter op:</label>
                 <select name="filter" id="filter" onchange="this.form.submit()">
                     <option value="vandaag" <?= $filter === 'vandaag' ? 'selected' : '' ?>>Vandaag</option>
                     <option value="week" <?= $filter === 'week' ? 'selected' : '' ?>>Week</option>
@@ -90,21 +95,18 @@ try {
             <tr>
                 <th>Naam</th>
                 <?php if ($filter === 'week'): ?>
-                    <th><span class="prev">&#9664;</span> Ma</th>
-                    <th>Di</th>
-                    <th>Wo</th>
-                    <th>Do</th>
-                    <th>Vr <span class="next">&#9654;</span></th>
-                    <th>Totaal</th>
+                    <th>Ma</th><th>Di</th><th>Wo</th><th>Do</th><th>Vr</th><th>Totaal</th>
+                <?php elseif ($filter === 'maand'): ?>
+                    <th><a href="?filter=maand&month=<?= $month-1 ?>">&#9664;</a> <?= date('F', mktime(0, 0, 0, $month, 10)) ?> <a href="?filter=maand&month=<?= $month+1 ?>">&#9654;</a></th>
                 <?php else: ?>
-                    <th><span class="prev">&#9664;</span> Totaal <span class="next">&#9654;</span></th>
+                    <th>Vandaag</th>
                 <?php endif; ?>
             </tr>
             </thead>
             <tbody>
             <?php foreach ($rows as $row): ?>
                 <tr>
-                    <td><?= htmlspecialchars($row["name"]) ?></td>
+                    <td><img src="user-icon.png" alt="icon"> <?= htmlspecialchars($row["name"]) ?></td>
                     <?php if ($filter === 'week'):
                         $total = $row["Ma"] + $row["Di"] + $row["Wo"] + $row["Do"] + $row["Vr"];
                         ?>
@@ -115,7 +117,7 @@ try {
                         <td><?= htmlspecialchars($row["Vr"]) ?></td>
                         <td><strong><?= htmlspecialchars($total) ?> Totaal</strong></td>
                     <?php else: ?>
-                        <td><?= htmlspecialchars($row["totaal"]) ?> Totaal</td>
+                        <td><?= htmlspecialchars($row["totaal"]) ?> Totaal ✅</td>
                     <?php endif; ?>
                 </tr>
             <?php endforeach; ?>
