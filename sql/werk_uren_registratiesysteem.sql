@@ -55,6 +55,7 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`name`, `password`, `role`, `user_id`) VALUES
 ('yehia', '$2y$10$8VG79818awlStVRxWu4O5.zaLdb2zwAkNjUYEXraQlwjLC.SiL6/i', 'user', 8),
 ('Beau', '$2y$10$hO4jjhDNRNG1jMfM3nTkc.3cawInIMNMcWSW9agbvbvWROeO5Lf7C', 'user', 9);
+('admin', '$2y$10$pE4NJDSy6F4C1VhbgKGelejTigSsqBrSpKht8AlBwq7sxQz0XAGQC', 'admin', 10);
 
 --
 -- Indexes for dumped tables
