@@ -1,0 +1,118 @@
+html{
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.container{
+    display: flex;
+    justify-content: center;
+    max-width: 1024px;
+    margin: auto;
+}
+
+.content{
+    background-color: #F0EFEF;
+    border-radius: 10px;
+    padding: 15px;
+}
+
+.dateNfilter-header{
+    display: grid;
+    grid-template-columns: 200px 200px 200px;
+}
+
+.tabel-content{
+    width: 600px;
+    border-collapse: collapse;
+}
+
+.linkere-pijl-th{
+    text-align: end;
+}
+
+.linkere-pijl-th img{
+    width: 20px;
+}
+
+.rechtere-pijl-th{
+    text-align: start;
+}
+
+.rechtere-pijl-th img{
+    width: 20px;
+}
+
+tr th{
+    text-align: center;
+    vertical-align: center;
+}
+
+.week-th{
+    width: 42px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.week-tr{
+    display: flex;
+    justify-content: center;
+    margin: 10px;
+}
+
+.huidige-week-weergave{
+    text-align: center;
+}
+
+.filter-form{
+    text-align: end;
+}
+
+#filter{
+    border: none;
+    background-color: transparent;
+    color: black;
+    cursor: pointer;
+}
+
+tr{
+    display: grid;
+    grid-template-columns: 200px 42px 42px 42px 42px 42px 100px 100px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.totaal-week-end{
+    text-align: end;
+}
+
+.action-icons{
+    text-align: end;
+}
+
+.uren-row{
+    text-align: center;
+    line-height: 30px;
+}
+
+.user-icon{
+    width: 30px;
+    margin-right: 10px;
+}
+
+.naamNuser-icon{
+    display: flex;
+    align-items: center;
+}
+
+.action-pngs{
+    width: 20px;
+}
+
+.action-icons button{
+    border: none;
+    cursor: pointer;
+}
