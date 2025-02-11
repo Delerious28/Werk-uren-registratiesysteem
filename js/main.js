@@ -3,6 +3,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const nextWeekBtn = document.getElementById('next-week');
     const buttons = document.querySelectorAll('.dag');
     const dateCtn = document.querySelector('.date-ctn');
+    const successMessage = document.querySelector(".success-message");
+    const failMessage = document.querySelector(".fail-message");
 
     function updateWeekDate(weekStartDate) {
         const endOfWeek = new Date(weekStartDate);
@@ -82,6 +84,23 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById('selected-day').innerText = `${selectedDate.toLocaleDateString('nl-NL')}`;
         });
     });
+
+    // Handeling van succes en foutmeldingen
+    if (successMessage) {
+        setTimeout(() => {
+            successMessage.style.transition = "opacity 0.5s";
+            successMessage.style.opacity = "0";
+            setTimeout(() => successMessage.remove(), 500);
+        }, 3000); // Verwijder na 3 seconden
+    }
+
+    if (failMessage) {
+        setTimeout(() => {
+            failMessage.style.transition = "opacity 0.5s";
+            failMessage.style.opacity = "0";
+            setTimeout(() => failMessage.remove(), 500);
+        }, 3000); // Verwijder na 3 seconden
+    }
 
     updateWeekDate(selectedWeekStartDate);
     updateDagButtons(selectedWeekStartDate);
