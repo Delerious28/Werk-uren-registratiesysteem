@@ -80,7 +80,13 @@ try {
 
     <div class="content">
         <div class="header">
-            <div class="name">Activiteiten Overzicht</div>
+            <?php if ($filter === 'week'): ?>
+            <div class="name">Week activiteiten</div>
+            <?php elseif ($filter === 'maand'): ?>
+                <div class="name">Maand activiteiten</div>
+            <?php else: ?>
+                <div class="name">Vandaag activiteiten</div>
+            <?php endif; ?>
             <form method="GET" action="" class="filter-form">
                 <select name="filter" id="filter" onchange="this.form.submit()">
                     <option value="vandaag" <?= $filter === 'vandaag' ? 'selected' : '' ?>>Vandaag</option>
@@ -92,14 +98,12 @@ try {
 
         <table>
             <thead>
-            <tr>
-                <th>Naam</th>
+            <tr class="week-tr">
                 <?php if ($filter === 'week'): ?>
-                    <th>Ma</th><th>Di</th><th>Wo</th><th>Do</th><th>Vr</th><th>Totaal</th>
+                    <th></th><th class="week-th">&#9664; Ma</th><th class="week-th">Di</th><th class="week-th">Wo</th><th class="week-th">Do</th><th class="week-th">Vr &#9654;</th>
                 <?php elseif ($filter === 'maand'): ?>
-                    <th><a href="?filter=maand&month=<?= $month-1 ?>">&#9664;</a> <?= date('F', mktime(0, 0, 0, $month, 10)) ?> <a href="?filter=maand&month=<?= $month+1 ?>">&#9654;</a></th>
+                    <th></th></th><th class="month-th""><a class="arrow-left-month" href="?filter=maand&month=<?= $month-1 ?>">&#9664;</a> <?= date('F', mktime(0, 0, 0, $month, 10)) ?> <a class="arrow-right-month" href="?filter=maand&month=<?= $month+1 ?>">&#9654;</a></th>
                 <?php else: ?>
-                    <th>Vandaag</th>
                 <?php endif; ?>
             </tr>
             </thead>
@@ -116,8 +120,16 @@ try {
                         <td><?= htmlspecialchars($row["Do"]) ?></td>
                         <td><?= htmlspecialchars($row["Vr"]) ?></td>
                         <td><strong><?= htmlspecialchars($total) ?> Totaal</strong></td>
+                        <td class="action-icons">
+                            <button class="edit">✏️</button>
+                            <button class="accept">✅</button>
+                        </td>
                     <?php else: ?>
-                        <td><?= htmlspecialchars($row["totaal"]) ?> Totaal ✅</td>
+                        <td><?= htmlspecialchars($row["totaal"]) ?> Totaal</td>
+                        <td class="action-icons">
+                            <button class="edit">✏️</button>
+                            <button class="accept">✅</button>
+                        </td>
                     <?php endif; ?>
                 </tr>
             <?php endforeach; ?>

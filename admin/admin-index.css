@@ -4,10 +4,21 @@
     box-sizing: border-box;
 }
 
-body {
+html{
+    display: flex;
+    flex-direction: column;
+    height: 50%;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+    align-items: stretch;
+}
+
+body{
     margin: 0;
-    padding: 0;
-    background-color: #f4f4f4;
+    overflow: hidden;
+    background-image: url("../img/achtergrond.jpg");
+    background-repeat: no-repeat;
+    background-size: 100vw 100vh;
 }
 
 .container {
@@ -22,7 +33,6 @@ body {
 
 /* Sidebar */
 .sidebar {
-    width: 160px;
     background-color: #8B0000;
     padding: 8px;
     color: white;
@@ -84,11 +94,6 @@ body {
     gap: 8px;
 }
 
-.filter-form label {
-    font-size: 13px;
-    font-weight: bold;
-}
-
 .filter-form select {
     padding: 4px;
     font-size: 13px;
@@ -110,18 +115,15 @@ table {
 th, td {
     padding: 10px;
     text-align: center;
-    border-bottom: 1px solid #ddd;
+    border: none;
 }
 
-th {
-    background-color: #8B0000;
-    color: white;
+.week-th {
+    background-color: #f9f9f9;
+    color: black;
     font-weight: bold;
 }
 
-tr:last-child td {
-    border-bottom: none;
-}
 
 /* Icons */
 .user-icon {
@@ -138,8 +140,8 @@ tr:last-child td {
 }
 
 .action-icons img {
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     cursor: pointer;
 }
 
@@ -154,6 +156,21 @@ tr:last-child td {
 
 .prev:hover, .next:hover {
     color: #600000;
+}
+
+/* Button Styles */
+.button {
+    background-color: #8B0000;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.button:hover {
+    background-color: #600000;
 }
 
 /* Responsive */
@@ -175,7 +192,13 @@ tr:last-child td {
 }
 
 a:-webkit-any-link {
-    color: white;
     cursor: pointer;
     text-decoration: none;
 }
+.arrow-left-month {
+    color: black;
+}
+.arrow-rightf-month {
+    color: black;
+}
+
