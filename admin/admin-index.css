@@ -81,7 +81,7 @@ body {
 .filter-form {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 7px;
 }
 
 .filter-form label {
