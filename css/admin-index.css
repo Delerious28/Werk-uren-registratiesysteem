@@ -1,110 +1,118 @@
 html{
-    font-family: Arial, sans-serif;
     height: 100%;
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-body{
-    margin: 0;
-    overflow: hidden;
-    background-image: url("../img/achtergrond.jpg");
-    background-repeat: no-repeat;
-    background-size: 100vw 100vh;
-}
-
-.container {
+    width: 100%;
     display: flex;
     flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.container{
+    display: flex;
+    justify-content: center;
     max-width: 1024px;
-    width: 100%;
     margin: auto;
 }
 
-.sidebar {
-    width: 120px;
+.content{
     background-color: #F0EFEF;
-    height: 200px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-evenly;
     border-radius: 10px;
-    margin-right: 10px;
+    padding: 15px;
 }
 
-.menu-item {
-    cursor: pointer;
-    line-height: 40px;
-    text-align: center;
-}
-
-.menu-item.active, .menu-item:hover {
-    background-color: #600000;
-    color: white;
-    border-radius: 5px;
-}
-
-.menu-item.active:hover{
-    background-color: #F0EFEF;
-    color: black;
-    border: 1px solid black;
-}
-
-.content {
+.dateNfilter-header{
     display: grid;
-    grid-template-columns: 80% 1fr;
-    background-color: #F0EFEF;
-    padding: 20px;
-    border-radius: 10px;
+    grid-template-columns: 200px 200px 200px;
 }
 
-table {
+.tabel-content{
+    width: 600px;
+    border-collapse: collapse;
 }
 
-table, th, td {
-    border: 1px solid #ddd;
+.linkere-pijl-th{
+    text-align: end;
 }
 
-th, td {
-    padding: 4px;
+.linkere-pijl-th img{
+    width: 20px;
+}
+
+.rechtere-pijl-th{
+    text-align: start;
+}
+
+.rechtere-pijl-th img{
+    width: 20px;
+}
+
+tr th{
     text-align: center;
+    vertical-align: center;
 }
 
-th {
-    background-color: #8B0000;
-    color: white;
-}
-
-button {
-    border: none;
-    padding: 4px 8px;
-    font-size: 13px;
-    cursor: pointer;
-    border-radius: 4px;
-}
-
-button:hover {
-    opacity: 0.8;
-}
-
-.filter-form {
+.week-th{
+    width: 42px;
     text-align: center;
-}
-
-.filter-form label {
-    font-size: 13px;
     font-weight: bold;
 }
 
-.filter-form select {
-    padding: 4px;
-    font-size: 13px;
-    border-radius: 4px;
+.week-tr{
+    display: flex;
+    justify-content: center;
+    margin: 10px;
 }
 
-.logo img {
-    width: 90px;
-    height: auto;
+.huidige-week-weergave{
+    text-align: center;
+}
+
+.filter-form{
+    text-align: end;
+}
+
+#filter{
+    border: none;
+    background-color: transparent;
+    color: black;
+    cursor: pointer;
+}
+
+tr{
+    display: grid;
+    grid-template-columns: 200px 42px 42px 42px 42px 42px 100px 100px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.totaal-week-end{
+    text-align: end;
+}
+
+.action-icons{
+    text-align: end;
+}
+
+.uren-row{
+    text-align: center;
+    line-height: 30px;
+}
+
+.user-icon{
+    width: 30px;
+    margin-right: 10px;
+}
+
+.naamNuser-icon{
+    display: flex;
+    align-items: center;
+}
+
+.action-pngs{
+    width: 20px;
+}
+
+.action-icons button{
+    border: none;
+    cursor: pointer;
 }
