@@ -1,56 +1,66 @@
-body {
+html{
     font-family: Arial, sans-serif;
+    height: 100%;
     margin: 0;
-    padding: 0;
-    background-color: #f4f4f4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+body{
+    margin: 0;
+    overflow: hidden;
+    background-image: url("../img/achtergrond.jpg");
+    background-repeat: no-repeat;
+    background-size: 100vw 100vh;
 }
 
 .container {
     display: flex;
-    width: 65%;
+    flex-direction: row;
+    max-width: 1024px;
+    width: 100%;
     margin: auto;
-    padding: 5px;
-    min-height: 80vh;
 }
 
 .sidebar {
-    width: 160px;
-    background-color: #8B0000;
-    padding: 8px;
-    color: white;
-    height: 140px;
+    width: 120px;
+    background-color: #F0EFEF;
+    height: 200px;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
+    justify-content: space-evenly;
+    border-radius: 10px;
+    margin-right: 10px;
 }
 
 .menu-item {
-    font-size: 13px;
-    padding: 6px;
-    margin: 3px 0;
     cursor: pointer;
+    line-height: 40px;
+    text-align: center;
 }
 
 .menu-item.active, .menu-item:hover {
     background-color: #600000;
+    color: white;
+    border-radius: 5px;
+}
+
+.menu-item.active:hover{
+    background-color: #F0EFEF;
+    color: black;
+    border: 1px solid black;
 }
 
 .content {
-    flex-grow: 1;
-    padding: 10px;
-    font-size: 13px;
-    background: white;
-    margin: 10px;
-    border-radius: 8px;
-    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
-    min-height: 60vh;
+    display: grid;
+    grid-template-columns: 80% 1fr;
+    background-color: #F0EFEF;
+    padding: 20px;
+    border-radius: 10px;
 }
 
 table {
-    width: 85%;
-    border-collapse: collapse;
-    margin-top: 10px;
-    font-size: 13px;
 }
 
 table, th, td {
@@ -80,7 +90,7 @@ button:hover {
 }
 
 .filter-form {
-    margin-bottom: 8px;
+    text-align: center;
 }
 
 .filter-form label {

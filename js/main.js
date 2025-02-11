@@ -104,4 +104,5 @@ document.addEventListener("DOMContentLoaded", function () {
 
     updateWeekDate(selectedWeekStartDate);
     updateDagButtons(selectedWeekStartDate);
+
 });
