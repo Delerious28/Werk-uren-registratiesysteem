@@ -12,16 +12,20 @@ $user_id = htmlspecialchars($_SESSION['user_id'], ENT_QUOTES, 'UTF-8');
 $user_name = htmlspecialchars($_SESSION['user'], ENT_QUOTES, 'UTF-8');
 
 $filter = isset($_GET['filter']) ? $_GET['filter'] : 'week';
+$month = isset($_GET['month']) ? (int)$_GET['month'] : date('n');
+$year = isset($_GET['year']) ? (int)$_GET['year'] : date('Y');
+$week = isset($_GET['week']) ? (int)$_GET['week'] : date('W');
 
 if ($filter === 'maand') {
     $sql = "
         SELECT u.user_id, u.name, COALESCE(SUM(h.hours), 0) AS totaal
         FROM users u
-        LEFT JOIN hours h ON u.user_id = h.user_id AND MONTH(h.date) = MONTH(CURDATE()) AND YEAR(h.date) = YEAR(CURDATE())
+        LEFT JOIN hours h ON u.user_id = h.user_id AND MONTH(h.date) = :month AND YEAR(h.date) = :year
         WHERE u.role = 'user'
         GROUP BY u.user_id, u.name
         ORDER BY u.name ASC
     ";
+    $params = [':month' => $month, ':year' => $year];
 } elseif ($filter === 'vandaag') {
     $sql = "
         SELECT u.user_id, u.name, COALESCE(SUM(h.hours), 0) AS totaal
@@ -31,6 +35,7 @@ if ($filter === 'maand') {
         GROUP BY u.user_id, u.name
         ORDER BY u.name ASC
     ";
+    $params = [];
 } else {
     $sql = "
         SELECT u.user_id, u.name,
@@ -40,15 +45,17 @@ if ($filter === 'maand') {
             COALESCE(SUM(CASE WHEN DAYOFWEEK(h.date) = 5 THEN h.hours ELSE 0 END), 0) AS Do,
             COALESCE(SUM(CASE WHEN DAYOFWEEK(h.date) = 6 THEN h.hours ELSE 0 END), 0) AS Vr
         FROM users u
-        LEFT JOIN hours h ON u.user_id = h.user_id AND YEARWEEK(h.date, 1) = YEARWEEK(CURDATE(), 1)
+        LEFT JOIN hours h ON u.user_id = h.user_id AND YEARWEEK(h.date, 1) = YEARWEEK(STR_TO_DATE(CONCAT(:year, '-', :week, ' Monday'), '%X-%V %W'), 1)
         WHERE u.role = 'user'
         GROUP BY u.user_id, u.name
         ORDER BY u.name ASC
     ";
+    $params = [':year' => $year, ':week' => $week];
 }
 
 try {
-    $stmt = $pdo->query($sql);
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     die("Error retrieving data: " . $e->getMessage());
@@ -74,9 +81,15 @@ try {
 
     <div class="content">
         <div class="header">
-            <div class="name">Activiteiten Overzicht</div>
+            <?php if ($filter === 'week'): ?>
+                <div class="name">Week activiteiten</div>
+                <div class="current-week-dsiplay">Week <?= $week ?></div>
+            <?php elseif ($filter === 'maand'): ?>
+                <div class="name">Maand activiteiten</div>
+            <?php else: ?>
+                <div class="name">Vandaag activiteiten</div>
+            <?php endif; ?>
             <form method="GET" action="" class="filter-form">
-                <label for="filter">Filter op:</label>
                 <select name="filter" id="filter" onchange="this.form.submit()">
                     <option value="vandaag" <?= $filter === 'vandaag' ? 'selected' : '' ?>>Vandaag</option>
                     <option value="week" <?= $filter === 'week' ? 'selected' : '' ?>>Week</option>
@@ -87,24 +100,49 @@ try {
 
         <table>
             <thead>
-            <tr>
-                <th>Naam</th>
-                <?php if ($filter === 'week'): ?>
-                    <th><span class="prev">&#9664;</span> Ma</th>
-                    <th>Di</th>
-                    <th>Wo</th>
-                    <th>Do</th>
-                    <th>Vr <span class="next">&#9654;</span></th>
-                    <th>Totaal</th>
-                <?php else: ?>
-                    <th><span class="prev">&#9664;</span> Totaal <span class="next">&#9654;</span></th>
-                <?php endif; ?>
-            </tr>
+            <?php if ($filter === 'week'): ?>
+                <tr class="week-tr">
+                    <?php
+                    $prev_week = $week - 1;
+                    $next_week = $week + 1;
+                    $prev_year = $year;
+                    $next_year = $year;
+
+                    if ($prev_week < 1) {
+                        $prev_week = 52;
+                        $prev_year--;
+                    }
+                    if ($next_week > 52) {
+                        $next_week = 1;
+                        $next_year++;
+                    }
+                    ?>
+                    <th><a class="arrow-left-week" href="?filter=week&year=<?= $prev_year ?>&week=<?= $prev_week ?>">&#9664;</a></th>
+                    <th class="week-th">Ma</th>
+                    <th class="week-th">Di</th>
+                    <th class="week-th">Wo</th>
+                    <th class="week-th">Do</th>
+                    <th class="week-th">Vr</th>
+                    <th><a class="arrow-right-week" href="?filter=week&year=<?= $next_year ?>&week=<?= $next_week ?>">&#9654;</a></th>
+                </tr>
+
+            <?php elseif ($filter === 'maand'): ?>
+                <tr>
+                    <th class="month-th"></th>
+                    <th class="month-th">
+                        <a class="arrow-left-month" href="?filter=maand&month=<?= $month-1 ?>">&#9664;</a>
+                        <?= date('F', mktime(0, 0, 0, $month, 10)) ?>
+                        <a class="arrow-right-month" href="?filter=maand&month=<?= $month+1 ?>">&#9654;</a>
+                    </th>
+                    <th class="month-th"></th>
+                </tr>
+            <?php endif; ?>
             </thead>
+
             <tbody>
             <?php foreach ($rows as $row): ?>
                 <tr>
-                    <td><?= htmlspecialchars($row["name"]) ?></td>
+                    <td><img src="user-icon.png" alt="icon"> <?= htmlspecialchars($row["name"]) ?></td>
                     <?php if ($filter === 'week'):
                         $total = $row["Ma"] + $row["Di"] + $row["Wo"] + $row["Do"] + $row["Vr"];
                         ?>
@@ -113,9 +151,17 @@ try {
                         <td><?= htmlspecialchars($row["Wo"]) ?></td>
                         <td><?= htmlspecialchars($row["Do"]) ?></td>
                         <td><?= htmlspecialchars($row["Vr"]) ?></td>
-                        <td><strong><?= htmlspecialchars($total) ?> Totaal</strong></td>
+                        <td class="totaal-week-end"><strong><?= htmlspecialchars($total) ?> Totaal</strong></td>
+                        <td class="action-icons">
+                            <button class="edit">✏️</button>
+                            <button class="accept">✅</button>
+                        </td>
                     <?php else: ?>
                         <td><?= htmlspecialchars($row["totaal"]) ?> Totaal</td>
+                        <td class="action-icons">
+                            <button class="edit">✏️</button>
+                            <button class="accept">✅</button>
+                        </td>
                     <?php endif; ?>
                 </tr>
             <?php endforeach; ?>
