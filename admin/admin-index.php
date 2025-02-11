@@ -106,7 +106,7 @@ try {
             <tbody>
             <?php foreach ($rows as $row): ?>
                 <tr>
-                    <td><img src="user-icon.png" alt="icn"> <?= htmlspecialchars($row["name"]) ?></td>
+                    <td><img src="user-icon.png" alt="icon"> <?= htmlspecialchars($row["name"]) ?></td>
                     <?php if ($filter === 'week'):
                         $total = $row["Ma"] + $row["Di"] + $row["Wo"] + $row["Do"] + $row["Vr"];
                         ?>
