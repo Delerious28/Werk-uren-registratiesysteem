@@ -98,39 +98,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="admin-index.css">
+    <link rel="stylesheet" href="../css/admin-index.css">
 </head>
 <body>
 <div class="container">
-    <div class="sidebar">
-        <div class="menu-item"><a href="admin-index.php">Dashboard</a></div>
-        <div class="menu-item"><a href="admin-download.php">Download</a></div>
-        <div class="menu-item active"><a href="admin-gebruikers.php">Gebruikers</a></div>
-        <div class="menu-item"><a href="../uitloggen.php">Uitloggen</a></div>
-    </div>
+
+    <?php include 'admin-header.php' ?>
+
     <div class="content">
-        <h1>Gebruikers <button onclick="document.getElementById('createUserForm').style.display='block'">New</button></h1>
+
+        <div class="gebruikers-header-div">
+            <div class="gebruikers-header-text1">Gebruikers</div>
+            <button class="new-gebruiker-btn" onclick="document.getElementById('createUserForm').style.display='block'">New</button>
+        </div>
 
         <?php if ($message): ?>
             <p><?= htmlspecialchars($message) ?></p>
         <?php endif; ?>
 
-        <table>
-            <tr>
-                <th>Naam</th>
-                <th>Role</th>
-                <th>Acties</th>
-            </tr>
+        <div class="naamNroleNacties">
+            <div class="naamNroleNacties-naam">Naam</div>
+            <div class="naamNroleNacties-role">Role</div>
+            <div class="naamNroleNacties-acties">Acties</div>
+        </div>
+
+        <table class="gebruikers-tabel">
             <?php foreach ($users as $user): ?>
-                <tr>
-                    <td><?= htmlspecialchars($user['name']) ?></td>
+                <tr class="gebruikers-tr">
+                    <td class="naamNuser-icon">
+                        <img src="../img/user-icon.png" alt="icon" class="user-icon">
+                        <?= htmlspecialchars($user['name']) ?>
+                    </td>
                     <td><?= htmlspecialchars($user['role']) ?></td>
-                    <td>
-                        <form method="POST" style="display:inline;">
+                    <td class="gebruikers-action-icons">
+                        <form method="POST">
                             <input type="hidden" name="user_id" value="<?= $user['user_id'] ?>">
-                            <button type="submit" name="delete_user">🗑️</button>
+                            <button type="submit" name="delete_user" title="Verwijderen">🗑️</button>
                         </form>
-                        <button onclick="editUser('<?= $user['user_id'] ?>', '<?= htmlspecialchars($user['name']) ?>', '<?= $user['role'] ?>')">✏️</button>
+                        <button onclick="editUser('<?= $user['user_id'] ?>', '<?= htmlspecialchars($user['name']) ?>', '<?= $user['role'] ?>')" title="Wijzigen">✏️</button>
                     </td>
                 </tr>
             <?php endforeach; ?>

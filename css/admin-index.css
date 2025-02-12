@@ -20,14 +20,62 @@ html{
     padding: 15px;
 }
 
-.dateNfilter-header{
+.filter-vandaag{
     display: grid;
-    grid-template-columns: 200px 200px 200px;
+    grid-template-columns: 200px 1fr;
+    margin-bottom: 20px;
 }
 
-.tabel-content{
+.filter-week{
+    display: grid;
+    grid-template-columns: 200px 200px 200px;
+    font-weight: bold;
+}
+
+.filter-maand{
+    display: grid;
+    grid-template-columns: 200px 150px 200px;
+    font-weight: bold;
+}
+
+.tabel-content[data-filter="vandaag"] tr{
+    display: grid;
+    grid-template-columns: 200px 100px 100px;
+}
+
+.tabel-content[data-filter="week"]{
     width: 600px;
     border-collapse: collapse;
+}
+
+.tabel-content[data-filter="maand"]{
+    margin-top: 20px;
+    border-collapse: collapse;
+}
+
+.tabel-content[data-filter="vandaag"] tr td{
+    line-height: 30px;
+}
+
+.tabel-content[data-filter="maand"] tr{
+    display: grid;
+    grid-template-columns: 200px 150px 200px;
+}
+
+.tabel-content[data-filter="maand"] tr td{
+    line-height: 30px;
+    text-align: center;
+}
+
+.admin-maand-navigatie{
+    width: 100%;
+    text-align: center;
+}
+
+.month-th{
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .linkere-pijl-th{
@@ -55,6 +103,7 @@ tr th{
     width: 42px;
     text-align: center;
     font-weight: bold;
+    line-height: 22px;
 }
 
 .week-tr{
@@ -71,6 +120,14 @@ tr th{
     text-align: end;
 }
 
+.filter-form select{
+    font-weight: bold;
+}
+
+.filter-form select option{
+    font-weight: bold;
+}
+
 #filter{
     border: none;
     background-color: transparent;
@@ -78,7 +135,7 @@ tr th{
     cursor: pointer;
 }
 
-tr{
+.tabel-content tr{
     display: grid;
     grid-template-columns: 200px 42px 42px 42px 42px 42px 100px 100px;
     margin-top: 5px;
@@ -87,10 +144,20 @@ tr{
 
 .totaal-week-end{
     text-align: end;
+    line-height: 30px;
+}
+
+.tabel-content[data-filter="maand"] tr .action-icons{
+    position: relative;
+    text-align: end;
 }
 
 .action-icons{
     text-align: end;
+}
+
+.linkere-pijl-maanden, .rechtere-pijl-maanden{
+    width: 20px;
 }
 
 .uren-row{
@@ -115,4 +182,112 @@ tr{
 .action-icons button{
     border: none;
     cursor: pointer;
+    width: 30px;
+    height: 30px;
 }
+
+/*admin-download.php*/
+.download-header-div{
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    margin-bottom: 10px;
+}
+
+.download-header-text1{
+    font-weight: bold;
+}
+
+.download-header-text2{
+    text-align: end;
+    font-weight: bold;
+}
+
+.download-pagina-tr{
+    display: grid;
+    grid-template-columns: 300px 70px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.pdf-icon{
+    width: 22px;
+}
+
+.pdf-form{
+    text-align: center;
+}
+
+.pdf-form button{
+    border: none;
+    cursor: pointer;
+}
+
+.n-v-t-td{
+   text-align: center;
+}
+
+/**/
+
+/*admin-gebruikers.php*/
+.gebruikers-header-div{
+    display: grid;
+    grid-template-columns: 300px 70px;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.gebruikers-header-text1{
+    font-weight: bold;
+    line-height: 25px;
+}
+
+.naamNroleNacties{
+    display: grid;
+    grid-template-columns: 200px 100px 100px;
+    margin-top: 20px;
+    font-weight: bold;
+}
+
+.gebruikers-tabel{
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.gebruikers-tr{
+    display: grid;
+    grid-template-columns: 200px 100px 100px;
+}
+
+.naamNroleNacties-naam{
+    padding-left: 35px;
+}
+
+.naamNroleNacties-role{
+}
+
+.naamNroleNacties-acties{
+    text-align: center;
+}
+
+.gebruikers-action-icons{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gebruikers-action-icons button{
+    border: none;
+    cursor: pointer;
+}
+
+.new-gebruiker-btn{
+    background-color: #630101;
+    color: white;
+    border: none;
+    height: 25px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/**/

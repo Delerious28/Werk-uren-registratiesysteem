@@ -68,24 +68,20 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Maandelijkse Uren Download</title>
-    <link rel="stylesheet" href="admin-index.css">
+    <link rel="stylesheet" href="../css/admin-index.css">
 </head>
 <body>
 <div class="container">
-    <div class="sidebar">
-        <div class="menu-item"><a href="admin-index.php">Dashboard</a></div>
-        <div class="menu-item active"><a href="admin-download.php">Download</a></div>
-        <div class="menu-item"><a href="admin-gebruikers.php">Gebruikers</a></div>
-        <div class="menu-item"><a href="../uitloggen.php">Uitloggen</a></div>
-    </div>
+
+    <?php include 'admin-header.php' ?>
+
     <div class="content">
-        <h1>Download Maandelijkse Uren (PDF)</h1>
+        <div class="download-header-div">
+            <div class="download-header-text1">Maandelijkse Uren (PDF)</div>
+            <div class="download-header-text2">Download</div>
+        </div>
 
         <table>
-            <tr>
-                <th>Naam</th>
-                <th>Download</th>
-            </tr>
             <?php foreach ($users as $user): ?>
                 <?php
                 // Check if the user has hours for the current month
@@ -94,16 +90,16 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 $hour_check_stmt->execute([':user_id' => $user['user_id']]);
                 $hour_check = $hour_check_stmt->fetchColumn();
                 ?>
-                <tr>
-                    <td><?= htmlspecialchars($user['name']) ?></td>
-                    <td>
+                <tr class="download-pagina-tr">
+                    <td class="naamNuser-icon"><img src="../img/user-icon.png" alt="icon" class="user-icon"><?= htmlspecialchars($user['name']) ?></td>
+                    <td class="n-v-t-td">
                         <?php if ($hour_check > 0): ?>
-                            <form method="POST">
+                            <form method="POST" class="pdf-form">
                                 <input type="hidden" name="download_pdf" value="1">
-                                <button type="submit">✔️ Download PDF</button>
+                                <button type="submit"><img src="../img/pdf.png" alt="PDF" class="pdf-icon"></button>
                             </form>
                         <?php else: ?>
-                            <span>No hours made</span>
+                            <span>n.v.t</span>
                         <?php endif; ?>
                     </td>
                 </tr>
