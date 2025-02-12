@@ -12,30 +12,6 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id']; // Haal de gebruiker's id op uit de sessie.
 $user_name = $_SESSION['user']; // Haal de gebruiker's naam op uit de sessie.
 
-// Bereken gewerkte uren per week
-$stmt_week = $pdo->prepare("
-    SELECT YEARWEEK(date, 1) AS week_nummer, SUM(hours) AS totaal_uren
-    FROM hours
-    WHERE user_id = ?
-    GROUP BY week_nummer
-    ORDER BY week_nummer DESC
-    LIMIT 5
-");
-$stmt_week->execute([$user_id]);
-$week_uren = $stmt_week->fetchAll(PDO::FETCH_ASSOC);
-
-// Bereken gewerkte uren per maand
-$stmt_month = $pdo->prepare("
-    SELECT DATE_FORMAT(date, '%Y-%m') AS maand, SUM(hours) AS totaal_uren
-    FROM hours
-    WHERE user_id = ?
-    GROUP BY maand
-    ORDER BY maand DESC
-    LIMIT 5
-");
-$stmt_month->execute([$user_id]);
-$maand_uren = $stmt_month->fetchAll(PDO::FETCH_ASSOC);
-
 // Initialiseer de succesberichtvariabele
 $success_message = '';
 $fail_message = '';
@@ -167,34 +143,6 @@ $year = $selected_week_start->format("Y");    // Jaar
 <script>
     let selectedWeekStartDate = new Date('<?php echo $selected_week_start->format('Y-m-d'); ?>');
 </script>
-
-<!--<h2>Gewerkte uren per week</h2>-->
-<!--<table>-->
-<!--    <tr>-->
-<!--        <th>Week</th>-->
-<!--        <th>Totaal uren</th>-->
-<!--    </tr>-->
-<!--    --><?php //foreach ($week_uren as $week): ?>
-<!--        <tr>-->
-<!--            <td>--><?php //echo htmlspecialchars($week['week_nummer']); ?><!--</td>-->
-<!--            <td>--><?php //echo htmlspecialchars($week['totaal_uren']); ?><!--</td>-->
-<!--        </tr>-->
-<!--    --><?php //endforeach; ?>
-<!--</table>-->
-<!---->
-<!--<h2>Gewerkte uren per maand</h2>-->
-<!--<table>-->
-<!--    <tr>-->
-<!--        <th>Maand</th>-->
-<!--        <th>Totaal uren</th>-->
-<!--    </tr>-->
-<!--    --><?php //foreach ($maand_uren as $maand): ?>
-<!--        <tr>-->
-<!--            <td>--><?php //echo htmlspecialchars($maand['maand']); ?><!--</td>-->
-<!--            <td>--><?php //echo htmlspecialchars($maand['totaal_uren']); ?><!--</td>-->
-<!--        </tr>-->
-<!--    --><?php //endforeach; ?>
-<!--</table>-->
 
 </body>
 </html>

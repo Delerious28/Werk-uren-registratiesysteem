@@ -1,0 +1,31 @@
+body{
+    margin: 0;
+    overflow: hidden;
+    background-image: url("../img/achtergrond.jpg");
+    background-repeat: no-repeat;
+    background-size: 100vw 100vh;
+}
+
+.sidebar{
+    width: 120px;
+    background-color: #F0EFEF;
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    border-radius: 10px;
+    margin-right: 10px;
+}
+
+.sidebar-btns{
+    cursor: pointer;
+    line-height: 40px;
+    text-align: center;
+    color: black;
+    text-decoration: none;
+}
+
+.sidebar-btns.active, .sidebar-btns:hover{
+    background-color: #6D0F10;
+    color: white;
+}

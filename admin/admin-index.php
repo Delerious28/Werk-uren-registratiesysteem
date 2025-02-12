@@ -68,24 +68,36 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="admin-index.css">
+    <link rel="stylesheet" href="../css/admin-index.css">
 </head>
 <body>
 <div class="container">
-    <div class="sidebar">
-        <div class="menu-item active"><a href="admin-index.php">Dashboard</a></div>
-        <div class="menu-item"><a href="admin-download.php">Download</a></div>
-        <div class="menu-item"><a href="admin-gebruikers.php">Gebruikers</a></div>
-        <div class="menu-item"><a href="../uitloggen.php">Uitloggen</a></div>
-    </div>
+
+<?php include 'admin-header.php' ?>
 
     <div class="content">
-        <div class="header">
+        <div class="dateNfilter-header <?= 'filter-' . $filter ?>">
             <?php if ($filter === 'week'): ?>
                 <div class="name">Week activiteiten</div>
-                <div class="current-week-dsiplay">Week <?= $week ?></div>
+                <div class="huidige-week-weergave">Week <?= $week ?></div>
             <?php elseif ($filter === 'maand'): ?>
                 <div class="name">Maand activiteiten</div>
+
+                <div class="admin-maand-navigatie">
+                    <div class="month-th"></div>
+                    <div class="month-th">
+                        <a class="arrow-left-month" href="?filter=maand&month=<?= $month-1 ?>">
+                            <img src="../img/links-pijl.png" alt="links" class="linkere-pijl-maanden">
+                        </a>
+                        <div class="maand-text">
+                        <?= date('F', mktime(0, 0, 0, $month, 10)) ?>
+                        </div>
+                        <a class="arrow-right-month" href="?filter=maand&month=<?= $month+1 ?>">
+                            <img src="../img/rechts-pijl.png" alt="links" class="rechtere-pijl-maanden">
+                        </a>
+                    </div>
+                    <div class="month-th"></div>
+                </div>
             <?php else: ?>
                 <div class="name">Vandaag activiteiten</div>
             <?php endif; ?>
@@ -98,69 +110,67 @@ try {
             </form>
         </div>
 
-        <table>
-            <thead>
-            <?php if ($filter === 'week'): ?>
-                <tr class="week-tr">
-                    <?php
-                    $prev_week = $week - 1;
-                    $next_week = $week + 1;
-                    $prev_year = $year;
-                    $next_year = $year;
+        <div>
+        <?php if ($filter === 'week'): ?>
+            <div class="week-tr">
+                <?php
+                $prev_week = $week - 1;
+                $next_week = $week + 1;
+                $prev_year = $year;
+                $next_year = $year;
 
-                    if ($prev_week < 1) {
-                        $prev_week = 52;
-                        $prev_year--;
-                    }
-                    if ($next_week > 52) {
-                        $next_week = 1;
-                        $next_year++;
-                    }
-                    ?>
-                    <th><a class="arrow-left-week" href="?filter=week&year=<?= $prev_year ?>&week=<?= $prev_week ?>">&#9664;</a></th>
-                    <th class="week-th">Ma</th>
-                    <th class="week-th">Di</th>
-                    <th class="week-th">Wo</th>
-                    <th class="week-th">Do</th>
-                    <th class="week-th">Vr</th>
-                    <th><a class="arrow-right-week" href="?filter=week&year=<?= $next_year ?>&week=<?= $next_week ?>">&#9654;</a></th>
-                </tr>
+                if ($prev_week < 1) {
+                    $prev_week = 52;
+                    $prev_year--;
+                }
+                if ($next_week > 52) {
+                    $next_week = 1;
+                    $next_year++;
+                }
+                ?>
+                <div class="linkere-pijl-th">
+                    <a href="?filter=week&year=<?= $prev_year ?>&week=<?= $prev_week ?>">
+                        <img src="../img/links-pijl.png">
+                    </a>
+                </div>
+                <div class="week-th">Ma</div>
+                <div class="week-th">Di</div>
+                <div class="week-th">Wo</div>
+                <div class="week-th">Do</div>
+                <div class="week-th">Vr</div>
+                <div class="rechtere-pijl-th">
+                    <a href="?filter=week&year=<?= $next_year ?>&week=<?= $next_week ?>">
+                        <img src="../img/rechts-pijl.png">
+                    </a>
+                </div>
+            </div>
 
-            <?php elseif ($filter === 'maand'): ?>
-                <tr>
-                    <th class="month-th"></th>
-                    <th class="month-th">
-                        <a class="arrow-left-month" href="?filter=maand&month=<?= $month-1 ?>">&#9664;</a>
-                        <?= date('F', mktime(0, 0, 0, $month, 10)) ?>
-                        <a class="arrow-right-month" href="?filter=maand&month=<?= $month+1 ?>">&#9654;</a>
-                    </th>
-                    <th class="month-th"></th>
-                </tr>
-            <?php endif; ?>
-            </thead>
+        <?php elseif ($filter === 'maand'): ?><?php endif; ?>
+        </div>
 
+        <table class="tabel-content" data-filter="<?= $filter ?>">
             <tbody>
             <?php foreach ($rows as $row): ?>
                 <tr>
-                    <td><img src="user-icon.png" alt="icon"> <?= htmlspecialchars($row["name"]) ?></td>
+                    <td class="naamNuser-icon"><img src="../img/user-icon.png" alt="icon" class="user-icon"> <?= htmlspecialchars($row["name"]) ?></td>
                     <?php if ($filter === 'week'):
                         $total = $row["Ma"] + $row["Di"] + $row["Wo"] + $row["Do"] + $row["Vr"];
                         ?>
-                        <td><?= htmlspecialchars($row["Ma"]) ?></td>
-                        <td><?= htmlspecialchars($row["Di"]) ?></td>
-                        <td><?= htmlspecialchars($row["Wo"]) ?></td>
-                        <td><?= htmlspecialchars($row["Do"]) ?></td>
-                        <td><?= htmlspecialchars($row["Vr"]) ?></td>
+                        <td class="uren-row"><?= htmlspecialchars($row["Ma"]) ?></td>
+                        <td class="uren-row"><?= htmlspecialchars($row["Di"]) ?></td>
+                        <td class="uren-row"><?= htmlspecialchars($row["Wo"]) ?></td>
+                        <td class="uren-row"><?= htmlspecialchars($row["Do"]) ?></td>
+                        <td class="uren-row"><?= htmlspecialchars($row["Vr"]) ?></td>
                         <td class="totaal-week-end"><strong><?= htmlspecialchars($total) ?> Totaal</strong></td>
                         <td class="action-icons">
-                            <button class="edit">✏️</button>
-                            <button class="accept">✅</button>
+                            <button title="Wijzigen">✏️</button>
+                            <button><img class="action-pngs" src="../img/checkmark.png" title="Accorderen"></button>
                         </td>
                     <?php else: ?>
                         <td><?= htmlspecialchars($row["totaal"]) ?> Totaal</td>
                         <td class="action-icons">
-                            <button class="edit">✏️</button>
-                            <button class="accept">✅</button>
+                            <button title="Wijzigen">✏️</button>
+                            <button><img class="action-pngs" src="../img/checkmark.png" title="Accorderen"> </button>
                         </td>
                     <?php endif; ?>
                 </tr>
@@ -171,3 +181,4 @@ try {
 </div>
 </body>
 </html>
+
