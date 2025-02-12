@@ -1,3 +1,11 @@
+body{
+    margin: 0;
+    overflow: hidden;
+    background-image: url("../img/achtergrond.jpg");
+    background-repeat: no-repeat;
+    background-size: 100vw 100vh;
+}
+
 .sidebar{
     width: 120px;
     background-color: #F0EFEF;
