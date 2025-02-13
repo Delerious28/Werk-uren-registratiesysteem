@@ -102,14 +102,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
 <div class="container">
-
     <?php include 'admin-header.php' ?>
 
     <div class="content">
-
         <div class="gebruikers-header-div">
             <div class="gebruikers-header-text1">Gebruikers</div>
-            <button class="new-gebruiker-btn" onclick="document.getElementById('createUserForm').style.display='block'">New</button>
+            <!-- Open overlay with new user form -->
+            <button class="new-gebruiker-btn" onclick="showCreateUserForm()">New</button>
         </div>
 
         <?php if ($message): ?>
@@ -135,49 +134,75 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <input type="hidden" name="user_id" value="<?= $user['user_id'] ?>">
                             <button type="submit" name="delete_user" title="Verwijderen">🗑️</button>
                         </form>
+                        <!-- Open overlay with edit user form -->
                         <button onclick="editUser('<?= $user['user_id'] ?>', '<?= htmlspecialchars($user['name']) ?>', '<?= $user['role'] ?>')" title="Wijzigen">✏️</button>
                     </td>
                 </tr>
             <?php endforeach; ?>
         </table>
 
-        <div id="createUserForm" style="display:none;">
-            <h2>Nieuwe Gebruiker</h2>
-            <form method="POST" onsubmit="return validateForm(this)">
-                <input type="text" name="name" placeholder="Naam" required pattern="^[^\d]+$" title="Naam mag geen cijfers bevatten">
-                <input type="password" name="password" placeholder="Wachtwoord" required minlength="5" title="Wachtwoord moet meer dan 4 tekens bevatten">
-                <select name="role">
-                    <option value="user">User</option>
-                    <option value="admin">Admin</option>
-                </select>
-                <button type="submit" name="create_user">Toevoegen</button>
-            </form>
-        </div>
+        <!-- Overlay for New and Edit forms -->
+        <div id="userFormOverlay" style="display: none;">
+            <div id="formContainer">
+                <!-- New User Form -->
+                <div id="createUserForm" style="display: none;">
+                    <h2>Nieuwe Gebruiker</h2>
+                    <form method="POST" onsubmit="return validateForm(this)">
+                        <input type="text" name="name" placeholder="Naam" required pattern="^[^\d]+$" title="Naam mag geen cijfers bevatten">
+                        <input type="password" name="password" placeholder="Wachtwoord" required minlength="5" title="Wachtwoord moet meer dan 4 tekens bevatten">
+                        <select name="role">
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                        <button type="submit" name="create_user">Toevoegen</button>
+                        <button type="button" onclick="closeUserForm()">Cancel</button>
+                    </form>
+                </div>
 
-        <div id="editUserForm" style="display:none;">
-            <h2>Gebruiker Bewerken</h2>
-            <form method="POST" onsubmit="return validateForm(this)">
-                <input type="hidden" name="user_id" id="edit_user_id">
-                <input type="text" name="name" id="edit_name" required pattern="^[^\d]+$" title="Naam mag geen cijfers bevatten">
-                <input type="password" name="password" placeholder="Nieuw wachtwoord" minlength="5" title="Wachtwoord moet meer dan 4 tekens bevatten">
-                <select name="role" id="edit_role">
-                    <option value="user">User</option>
-                    <option value="admin">Admin</option>
-                </select>
-                <button type="submit" name="edit_user">Opslaan</button>
-            </form>
+                <!-- Edit User Form -->
+                <div id="editUserForm" style="display: none;">
+                    <h2>Gebruiker Bewerken</h2>
+                    <form method="POST" onsubmit="return validateForm(this)">
+                        <input type="hidden" name="user_id" id="edit_user_id">
+                        <input type="text" name="name" id="edit_name" required pattern="^[^\d]+$" title="Naam mag geen cijfers bevatten">
+                        <input type="password" name="password" placeholder="Nieuw wachtwoord" minlength="5" title="Wachtwoord moet meer dan 4 tekens bevatten">
+                        <select name="role" id="edit_role">
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                        <button type="submit" name="edit_user">Opslaan</button>
+                        <button type="button" onclick="closeUserForm()">Cancel</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
+    // Open the overlay and show the New User form
+    function showCreateUserForm() {
+        document.getElementById('userFormOverlay').style.display = 'flex';
+        document.getElementById('editUserForm').style.display = 'none';
+        document.getElementById('createUserForm').style.display = 'block';
+    }
+
+    // Open the overlay and show the Edit User form, populating its fields
     function editUser(id, name, role) {
+        document.getElementById('userFormOverlay').style.display = 'flex';
+        document.getElementById('createUserForm').style.display = 'none';
         document.getElementById('editUserForm').style.display = 'block';
         document.getElementById('edit_user_id').value = id;
         document.getElementById('edit_name').value = name;
         document.getElementById('edit_role').value = role;
     }
 
+    // Close the overlay (hiding both forms)
+    function closeUserForm() {
+        document.getElementById('userFormOverlay').style.display = 'none';
+    }
+
+    // Simple form validation to check name and password rules
     function validateForm(form) {
         const name = form.querySelector('[name="name"]').value;
         const password = form.querySelector('[name="password"]').value;
