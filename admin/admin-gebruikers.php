@@ -11,6 +11,7 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = htmlspecialchars($_SESSION['user_id'], ENT_QUOTES, 'UTF-8');
 $user_name = htmlspecialchars($_SESSION['user'], ENT_QUOTES, 'UTF-8');
 
+$failMessage = "";
 $message = "";
 
 // Fetch all users with role 'user'
@@ -36,9 +37,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $userExists = $stmt->fetchColumn();
 
         if (preg_match('/\d/', $name)) {
-            $message = "Fout: Naam mag geen cijfers bevatten.";
+            $message = "Fout: Naam mag geen cijfers bevatten!";
         } elseif ($userExists) {
-            $message = "Fout: Gebruikersnaam bestaat al.";
+            $failMessage = "Fout: Gebruikersnaam bestaat al!";
         } elseif (strlen($password) > 0 && strlen($password) < 5) {
             $message = "Fout: Wachtwoord moet meer dan 4 tekens bevatten.";
         } else {
@@ -54,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $update_sql .= " WHERE user_id = :user_id";
             $stmt = $pdo->prepare($update_sql);
             $stmt->execute($params);
-            $message = "Gebruiker succesvol bijgewerkt.";
+            $message = "Gebruiker succesvol bijgewerkt!";
         }
     }
 
@@ -63,7 +64,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $delete_sql = "DELETE FROM users WHERE user_id = :user_id";
         $stmt = $pdo->prepare($delete_sql);
         $stmt->execute([':user_id' => $user_id]);
-        $message = "Gebruiker succesvol verwijderd.";
+        $message = "Gebruiker succesvol verwijderd!";
+        header('refresh: 2;');
     }
 
     if (isset($_POST['create_user'])) {
@@ -76,17 +78,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $userExists = $stmt->fetchColumn();
 
         if (preg_match('/\d/', $name)) {
-            $message = "Fout: Naam mag geen cijfers bevatten.";
+            $message = "Fout: Naam mag geen cijfers bevatten!";
         } elseif ($userExists) {
-            $message = "Fout: Gebruikersnaam bestaat al.";
+            $failMessage = "Fout: Gebruikersnaam bestaat al!";
         } elseif (strlen($password) < 5) {
-            $message = "Fout: Wachtwoord moet meer dan 4 tekens bevatten.";
+            $message = "Fout: Wachtwoord moet meer dan 4 tekens bevatten!";
         } else {
             $password_hashed = password_hash($password, PASSWORD_DEFAULT);
             $insert_sql = "INSERT INTO users (name, password, role) VALUES (:name, :password, :role)";
             $stmt = $pdo->prepare($insert_sql);
             $stmt->execute([':name' => $name, ':password' => $password_hashed, ':role' => $role]);
-            $message = "Nieuwe gebruiker succesvol aangemaakt.";
+            $message = "Nieuwe gebruiker succesvol aangemaakt!";
+            header('refresh: 2;');
         }
     }
 }
@@ -102,18 +105,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
 <div class="container">
+
+    <?php if (!empty($message)): ?>
+        <div class="new-gebruiker-bericht"><?= htmlspecialchars($message) ?></div>
+    <?php elseif (!empty($failMessage)): ?>
+        <div class="fout-gebruiker-bericht"><?= htmlspecialchars($failMessage) ?></div>
+    <?php endif; ?>
+
     <?php include 'admin-header.php' ?>
 
     <div class="content">
+
         <div class="gebruikers-header-div">
             <div class="gebruikers-header-text1">Gebruikers</div>
             <!-- Open overlay with new user form -->
             <button class="new-gebruiker-btn" onclick="showCreateUserForm()">New</button>
         </div>
-
-        <?php if ($message): ?>
-            <p><?= htmlspecialchars($message) ?></p>
-        <?php endif; ?>
 
         <div class="naamNroleNacties">
             <div class="naamNroleNacties-naam">Naam</div>
@@ -179,45 +186,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 </div>
 
-<script>
-    // Open the overlay and show the New User form
-    function showCreateUserForm() {
-        document.getElementById('userFormOverlay').style.display = 'flex';
-        document.getElementById('editUserForm').style.display = 'none';
-        document.getElementById('createUserForm').style.display = 'block';
-    }
-
-    // Open the overlay and show the Edit User form, populating its fields
-    function editUser(id, name, role) {
-        document.getElementById('userFormOverlay').style.display = 'flex';
-        document.getElementById('createUserForm').style.display = 'none';
-        document.getElementById('editUserForm').style.display = 'block';
-        document.getElementById('edit_user_id').value = id;
-        document.getElementById('edit_name').value = name;
-        document.getElementById('edit_role').value = role;
-    }
-
-    // Close the overlay (hiding both forms)
-    function closeUserForm() {
-        document.getElementById('userFormOverlay').style.display = 'none';
-    }
-
-    // Simple form validation to check name and password rules
-    function validateForm(form) {
-        const name = form.querySelector('[name="name"]').value;
-        const password = form.querySelector('[name="password"]').value;
-
-        if (/\d/.test(name)) {
-            alert('Naam mag geen cijfers bevatten.');
-            return false;
-        }
-        if (password.length > 0 && password.length < 5) {
-            alert('Wachtwoord moet meer dan 4 tekens bevatten.');
-            return false;
-        }
-        return true;
-    }
-</script>
+<script src="../js/admin.js"></script>
 
 </body>
 </html>
