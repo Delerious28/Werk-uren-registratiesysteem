@@ -13,8 +13,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function resetSelection() {
-        // Verwijder highlight van de dagknoppen
-        buttons.forEach(btn => btn.classList.remove('highlight'));
+        // Verwijder highlight van de dagknoppen, behoud de current-day markering
+        buttons.forEach(btn => {
+            if (!btn.classList.contains('current-day')) {
+                btn.classList.remove('highlight');
+            }
+        });
         // Verberg de date container
         dateCtn.style.display = "none";
     }
@@ -46,6 +50,11 @@ document.addEventListener("DOMContentLoaded", function () {
             let selectedDate = new Date(weekStartDate);
             selectedDate.setDate(weekStartDate.getDate() + i);
             dagButtons[i].dataset.date = selectedDate.toISOString().split('T')[0];
+
+            // Verwijder de 'highlight' klasse van alle knoppen behalve de huidige dag
+            if (dagButtons[i].dataset.date === new Date().toISOString().split('T')[0]) {
+                dagButtons[i].classList.add('current-day'); // Voeg de 'current-day' klasse toe voor de huidige dag
+            }
         }
     }
 
@@ -66,6 +75,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     buttons.forEach((button) => {
         button.addEventListener('click', function () {
+            // Als de dag al is geselecteerd, reset de selectie
             if (button.classList.contains('highlight')) {
                 button.classList.remove('highlight');
                 document.getElementById('selected-day').innerText = '';
@@ -73,7 +83,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
+            // Verwijder highlight van alle knoppen, behoud de current-day markering
             buttons.forEach(btn => btn.classList.remove('highlight'));
+
+            // Voeg highlight toe aan de aangeklikte dag
             button.classList.add('highlight');
 
             button.parentNode.insertBefore(dateCtn, button.nextSibling);
