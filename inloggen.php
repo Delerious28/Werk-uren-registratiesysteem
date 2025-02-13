@@ -48,9 +48,11 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 <html lang="nl">
 <head>
     <title>Inloggen</title>
-    <link href="css/inloggen.css" rel="stylesheet">
+    <link href="css/inloggen-registreren.css" rel="stylesheet">
 </head>
+
 <body>
+
 <?php include_once "header.php"; ?>
 
 <main>

@@ -1,16 +1,23 @@
 <?php
-include_once "header.php";
 include "db/conn.php"; // Include the PDO connection
 
 $title = "Registreren";
 ?>
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <title>Registreren</title>
+    <link href="css/inloggen-registreren.css" rel="stylesheet">
+</head>
 <title><?php echo $title; ?></title>
-<link href="css/inloggen.css" rel="stylesheet">
+<body>
+
+<?php include_once "header.php";?>
 
 <main>
     <h1 class="form-h"><?php echo $title; ?></h1>
 
-    <form action="registreren.php" method="POST" class="form">
+    <form action="registreren.php" method="POST" class="registreren-form">
         <div class="form-row">
             <input type="text" name="name" class="form-input" placeholder="Gebruikersnaam" required>
         </div>
@@ -23,9 +30,11 @@ $title = "Registreren";
             <input type="password" name="confirm_password" class="form-input" placeholder="Bevestig wachtwoord" required>
         </div>
 
-        <button type="submit" class="submit-btn">Registreren</button>
+        <button type="submit" class="registreer-submit-btn">Inloggen</button>
     </form>
 </main>
+</body>
+</html>
 
 <?php
 // Process form submission
