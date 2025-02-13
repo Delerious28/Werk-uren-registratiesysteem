@@ -1,4 +1,6 @@
 <link href="css/header.css" rel="stylesheet">
+<link rel="icon" href="img/chief2.png" type="image/png">
+
  <header>
     <div class="header-container">
         <img src="img/Chief2.png" alt="Image Left" class="image image-left">
