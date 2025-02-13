@@ -88,20 +88,20 @@ if ($filter === 'maand') {
     ";
     $params = [];
 } else {
-    $sql = "
-        SELECT u.user_id, u.name,
-            COALESCE(SUM(CASE WHEN DAYOFWEEK(h.date) = 2 THEN h.hours ELSE 0 END), 0) AS Ma,
-            COALESCE(SUM(CASE WHEN DAYOFWEEK(h.date) = 3 THEN h.hours ELSE 0 END), 0) AS Di,
-            COALESCE(SUM(CASE WHEN DAYOFWEEK(h.date) = 4 THEN h.hours ELSE 0 END), 0) AS Wo,
-            COALESCE(SUM(CASE WHEN DAYOFWEEK(h.date) = 5 THEN h.hours ELSE 0 END), 0) AS Do,
-            COALESCE(SUM(CASE WHEN DAYOFWEEK(h.date) = 6 THEN h.hours ELSE 0 END), 0) AS Vr
-        FROM users u
-        LEFT JOIN hours h ON u.user_id = h.user_id 
-          AND YEARWEEK(h.date, 1) = YEARWEEK(STR_TO_DATE(CONCAT(:year, '-', :week, ' Monday'), '%X-%V %W'), 1)
-        WHERE u.role = 'user'
-        GROUP BY u.user_id, u.name
-        ORDER BY u.name ASC
-    ";
+$sql = "
+    SELECT u.user_id, u.name,
+        COALESCE(SUM(CASE WHEN DAYOFWEEK(h.date) = 2 THEN h.hours ELSE 0 END), 0) AS Ma,
+        COALESCE(SUM(CASE WHEN DAYOFWEEK(h.date) = 3 THEN h.hours ELSE 0 END), 0) AS Di,
+        COALESCE(SUM(CASE WHEN DAYOFWEEK(h.date) = 4 THEN h.hours ELSE 0 END), 0) AS Wo,
+        COALESCE(SUM(CASE WHEN DAYOFWEEK(h.date) = 5 THEN h.hours ELSE 0 END), 0) AS Do,
+        COALESCE(SUM(CASE WHEN DAYOFWEEK(h.date) = 6 THEN h.hours ELSE 0 END), 0) AS Vr
+    FROM users u
+    LEFT JOIN hours h ON u.user_id = h.user_id 
+      AND YEARWEEK(h.date, 1) = YEARWEEK(STR_TO_DATE(CONCAT(:year, '-', :week, ' Monday'), '%x-%v %W'), 1)
+    WHERE u.role = 'user'
+    GROUP BY u.user_id, u.name
+    ORDER BY u.name ASC
+";
     $params = [':year' => $year, ':week' => $week];
 }
 
@@ -121,11 +121,11 @@ try {
     <title>Admin Dashboard</title>
     <link rel="stylesheet" href="../css/admin-index.css">
     <style>
-        /* Optional: highlight the active (editable) row */
+        /* Highlight the active (editable) row */
         tr.active-edit {
             background-color: #ffeeba;
         }
-        /* Optional: style inline inputs */
+        /* Style inline inputs */
         td input.inline-edit {
             width: 80%;
             font-size: 1em;
@@ -197,7 +197,6 @@ try {
                 </div>
             </div>
         <?php elseif ($filter === 'maand'): ?>
-            <!-- Maand header content -->
         <?php endif; ?>
 
         <table class="tabel-content" data-filter="<?= $filter ?>">
@@ -226,11 +225,14 @@ try {
                     <?php else: ?>
                         <td class="editable"><?= htmlspecialchars($row["totaal"]) ?> Totaal</td>
                         <td class="action-icons">
-                            <button class="edit-btn" title="Wijzigen">✏️</button>
+                            <?php if ($filter !== 'maand'): ?>
+                                <button class="edit-btn" title="Wijzigen">✏️</button>
+                            <?php endif; ?>
                             <button>
                                 <img class="action-pngs" src="../img/checkmark.png" title="Accorderen">
                             </button>
                         </td>
+
                     <?php endif; ?>
                 </tr>
             <?php endforeach; ?>
@@ -248,14 +250,14 @@ try {
 </form>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function(){
+    document.addEventListener("DOMContentLoaded", function() {
         var filter = "<?= $filter ?>";
 
         // 1. Attach click listeners to "Wijzigen" buttons to mark their row as active.
         document.querySelectorAll(".edit-btn").forEach(function(button) {
             button.addEventListener("click", function(e) {
                 e.preventDefault();
-                // Remove "active-edit" from any row that has it.
+                // Remove "active-edit" from any row.
                 document.querySelectorAll("tr.active-edit").forEach(function(row) {
                     row.classList.remove("active-edit");
                 });
@@ -267,13 +269,13 @@ try {
 
         // 2. Attach inline editing to hour cells—but only if their row is active.
         var editableCells = [];
-        if(filter === "week") {
+        if (filter === "week") {
             editableCells = document.querySelectorAll("td.uren-row.editable");
-        } else if(filter === "vandaag") {
+        } else if (filter === "vandaag") {
             editableCells = document.querySelectorAll('table[data-filter="vandaag"] tbody tr td.editable');
         }
-        // For week view, map cell index (relative to row) to day code
-        // Cell 0 is name.
+        // For week view, map cell index (relative to row) to day code.
+        // Cell 0 is name; 1: Ma, 2: Di, 3: Wo, 4: Do, 5: Vr.
         var dayMapping = {1: "Ma", 2: "Di", 3: "Wo", 4: "Do", 5: "Vr"};
 
         editableCells.forEach(function(cell) {
@@ -283,26 +285,37 @@ try {
                 if (!cell.parentNode.classList.contains("active-edit")) return;
                 // Prevent multiple inputs in one cell.
                 if (cell.querySelector("input")) return;
-                var currentValue = cell.textContent.replace(" Totaal", "").trim();
+
+                var originalValue = cell.textContent.replace(" Totaal", " totaal").trim();
                 cell.innerHTML = "";
                 var input = document.createElement("input");
                 input.type = "number";
                 input.min = 0;
                 input.max = 24;
-                input.value = currentValue;
+                input.value = originalValue;
                 input.className = "inline-edit";
                 cell.appendChild(input);
                 input.focus();
 
-                // complete (blur or Enter), update the value.
-                input.addEventListener("blur", function() {
-                    updateValue(cell, input.value);
-                });
+                // Flag to track if Enter was pressed (update confirmed)
+                let updateConfirmed = false;
+
                 input.addEventListener("keydown", function(ev) {
-                    if(ev.key === "Enter") {
+                    if (ev.key === "Enter") {
                         ev.preventDefault();
+                        updateConfirmed = true;
+                        updateValue(cell, input.value);
                         input.blur();
                     }
+                });
+
+                input.addEventListener("blur", function() {
+                    // If Enter was not pressed, revert to original value.
+                    if (!updateConfirmed) {
+                        cell.textContent = originalValue;
+                    }
+                    // Remove active-edit class from the row.
+                    cell.parentNode.classList.remove("active-edit");
                 });
             });
         });
@@ -311,22 +324,27 @@ try {
             var row = cell.parentNode;
             var userId = row.getAttribute("data-user-id");
             var day = "";
-            if(filter === "week") {
+
+            // If filter is "week", determine the day from the row
+            if (filter === "week") {
                 var cells = Array.from(row.children);
                 var cellIndex = cells.indexOf(cell);
                 day = dayMapping[cellIndex] || "";
             }
-            // Update the cell display .
+
+            // Immediately update the cell with the new value entered by the user
             cell.textContent = newValue;
-            // submit the hidden form.
+
+            // Submit the hidden form to update the database
             var form = document.getElementById("hiddenUpdateForm");
             form.user_id.value = userId;
             form.filter.value = filter;
             form.day.value = day;
-            form.hours.value = newValue;
+            form.hours.value = newValue; // The new value entered by the user
             form.submit();
         }
     });
 </script>
+
 </body>
 </html>
