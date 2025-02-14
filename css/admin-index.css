@@ -116,7 +116,7 @@ tr th{
     vertical-align: center;
 }
 
-/* Highlight the active (editable) row */
+/* Highlight the activ (editable) row */
 tr.active-edit {
     background-color: #ffeeba;
 }

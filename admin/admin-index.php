@@ -367,7 +367,7 @@ try {
                 cell.appendChild(input);
                 input.focus();
 
-                // Flag to track if Enter was pressed (update confirmed)
+                // Flag to track if Enter was pressed (updates confirmed)
                 let updateConfirmed = false;
 
                 input.addEventListener("keydown", function(ev) {
