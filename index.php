@@ -2,25 +2,25 @@
 session_start();
 include "db/conn.php"; // Database Connectie.
 
-// Check als de gebruiker ingelogd is:
+// Controleer of de gebruiker is ingelogd
 if (!isset($_SESSION['user_id'])) {
     echo "<p>Er is een probleem met uw inloggegevens. Log opnieuw in.</p>";
     header("Location: inloggen.php");
     exit();
 }
 
-$user_id = $_SESSION['user_id']; // Haal de gebruiker's id op uit de sessie.
-$user_name = $_SESSION['user']; // Haal de gebruiker's naam op uit de sessie.
+$user_id   = $_SESSION['user_id'];
+$user_name = $_SESSION['user'];
 
-// Initialiseer de succesberichtvariabele
+$noInput         = '';
 $success_message = '';
-$fail_message = '';
+$fail_message    = '';
 
-// Formulierinzending afhandelen
+// Verwerk formulier indien ingediend
 if ($_SERVER['REQUEST_METHOD'] === "POST") {
     if (!empty($_POST['hours']) && !empty($_POST['date'])) {
         $hours = $_POST['hours'];
-        $date = $_POST['date'];
+        $date  = $_POST['date'];
 
         if ($user_id) {
             $hours = intval($hours);
@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
                 $fail_message = "U heeft de uren voor $date al ingevoerd!";
                 header('Refresh: 3');
             } else {
-                // Gegevens invoeren in de database als er nog geen record bestaat
+                // Voeg de nieuwe uren toe
                 $stmt = $pdo->prepare("INSERT INTO hours (user_id, date, hours) VALUES (?, ?, ?)");
                 if ($stmt->execute([$user_id, $date, $hours])) {
                     $success_message = "Uren succesvol ingevoerd voor $date.";
@@ -45,42 +45,32 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
             }
         }
     } else {
-        echo "<p>Vul alle velden in!</p>";
+        $noInput = "Vul 1 of meer uren in!";
+        header('Refresh: 3');
     }
 }
 
-// Verkrijg de huidige week
-$current_date = new DateTime();
+// Bepaal de huidige week (start op maandag)
+$current_date       = new DateTime();
 $current_week_start = (clone $current_date)->modify('Monday this week');
 
-// Verkrijg de vorige week
-$previous_week_start = (clone $current_week_start)->modify('-1 week');
-
-// Verkrijg de volgende week (maar zet deze vast op de huidige week)
-$next_week_start = (clone $current_week_start)->modify('+1 week');
-
-// Verkrijg de laatste geselecteerde week (initieel op huidige week)
+// Voor deze versie gebruiken we de huidige week als standaard geselecteerde week
 $selected_week_start = $current_week_start;
 
-// Datum van de week, maand en jaar voor "div class="datum" verkrijgen.
 $weekNum = $selected_week_start->format("W"); // Weeknummer
-$month = $selected_week_start->format("F");   // Maand (volledig)
-$year = $selected_week_start->format("Y");    // Jaar
+$month   = $selected_week_start->format("F"); // Volledige maandnaam
+$year    = $selected_week_start->format("Y"); // Jaar
 
-
-// Verkrijg alle ingevoerde uren van de gebruiker voor de geselecteerde week
-$stmt = $pdo->prepare("SELECT date, hours FROM hours WHERE user_id = ? AND date BETWEEN ? AND ?");
-$week_start = $selected_week_start->format('Y-m-d');
-$week_end = (clone $selected_week_start)->modify('+4 days')->format('Y-m-d');
-$stmt->execute([$user_id, $week_start, $week_end]);
+// Haal ALLE ingevoerde uren op voor de gebruiker, zodat deze later ook voor andere weken beschikbaar zijn
+$stmt = $pdo->prepare("SELECT date, hours FROM hours WHERE user_id = ?");
+$stmt->execute([$user_id]);
 $hours_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Maak een associatieve array met datum => uren
+// Maak een associatieve array: datum => ingevoerde uren
 $hours_map = [];
 foreach ($hours_data as $row) {
     $hours_map[$row['date']] = $row['hours'];
 }
-
 ?>
 
 <!DOCTYPE html>
@@ -118,7 +108,13 @@ foreach ($hours_data as $row) {
             </div>
         <?php endif; ?>
 
-        <!-- Week navigatie knoppen -->
+        <?php if ($noInput): ?>
+            <div class="fail-message">
+                <?php echo htmlspecialchars($noInput); ?>
+            </div>
+        <?php endif; ?>
+
+        <!-- Navigatie voor de weken en de dagen -->
         <div class="week-container">
             <button id="previous-week" class="nav-week-btn">
                 <img src="img/links-pijl.png" alt="pijl" class="nav-pijl">
@@ -148,13 +144,14 @@ foreach ($hours_data as $row) {
     </div>
 </main>
 
-<script src="js/main.js"></script>
-
 <script>
+    // Standaard geselecteerde week (PHP)
     let selectedWeekStartDate = new Date('<?php echo $selected_week_start->format('Y-m-d'); ?>');
 
+    // Global hoursData-object met alle ingevoerde uren (datum => uren)
     let hoursData = <?php echo json_encode($hours_map); ?>;
+    console.log(hoursData);
 </script>
-
+<script src="js/main.js"></script>
 </body>
 </html>
