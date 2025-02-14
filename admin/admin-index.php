@@ -1,5 +1,6 @@
 <?php
 session_start();
+require('../fpdf/fpdf.php');
 include "../db/conn.php";
 
 // --- Process approval button POST request ---
@@ -15,8 +16,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['approve'])) {
               AND accord = 'pending'
               AND DATE(date) = CURDATE()");
         $stmt->execute([':user_id' => $user_id]);
-        $_SESSION['message'] = "Uren van vandaag zijn geaccordeerd!";
-        header('refresh: 3;');
+        $_SESSION['message'] = "Uren van vandaag zijn geapproved";
     } elseif ($filter === 'week') {
         // Get the current week/year from hidden fields or fallback to current
         $year = isset($_POST['year']) ? (int)$_POST['year'] : (int) date("Y");
@@ -38,8 +38,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['approve'])) {
             ':start_date' => $start_date,
             ':end_date'   => $end_date
         ]);
-        $_SESSION['message'] = "Uren van deze week (week $week) zijn geaccordeerd!";
-        header('refresh: 3;');
+        $_SESSION['message'] = "Uren van deze week (week $week) zijn geapproved";
     } elseif ($filter === 'maand') {
         // Get the month and year from hidden fields or fallback to current
         $year  = isset($_POST['year']) ? (int)$_POST['year'] : (int) date("Y");
@@ -57,8 +56,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['approve'])) {
             ':year'    => $year
         ]);
         $monthName = date('F', mktime(0, 0, 0, $month, 10));
-        $_SESSION['message'] = "Uren van deze maand ($monthName) zijn geaccordeerd!";
-        header('refresh: 3;');
+        $_SESSION['message'] = "Uren van deze maand ($monthName) zijn geapproved";
     }
 
     // Redirect to avoid form resubmission.
@@ -310,14 +308,111 @@ try {
     </div>
 </div>
 
+<!-- Hidden form to submit inline hour changes (updates are processed in this same file) -->
 <form id="hiddenUpdateForm" method="POST" action="" style="display:none;">
     <input type="hidden" name="user_id" value="">
     <input type="hidden" name="filter" value="">
     <input type="hidden" name="day" value="">
     <input type="hidden" name="hours" value="">
 </form>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var filter = "<?= $filter ?>";
 
-<script src="../js/admin.js"></script>
+        // 1. Attach click listeners to "Wijzigen" buttons to mark their row as active.
+        document.querySelectorAll(".edit-btn").forEach(function(button) {
+            button.addEventListener("click", function(e) {
+                e.preventDefault();
+                // Remove "active-edit" from any row.
+                document.querySelectorAll("tr.active-edit").forEach(function(row) {
+                    row.classList.remove("active-edit");
+                });
+                // Mark the row containing this button as active.
+                var row = button.closest("tr");
+                row.classList.add("active-edit");
+            });
+        });
+
+        // 2. Attach inline editing to hour cells—but only if their row is active.
+        var editableCells = [];
+        if (filter === "week") {
+            editableCells = document.querySelectorAll("td.uren-row.editable");
+        } else if (filter === "vandaag") {
+            editableCells = document.querySelectorAll('table[data-filter="vandaag"] tbody tr td.editable');
+        }
+        // For week view, map cell index (relative to row) to day code.
+        // Cell 0 is name; 1: Ma, 2: Di, 3: Wo, 4: Do, 5: Vr.
+        var dayMapping = {1: "Ma", 2: "Di", 3: "Wo", 4: "Do", 5: "Vr"};
+
+        editableCells.forEach(function(cell) {
+            cell.style.cursor = "pointer";
+            cell.addEventListener("click", function(e) {
+                // Allow editing only if this cell's row is active.
+                if (!cell.parentNode.classList.contains("active-edit")) return;
+                // Prevent multiple inputs in one cell.
+                if (cell.querySelector("input")) return;
+
+                var originalValue = cell.textContent.replace(" Totaal", "").trim();
+                cell.innerHTML = "";
+                var input = document.createElement("input");
+                input.type = "number";
+                input.min = 0;
+                input.max = 24;
+                input.value = originalValue;
+                input.className = "inline-edit";
+                cell.appendChild(input);
+                input.focus();
+
+                // Flag to track if Enter was pressed (updates confirmed)
+                let updateConfirmed = false;
+
+                input.addEventListener("keydown", function(ev) {
+                    if (ev.key === "Enter") {
+                        ev.preventDefault();
+                        updateConfirmed = true;
+                        updateValue(cell, input.value);
+                        input.blur();
+                    }
+                });
+
+                input.addEventListener("blur", function() {
+                    // If Enter was not pressed, revert to original value.
+                    if (!updateConfirmed) {
+                        cell.textContent = originalValue;
+                    }
+                    // Remove active-edit class from the row.
+                    cell.parentNode.classList.remove("active-edit");
+                });
+            });
+        });
+
+        function updateValue(cell, newValue) {
+            var row = cell.parentNode;
+            var userId = row.getAttribute("data-user-id");
+            var day = "";
+
+            // If filter is "week", determine the day from the row
+            if (filter === "week") {
+                var cells = Array.from(row.children);
+                var cellIndex = cells.indexOf(cell);
+                day = dayMapping[cellIndex] || "";
+            }
+
+            // Immediately update the cell with the new value entered by the user
+            cell.textContent = newValue;
+
+            // Submit the hidden form to update the database
+            var form = document.getElementById("hiddenUpdateForm");
+            form.user_id.value = userId;
+            form.filter.value = filter;
+            form.day.value = day;
+            form.hours.value = newValue; // The new value entered by the user
+            form.submit();
+        }
+    });
+</script>
+<script src="../js/admin-berichten.js">
+</script>
 
 </body>
 </html>
