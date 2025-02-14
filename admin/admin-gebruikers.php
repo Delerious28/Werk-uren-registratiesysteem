@@ -3,6 +3,7 @@ session_start();
 require('../fpdf/fpdf.php');
 include "../db/conn.php";
 
+// Controleer of de gebruiker is ingelogd, anders doorsturen naar de inlogpagina
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../inloggen.php");
     exit();
@@ -14,39 +15,47 @@ $user_name = htmlspecialchars($_SESSION['user'], ENT_QUOTES, 'UTF-8');
 $failMessage = "";
 $message = "";
 
-// Fetch all users with role 'user'
+// Haal alle gebruikers op met de rol 'user'
 $sql = "SELECT user_id, name, role FROM users WHERE role = 'user' ORDER BY name ASC";
 
 try {
     $stmt = $pdo->query($sql);
     $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    die("Error retrieving users: " . $e->getMessage());
+    die("Fout bij ophalen van gebruikers: " . $e->getMessage());
 }
 
-// Handle form submissions
+// Verwerk formulierindieningen
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    // Bewerken van een gebruiker
     if (isset($_POST['edit_user'])) {
         $user_id = intval($_POST['user_id']);
         $name = htmlspecialchars($_POST['name'], ENT_QUOTES, 'UTF-8');
         $password = $_POST['password'];
         $role = htmlspecialchars($_POST['role'], ENT_QUOTES, 'UTF-8');
 
+        // Controleer of de naam al bestaat voor een andere gebruiker
         $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE name = :name AND user_id != :user_id");
         $stmt->execute([':name' => $name, ':user_id' => $user_id]);
         $userExists = $stmt->fetchColumn();
 
+        // Valideer de naam (mag geen cijfers bevatten)
         if (preg_match('/\d/', $name)) {
             $message = "Fout: Naam mag geen cijfers bevatten!";
+            // Valideer of de gebruikersnaam al bestaat
         } elseif ($userExists) {
             $failMessage = "Fout: Gebruikersnaam bestaat al!";
             header('refresh: 2;');
+            // Valideer wachtwoord (moet langer dan 4 tekens zijn)
         } elseif (strlen($password) > 0 && strlen($password) < 5) {
             $message = "Fout: Wachtwoord moet meer dan 4 tekens bevatten.";
         } else {
+            // Update de gebruikersgegevens
             $update_sql = "UPDATE users SET name = :name, role = :role";
             $params = [':name' => $name, ':role' => $role, ':user_id' => $user_id];
 
+            // Voeg het wachtwoord toe als het is ingevuld
             if (!empty($password)) {
                 $password_hashed = password_hash($password, PASSWORD_DEFAULT);
                 $update_sql .= ", password = :password";
@@ -61,6 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    // Verwijderen van een gebruiker
     if (isset($_POST['delete_user'])) {
         $user_id = intval($_POST['user_id']);
         $delete_sql = "DELETE FROM users WHERE user_id = :user_id";
@@ -70,23 +80,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header('refresh: 2;');
     }
 
+    // Aanmaken van een nieuwe gebruiker
     if (isset($_POST['create_user'])) {
         $name = htmlspecialchars($_POST['name'], ENT_QUOTES, 'UTF-8');
         $password = $_POST['password'];
         $role = htmlspecialchars($_POST['role'], ENT_QUOTES, 'UTF-8');
 
+        // Controleer of de naam al bestaat
         $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE name = :name");
         $stmt->execute([':name' => $name]);
         $userExists = $stmt->fetchColumn();
 
+        // Valideer de naam (mag geen cijfers bevatten)
         if (preg_match('/\d/', $name)) {
             $message = "Fout: Naam mag geen cijfers bevatten!";
+            // Valideer of de gebruikersnaam al bestaat
         } elseif ($userExists) {
             $failMessage = "Fout: Gebruikersnaam bestaat al!";
             header('refresh: 2;');
+            // Valideer het wachtwoord
         } elseif (strlen($password) < 5) {
             $message = "Fout: Wachtwoord moet meer dan 4 tekens bevatten!";
         } else {
+            // Voeg de nieuwe gebruiker toe
             $password_hashed = password_hash($password, PASSWORD_DEFAULT);
             $insert_sql = "INSERT INTO users (name, password, role) VALUES (:name, :password, :role)";
             $stmt = $pdo->prepare($insert_sql);
@@ -97,6 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="nl">

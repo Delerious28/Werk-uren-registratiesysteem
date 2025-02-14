@@ -3,13 +3,13 @@ session_start();
 require('../fpdf/fpdf.php');
 include "../db/conn.php";
 
-// --- Process approval button POST request ---
+// --- Knop voor goedkeuring van proces POST-aanvraag ---
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['approve'])) {
     $user_id = $_POST['user_id'];
     $filter  = $_POST['filter'];
 
     if ($filter === 'vandaag') {
-        // Approve only today's record
+        // Alleen het record van vandaag goedkeuren
         $stmt = $pdo->prepare("UPDATE hours 
             SET accord = 'Approved' 
             WHERE user_id = :user_id 
@@ -17,11 +17,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['approve'])) {
               AND DATE(date) = CURDATE()");
         $stmt->execute([':user_id' => $user_id]);
         $_SESSION['message'] = "Uren van vandaag zijn geapproved";
+
     } elseif ($filter === 'week') {
-        // Get the current week/year from hidden fields or fallback to current
+        // Haal de huidige week/jaar op uit verborgen velden of val terug op de huidige
         $year = isset($_POST['year']) ? (int)$_POST['year'] : (int) date("Y");
         $week = isset($_POST['week']) ? (int)$_POST['week'] : (int) date("W");
-        // Calculate start and end date for the ISO week.
+        // Bereken de begin- en einddatum voor de ISO-week.
         $dto = new DateTime();
         $dto->setISODate($year, $week);
         $start_date = $dto->format('Y-m-d');
@@ -39,6 +40,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['approve'])) {
             ':end_date'   => $end_date
         ]);
         $_SESSION['message'] = "Uren van deze week (week $week) zijn geapproved";
+
     } elseif ($filter === 'maand') {
         // Get the month and year from hidden fields or fallback to current
         $year  = isset($_POST['year']) ? (int)$_POST['year'] : (int) date("Y");
@@ -59,39 +61,43 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['approve'])) {
         $_SESSION['message'] = "Uren van deze maand ($monthName) zijn geapproved";
     }
 
-    // Redirect to avoid form resubmission.
-    header("Location: " . $_SERVER['REQUEST_URI']);
+    // Omleiden om te voorkomen dat het formulier opnieuw wordt ingediend.
+    echo "<script>
+        setTimeout(function() {
+            window.location.href = '{$_SERVER['REQUEST_URI']}';
+        });
+      </script>";
     exit();
 }
 
-// --- Process hours update request (inline editing) ---
+// --- Verwerk urenupdateverzoek (inline bewerken) ---
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['hours'])) {
     // Retrieve posted values
     $user_id = $_POST['user_id'];
     $filter  = $_POST['filter'];
     $hours   = (float) $_POST['hours'];
 
-    // Determine the date based on the filter
+    // Bepaal de datum op basis van het filter
     if ($filter === "vandaag") {
         $date = date("Y-m-d");
     } elseif ($filter === "week") {
-        // Expect a day code, e.g. "Ma", "Di", etc.
+        // Verwacht een dagcode, bijvoorbeeld "Ma", "Di", enz.
         $day = $_POST['day'];
-        // Get year and week from GET (or use current values)
+        // Haal jaar en week op uit GET (of gebruik huidige waarden)
         $year = isset($_GET['year']) ? (int) $_GET['year'] : (int) date("Y");
         $week = isset($_GET['week']) ? (int) $_GET['week'] : (int) date("W");
-        // Mapping: Monday = 1, Tuesday = 2, etc.
+        // Toewijzing: maandag = 1, dinsdag = 2, enz.
         $dayNumbers = ["Ma" => 1, "Di" => 2, "Wo" => 3, "Do" => 4, "Vr" => 5];
         $weekday = isset($dayNumbers[$day]) ? $dayNumbers[$day] : 1;
         $dateObj = new DateTime();
         $dateObj->setISODate($year, $week, $weekday);
         $date = $dateObj->format("Y-m-d");
     } else {
-        // For other filters (like maand) you can adjust as needed.
+        // Voor andere filters (zoals maand) kunt u indien nodig aanpassen.
         $date = date("Y-m-d");
     }
 
-    // Update the hours record. First, try an update if no row was found insert.
+    // Werk het urenrecord bij. Probeer eerst een update als er geen rij is gevonden insert.
     $stmt = $pdo->prepare("
     INSERT INTO hours (user_id, date, hours) 
     VALUES (:user_id, :date, :hours) 
@@ -104,7 +110,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['hours'])) {
     ]);
 
 
-    // Redirect to avoid form resubmission.
+    // Omleiden om opnieuw indienen van formulier te voorkomen.
     header("Location: " . $_SERVER['REQUEST_URI']);
     exit();
 }
@@ -308,7 +314,7 @@ try {
     </div>
 </div>
 
-<!-- Hidden form to submit inline hour changes (updates are processed in this same file) -->
+<!-- Verborgen formulier om inline uurwijzigingen in te dienen (updates worden in hetzelfde bestand verwerkt) -->
 <form id="hiddenUpdateForm" method="POST" action="" style="display:none;">
     <input type="hidden" name="user_id" value="">
     <input type="hidden" name="filter" value="">
@@ -319,37 +325,37 @@ try {
     document.addEventListener("DOMContentLoaded", function() {
         var filter = "<?= $filter ?>";
 
-        // 1. Attach click listeners to "Wijzigen" buttons to mark their row as active.
+        // 1. Koppel kliklisteners aan de knoppen "Wijzigen" om hun rij als actief te markeren.
         document.querySelectorAll(".edit-btn").forEach(function(button) {
             button.addEventListener("click", function(e) {
                 e.preventDefault();
-                // Remove "active-edit" from any row.
+                // Verwijder "active-edit" uit elke rij.
                 document.querySelectorAll("tr.active-edit").forEach(function(row) {
                     row.classList.remove("active-edit");
                 });
-                // Mark the row containing this button as active.
+                // Markeer de rij met deze knop als actief.
                 var row = button.closest("tr");
                 row.classList.add("active-edit");
             });
         });
 
-        // 2. Attach inline editing to hour cells—but only if their row is active.
+        // 2. Koppel inline-bewerking aan uurcellen, maar alleen als hun rij actief is.
         var editableCells = [];
         if (filter === "week") {
             editableCells = document.querySelectorAll("td.uren-row.editable");
         } else if (filter === "vandaag") {
             editableCells = document.querySelectorAll('table[data-filter="vandaag"] tbody tr td.editable');
         }
-        // For week view, map cell index (relative to row) to day code.
-        // Cell 0 is name; 1: Ma, 2: Di, 3: Wo, 4: Do, 5: Vr.
+        // Voor weekweergave, koppel de celindex (relatief aan de rij) aan de dagcode.
+        // Cel 0 is de naam; 1: Ma, 2: Di, 3: Wo, 4: Do, 5: Vr.
         var dayMapping = {1: "Ma", 2: "Di", 3: "Wo", 4: "Do", 5: "Vr"};
 
         editableCells.forEach(function(cell) {
             cell.style.cursor = "pointer";
             cell.addEventListener("click", function(e) {
-                // Allow editing only if this cell's row is active.
+                // Bewerken alleen toestaan ​​als de rij van deze cel actief is.
                 if (!cell.parentNode.classList.contains("active-edit")) return;
-                // Prevent multiple inputs in one cell.
+                // Voorkom meerdere invoerwaarden in één cel.
                 if (cell.querySelector("input")) return;
 
                 var originalValue = cell.textContent.replace(" Totaal", "").trim();
@@ -363,7 +369,7 @@ try {
                 cell.appendChild(input);
                 input.focus();
 
-                // Flag to track if Enter was pressed (updates confirmed)
+                // Vlag om bij te houden of Enter is ingedrukt (updates bevestigd)
                 let updateConfirmed = false;
 
                 input.addEventListener("keydown", function(ev) {
@@ -376,11 +382,11 @@ try {
                 });
 
                 input.addEventListener("blur", function() {
-                    // If Enter was not pressed, revert to original value.
+                    // Als Enter niet is ingedrukt, wordt de oorspronkelijke waarde hersteld.
                     if (!updateConfirmed) {
                         cell.textContent = originalValue;
                     }
-                    // Remove active-edit class from the row.
+                    // Verwijder de active-edit klasse uit de rij.
                     cell.parentNode.classList.remove("active-edit");
                 });
             });
@@ -391,22 +397,22 @@ try {
             var userId = row.getAttribute("data-user-id");
             var day = "";
 
-            // If filter is "week", determine the day from the row
+            // Als het filter "week" is, bepaal dan de dag uit de rij
             if (filter === "week") {
                 var cells = Array.from(row.children);
                 var cellIndex = cells.indexOf(cell);
                 day = dayMapping[cellIndex] || "";
             }
 
-            // Immediately update the cell with the new value entered by the user
+            // Werk de cel onmiddellijk bij met de nieuwe waarde die door de gebruiker is ingevoerd
             cell.textContent = newValue;
 
-            // Submit the hidden form to update the database
+            // Dien het verborgen formulier in om de database bij te werken
             var form = document.getElementById("hiddenUpdateForm");
             form.user_id.value = userId;
             form.filter.value = filter;
             form.day.value = day;
-            form.hours.value = newValue; // The new value entered by the user
+            form.hours.value = newValue; // De nieuwe waarde die door de gebruiker is ingevoerd
             form.submit();
         }
     });

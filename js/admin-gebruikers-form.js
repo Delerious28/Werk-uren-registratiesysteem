@@ -1,4 +1,4 @@
-
+// admin gebruikers form om nieuwe gebruikers aan te maken of wijzigen.
 function showCreateUserForm() {
     const overlay = document.getElementById('userFormOverlay');
     const editForm = document.getElementById('editUserForm');

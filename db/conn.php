@@ -4,10 +4,10 @@ $username = "root";
 $password = "";
 $dbname = "werk_uren_registratiesysteem";
 // ""
-// Create PDO connection
+// Creëer PDO connectie
 try {
     $pdo = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
-    // Set the PDO error mode to exception
+    // Stel de PDO-foutmodus in op uitzondering
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
     die("Connection failed: " . $e->getMessage());
