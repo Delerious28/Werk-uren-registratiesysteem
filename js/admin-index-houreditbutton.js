@@ -1,37 +1,38 @@
 document.addEventListener("DOMContentLoaded", function() {
     var filter = "<?= $filter ?>";
 
-    // 1. Attach click listeners to "Wijzigen" buttons to mark their row as active.
+    // 1. Voeg klikluisteraars toe aan de "Wijzigen" knoppen om hun rij als actief te markeren.
     document.querySelectorAll(".edit-btn").forEach(function(button) {
         button.addEventListener("click", function(e) {
             e.preventDefault();
-            // Remove "active-edit" from any row.
+            // Verwijder de "active-edit" klasse van alle rijen.
             document.querySelectorAll("tr.active-edit").forEach(function(row) {
                 row.classList.remove("active-edit");
             });
-            // Mark the row containing this button as active.
+            // Markeer de rij waarin deze knop zich bevindt als actief.
             var row = button.closest("tr");
             row.classList.add("active-edit");
         });
     });
 
-    // 2. Attach inline editing to hour cells—but only if their row is active.
+    // 2. Maak de cellen met uren bewerkbaar, maar alleen als hun rij actief is.
     var editableCells = [];
     if (filter === "week") {
         editableCells = document.querySelectorAll("td.uren-row.editable");
     } else if (filter === "vandaag") {
         editableCells = document.querySelectorAll('table[data-filter="vandaag"] tbody tr td.editable');
     }
-    // For week view, map cell index (relative to row) to day code.
-    // Cell 0 is name; 1: Ma, 2: Di, 3: Wo, 4: Do, 5: Vr.
+
+    // Voor de weekweergave, koppel celindex (relatief aan rij) aan dagcode.
+    // Cel 0 is naam; 1: Ma, 2: Di, 3: Wo, 4: Do, 5: Vr.
     var dayMapping = {1: "Ma", 2: "Di", 3: "Wo", 4: "Do", 5: "Vr"};
 
     editableCells.forEach(function(cell) {
         cell.style.cursor = "pointer";
         cell.addEventListener("click", function(e) {
-            // Allow editing only if this cell's row is active.
+            // Sta bewerken alleen toe als de rij actief is.
             if (!cell.parentNode.classList.contains("active-edit")) return;
-            // Prevent multiple inputs in one cell.
+            // Voorkom dat meerdere invoervelden in dezelfde cel worden gemaakt.
             if (cell.querySelector("input")) return;
 
             var originalValue = cell.textContent.replace(" Totaal", "").trim();
@@ -45,7 +46,7 @@ document.addEventListener("DOMContentLoaded", function() {
             cell.appendChild(input);
             input.focus();
 
-            // Flag to track if Enter was pressed (updates confirmed)
+            // Vlag om bij te houden of Enter is ingedrukt (bevestiging update)
             let updateConfirmed = false;
 
             input.addEventListener("keydown", function(ev) {
@@ -58,37 +59,38 @@ document.addEventListener("DOMContentLoaded", function() {
             });
 
             input.addEventListener("blur", function() {
-                // If Enter was not pressed, revert to original value.
+                // Als Enter niet is ingedrukt, herstel de oorspronkelijke waarde.
                 if (!updateConfirmed) {
                     cell.textContent = originalValue;
                 }
-                // Remove active-edit class from the row.
+                // Verwijder de "active-edit" klasse van de rij.
                 cell.parentNode.classList.remove("active-edit");
             });
         });
     });
 
+    // Functie om de nieuwe waarde op te slaan en te verzenden naar de server.
     function updateValue(cell, newValue) {
         var row = cell.parentNode;
         var userId = row.getAttribute("data-user-id");
         var day = "";
 
-        // If filter is "week", determine the day from the row
+        // Als de filter "week" is, bepaal dan de dag aan de hand van de rij.
         if (filter === "week") {
             var cells = Array.from(row.children);
             var cellIndex = cells.indexOf(cell);
             day = dayMapping[cellIndex] || "";
         }
 
-        // Immediately update the cell with the new value entered by the user
+        // Werk direct de cel bij met de nieuwe waarde die de gebruiker heeft ingevoerd.
         cell.textContent = newValue;
 
-        // Submit the hidden form to update the database
+        // Verstuur het verborgen formulier om de database te updaten.
         var form = document.getElementById("hiddenUpdateForm");
         form.user_id.value = userId;
         form.filter.value = filter;
         form.day.value = day;
-        form.hours.value = newValue; // The new value entered by the user
+        form.hours.value = newValue; // De nieuwe waarde ingevoerd door de gebruiker
         form.submit();
     }
 });

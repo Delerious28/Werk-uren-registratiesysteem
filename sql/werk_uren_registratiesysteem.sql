@@ -27,14 +27,14 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `hours` (
-  `hours_id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) NOT NULL,
-  `date` date NOT NULL,
-  `hours` tinyint(2) NOT NULL CHECK (`hours` BETWEEN 0 AND 24),
-  `accord` enum('Pending','Approved','Rejected') NOT NULL DEFAULT 'Pending',
-  PRIMARY KEY (`hours_id`),
-  KEY `user_id` (`user_id`),
-  UNIQUE KEY `unique_user_date` (`user_id`,`date`)
+                         `hours_id` int(11) NOT NULL AUTO_INCREMENT,
+                         `user_id` int(11) NOT NULL,
+                         `date` date NOT NULL,
+                         `hours` tinyint(2) NOT NULL CHECK (`hours` BETWEEN 0 AND 24),
+                         `accord` enum('Pending','Approved','Rejected') NOT NULL DEFAULT 'Pending',
+                         PRIMARY KEY (`hours_id`),
+                         KEY `user_id` (`user_id`),
+                         UNIQUE KEY `unique_user_date` (`user_id`,`date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -44,11 +44,11 @@ CREATE TABLE `hours` (
 --
 
 CREATE TABLE `users` (
-  `user_id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) NOT NULL,
-  `password` varchar(255) NOT NULL,
-  `role` varchar(50) NOT NULL,
-  PRIMARY KEY (`user_id`)
+                         `user_id` int(11) NOT NULL AUTO_INCREMENT,
+                         `name` varchar(255) NOT NULL,
+                         `password` varchar(255) NOT NULL,
+                         `role` varchar(50) NOT NULL,
+                         PRIMARY KEY (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -56,16 +56,16 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`name`, `password`, `role`, `user_id`) VALUES
-('yehia', '$2y$10$8VG79818awlStVRxWu4O5.zaLdb2zwAkNjUYEXraQlwjLC.SiL6/i', 'user', 8),
-('Beau', '$2y$10$hO4jjhDNRNG1jMfM3nTkc.3cawInIMNMcWSW9agbvbvWROeO5Lf7C', 'user', 9),
-('admin', '$2y$10$pE4NJDSy6F4C1VhbgKGelejTigSsqBrSpKht8AlBwq7sxQz0XAGQC', 'admin', 10);
+                                                                ('yehia', '$2y$10$8VG79818awlStVRxWu4O5.zaLdb2zwAkNjUYEXraQlwjLC.SiL6/i', 'user', 8),
+                                                                ('Beau', '$2y$10$hO4jjhDNRNG1jMfM3nTkc.3cawInIMNMcWSW9agbvbvWROeO5Lf7C', 'user', 9),
+                                                                ('admin', '$2y$10$pE4NJDSy6F4C1VhbgKGelejTigSsqBrSpKht8AlBwq7sxQz0XAGQC', 'admin', 10);
 
 --
 -- Constraints for dumped tables
 --
 
 ALTER TABLE `hours`
-  ADD CONSTRAINT `hours_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+    ADD CONSTRAINT `hours_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 
 COMMIT;
 

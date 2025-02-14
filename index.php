@@ -140,10 +140,6 @@ foreach ($hours_data as $row) {
             <form id="day-form" action="index.php" method="POST">
                 <div class="uren-form">
                     <div id="selected-day"></div>
-<!--                    <div class="input-icon-div">-->
-<!--                    <input type="number" name="hours" min="0" max="24" required placeholder="Uren">-->
-<!--                        <img src="img/uren-icon.png" alt="uren icon" class="uren-icon">-->
-<!--                    </div>-->
                     <input type="hidden" name="date" id="date-input">
                     <button type="submit" id="indien-btn" class="indienen-btn">Indienen</button>
                 </div>
@@ -158,7 +154,6 @@ foreach ($hours_data as $row) {
     let selectedWeekStartDate = new Date('<?php echo $selected_week_start->format('Y-m-d'); ?>');
 
     let hoursData = <?php echo json_encode($hours_map); ?>;
-
 </script>
 
 </body>

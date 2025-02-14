@@ -125,11 +125,12 @@ tr th{
     vertical-align: center;
 }
 
-/* Highlight the activ (editable) row */
+/* Highlight de active (editable) row */
 tr.active-edit {
     background-color: #ffeeba;
 }
-/* Style inline inputs */
+
+/* Stylen inline inputs */
 td input.inline-edit {
     width: 80%;
     font-size: 1em;
@@ -344,12 +345,12 @@ td input.inline-edit {
     background-color: transparent;
 
 }
+
 .gebruikers-action-icons button:hover{
     transform:  scale(1.2);
     background-color: rgba(0, 0, 0, 0.1);
     border-radius: 5px;
 }
-
 
 .new-gebruiker-btn{
     background-color: #630101;
@@ -365,7 +366,6 @@ td input.inline-edit {
 .new-gebruiker-btn:hover{
     transform:  scale(1.05); background-color: #4e0000;
 }
-
 
 .new-gebruiker-bericht{
     background-color: darkseagreen;
@@ -390,7 +390,7 @@ td input.inline-edit {
     margin-bottom: 10px;
 }
 
-/* New code to style the create and edit user forms */
+/* Nieuwe code voor het stylen van de formulieren voor het maken en bewerken van gebruikers */
 #createUserForm,
 #editUserForm {
     background-color: #fff;
@@ -430,21 +430,21 @@ td input.inline-edit {
 
 /* --- form container --- */
 
-/* Overlay that covers the entire viewport */
+/* Overlay die het gehele viewport bedekt */
 #userFormOverlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(240, 239, 239, 0.9); /* Semi-opaque to cover the gebruiker window */
+    background: rgba(240, 239, 239, 0.9);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1000;
 }
 
-/* Container for the form (used by both new and edit forms) */
+/* Container voor het formulier (gebruikt door zowel nieuwe als bewerkingsformulieren) */
 #formContainer {
     background-color: #fff;
     border: 1px solid #ccc;
@@ -455,7 +455,7 @@ td input.inline-edit {
     box-sizing: border-box;
 }
 
-/* Style for inputs and selects inside the overlay forms */
+/* Stijl voor invoer en selecties in de overlayformulieren */
 #formContainer form input,
 #formContainer form select {
     width: 100%;
@@ -466,7 +466,7 @@ td input.inline-edit {
     box-sizing: border-box;
 }
 
-/* Style for buttons inside the overlay forms */
+/* Stijl voor knoppen in de overlayformulieren */
 #formContainer form button {
     background-color: #630101;
     color: #fff;
