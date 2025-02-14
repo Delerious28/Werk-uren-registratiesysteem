@@ -116,6 +116,16 @@ tr th{
     vertical-align: center;
 }
 
+/* Highlight the activ (editable) row */
+tr.active-edit {
+    background-color: #ffeeba;
+}
+/* Style inline inputs */
+td input.inline-edit {
+    width: 80%;
+    font-size: 1em;
+}
+
 .week-th{
     width: 42px;
     text-align: center;
@@ -395,7 +405,7 @@ tr th{
     opacity: 0.8;
 }
 
-/* --- New styles for the overlay and form container --- */
+/* --- form container --- */
 
 /* Overlay that covers the entire viewport */
 #userFormOverlay {
