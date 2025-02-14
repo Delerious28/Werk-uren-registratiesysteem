@@ -91,22 +91,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['hours'])) {
         $date = date("Y-m-d");
     }
 
-    // Update the hours record. First, try an update.
-    $stmt = $pdo->prepare("UPDATE hours SET hours = :hours WHERE user_id = :user_id AND date = :date");
+    // Update the hours record. First, try an update if no row was found insert.
+    $stmt = $pdo->prepare("
+    INSERT INTO hours (user_id, date, hours) 
+    VALUES (:user_id, :date, :hours) 
+    ON DUPLICATE KEY UPDATE hours = :hours
+");
     $stmt->execute([
-        ':hours'   => $hours,
         ':user_id' => $user_id,
-        ':date'    => $date
+        ':date'    => $date,
+        ':hours'   => $hours
     ]);
-    // If no record was updated, insert a new one.
-    if ($stmt->rowCount() == 0) {
-        $stmt = $pdo->prepare("INSERT INTO hours (user_id, date, hours) VALUES (:user_id, :date, :hours)");
-        $stmt->execute([
-            ':hours'   => $hours,
-            ':user_id' => $user_id,
-            ':date'    => $date
-        ]);
-    }
+
 
     // Redirect to avoid form resubmission.
     header("Location: " . $_SERVER['REQUEST_URI']);

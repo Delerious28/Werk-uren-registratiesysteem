@@ -33,7 +33,8 @@ CREATE TABLE `hours` (
   `hours` tinyint(2) NOT NULL CHECK (`hours` BETWEEN 0 AND 24),
   `accord` enum('Pending','Approved','Rejected') NOT NULL DEFAULT 'Pending',
   PRIMARY KEY (`hours_id`),
-  KEY `user_id` (`user_id`)
+  KEY `user_id` (`user_id`),
+  UNIQUE KEY `unique_user_date` (`user_id`,`date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
