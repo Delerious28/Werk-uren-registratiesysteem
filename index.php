@@ -32,13 +32,13 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 
             if ($existingEntry) {
                 $fail_message = "U heeft de uren voor $date al ingevoerd!";
-                header('Refresh: 4');
+                header('Refresh: 3');
             } else {
                 // Gegevens invoeren in de database als er nog geen record bestaat
                 $stmt = $pdo->prepare("INSERT INTO hours (user_id, date, hours) VALUES (?, ?, ?)");
                 if ($stmt->execute([$user_id, $date, $hours])) {
                     $success_message = "Uren succesvol ingevoerd voor $date.";
-                    header('Refresh: 4');
+                    header('Refresh: 3');
                 } else {
                     echo "<p>Er is een fout opgetreden bij het invoeren van de uren.</p>";
                 }
@@ -66,6 +66,20 @@ $selected_week_start = $current_week_start;
 $weekNum = $selected_week_start->format("W"); // Weeknummer
 $month = $selected_week_start->format("F");   // Maand (volledig)
 $year = $selected_week_start->format("Y");    // Jaar
+
+
+// Verkrijg alle ingevoerde uren van de gebruiker voor de geselecteerde week
+$stmt = $pdo->prepare("SELECT date, hours FROM hours WHERE user_id = ? AND date BETWEEN ? AND ?");
+$week_start = $selected_week_start->format('Y-m-d');
+$week_end = (clone $selected_week_start)->modify('+4 days')->format('Y-m-d');
+$stmt->execute([$user_id, $week_start, $week_end]);
+$hours_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Maak een associatieve array met datum => uren
+$hours_map = [];
+foreach ($hours_data as $row) {
+    $hours_map[$row['date']] = $row['hours'];
+}
 
 ?>
 
@@ -126,10 +140,10 @@ $year = $selected_week_start->format("Y");    // Jaar
             <form id="day-form" action="index.php" method="POST">
                 <div class="uren-form">
                     <div id="selected-day"></div>
-                    <div class="input-icon-div">
-                    <input type="number" name="hours" min="0" max="24" required placeholder="Uren">
-                        <img src="img/uren-icon.png" alt="uren icon" class="uren-icon">
-                    </div>
+<!--                    <div class="input-icon-div">-->
+<!--                    <input type="number" name="hours" min="0" max="24" required placeholder="Uren">-->
+<!--                        <img src="img/uren-icon.png" alt="uren icon" class="uren-icon">-->
+<!--                    </div>-->
                     <input type="hidden" name="date" id="date-input">
                     <button type="submit" id="indien-btn" class="indienen-btn">Indienen</button>
                 </div>
@@ -142,6 +156,9 @@ $year = $selected_week_start->format("Y");    // Jaar
 
 <script>
     let selectedWeekStartDate = new Date('<?php echo $selected_week_start->format('Y-m-d'); ?>');
+
+    let hoursData = <?php echo json_encode($hours_map); ?>;
+
 </script>
 
 </body>

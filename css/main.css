@@ -125,6 +125,15 @@ main {
     width: 120px;
 }
 
+.date-ctn-datum{
+    margin-bottom: 5px;
+}
+
+.ingevoerde-uren{
+    margin-top: 40px;
+    text-align: center;
+}
+
 .nav-pijl{
     width: 45px;
     cursor: pointer;
