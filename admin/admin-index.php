@@ -3,7 +3,64 @@ session_start();
 require('../fpdf/fpdf.php');
 include "../db/conn.php";
 
-// --- Process update if a POST request is made ---
+// --- Process approval button POST request ---
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['approve'])) {
+    $user_id = $_POST['user_id'];
+    $filter  = $_POST['filter'];
+
+    if ($filter === 'vandaag') {
+        // Approve only today's record
+        $stmt = $pdo->prepare("UPDATE hours 
+            SET accord = 'Approved' 
+            WHERE user_id = :user_id 
+              AND accord = 'pending'
+              AND DATE(date) = CURDATE()");
+        $stmt->execute([':user_id' => $user_id]);
+    } elseif ($filter === 'week') {
+        // Get the current week/year from the hidden fields (or fallback to current)
+        $year = isset($_POST['year']) ? (int)$_POST['year'] : (int) date("Y");
+        $week = isset($_POST['week']) ? (int)$_POST['week'] : (int) date("W");
+        // Calculate start and end date for the ISO week.
+        $dto = new DateTime();
+        $dto->setISODate($year, $week);
+        $start_date = $dto->format('Y-m-d');
+        $dto->modify('+6 days');
+        $end_date = $dto->format('Y-m-d');
+
+        $stmt = $pdo->prepare("UPDATE hours 
+            SET accord = 'Approved' 
+            WHERE user_id = :user_id 
+              AND accord = 'pending'
+              AND date BETWEEN :start_date AND :end_date");
+        $stmt->execute([
+            ':user_id'    => $user_id,
+            ':start_date' => $start_date,
+            ':end_date'   => $end_date
+        ]);
+    } elseif ($filter === 'maand') {
+        // Get the month and year from the hidden fields (or fallback to current)
+        $year  = isset($_POST['year']) ? (int)$_POST['year'] : (int) date("Y");
+        $month = isset($_POST['month']) ? (int)$_POST['month'] : (int) date("n");
+
+        $stmt = $pdo->prepare("UPDATE hours 
+            SET accord = 'Approved' 
+            WHERE user_id = :user_id 
+              AND accord = 'pending'
+              AND MONTH(date) = :month 
+              AND YEAR(date) = :year");
+        $stmt->execute([
+            ':user_id' => $user_id,
+            ':month'   => $month,
+            ':year'    => $year
+        ]);
+    }
+
+    // Redirect to avoid form resubmission.
+    header("Location: " . $_SERVER['REQUEST_URI']);
+    exit();
+}
+
+// --- Process hours update request (inline editing) ---
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['hours'])) {
     // Retrieve posted values
     $user_id = $_POST['user_id'];
@@ -26,7 +83,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['hours'])) {
         $dateObj->setISODate($year, $week, $weekday);
         $date = $dateObj->format("Y-m-d");
     } else {
-        // For other filters, default to today (adjust if needed)
+        // For other filters (like maand) you can adjust as needed.
         $date = date("Y-m-d");
     }
 
@@ -51,8 +108,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['hours'])) {
     header("Location: " . $_SERVER['REQUEST_URI']);
     exit();
 }
-
-// --- End update processing ---
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../inloggen.php");
@@ -88,20 +143,21 @@ if ($filter === 'maand') {
     ";
     $params = [];
 } else {
-$sql = "
-    SELECT u.user_id, u.name,
-        COALESCE(SUM(CASE WHEN DAYOFWEEK(h.date) = 2 THEN h.hours ELSE 0 END), 0) AS Ma,
-        COALESCE(SUM(CASE WHEN DAYOFWEEK(h.date) = 3 THEN h.hours ELSE 0 END), 0) AS Di,
-        COALESCE(SUM(CASE WHEN DAYOFWEEK(h.date) = 4 THEN h.hours ELSE 0 END), 0) AS Wo,
-        COALESCE(SUM(CASE WHEN DAYOFWEEK(h.date) = 5 THEN h.hours ELSE 0 END), 0) AS Do,
-        COALESCE(SUM(CASE WHEN DAYOFWEEK(h.date) = 6 THEN h.hours ELSE 0 END), 0) AS Vr
-    FROM users u
-    LEFT JOIN hours h ON u.user_id = h.user_id 
-      AND YEARWEEK(h.date, 1) = YEARWEEK(STR_TO_DATE(CONCAT(:year, '-', :week, ' Monday'), '%x-%v %W'), 1)
-    WHERE u.role = 'user'
-    GROUP BY u.user_id, u.name
-    ORDER BY u.name ASC
-";
+    // Week filter
+    $sql = "
+        SELECT u.user_id, u.name,
+            COALESCE(SUM(CASE WHEN DAYOFWEEK(h.date) = 2 THEN h.hours ELSE 0 END), 0) AS Ma,
+            COALESCE(SUM(CASE WHEN DAYOFWEEK(h.date) = 3 THEN h.hours ELSE 0 END), 0) AS Di,
+            COALESCE(SUM(CASE WHEN DAYOFWEEK(h.date) = 4 THEN h.hours ELSE 0 END), 0) AS Wo,
+            COALESCE(SUM(CASE WHEN DAYOFWEEK(h.date) = 5 THEN h.hours ELSE 0 END), 0) AS Do,
+            COALESCE(SUM(CASE WHEN DAYOFWEEK(h.date) = 6 THEN h.hours ELSE 0 END), 0) AS Vr
+        FROM users u
+        LEFT JOIN hours h ON u.user_id = h.user_id 
+          AND YEARWEEK(h.date, 1) = YEARWEEK(STR_TO_DATE(CONCAT(:year, '-', :week, ' Monday'), '%x-%v %W'), 1)
+        WHERE u.role = 'user'
+        GROUP BY u.user_id, u.name
+        ORDER BY u.name ASC
+    ";
     $params = [':year' => $year, ':week' => $week];
 }
 
@@ -196,7 +252,6 @@ try {
                     </a>
                 </div>
             </div>
-        <?php elseif ($filter === 'maand'): ?>
         <?php endif; ?>
 
         <table class="tabel-content" data-filter="<?= $filter ?>">
@@ -218,9 +273,16 @@ try {
                         <td class="totaal-week-end"><strong><?= htmlspecialchars($total) ?> Totaal</strong></td>
                         <td class="action-icons">
                             <button class="edit-btn" title="Wijzigen">✏️</button>
-                            <button>
-                                <img class="action-pngs" src="../img/checkmark.png" title="Accorderen">
-                            </button>
+                            <form method="POST" action="" style="display:inline;">
+                                <input type="hidden" name="approve" value="1">
+                                <input type="hidden" name="user_id" value="<?= htmlspecialchars($row["user_id"]) ?>">
+                                <input type="hidden" name="filter" value="<?= htmlspecialchars($filter) ?>">
+                                <input type="hidden" name="year" value="<?= htmlspecialchars($year) ?>">
+                                <input type="hidden" name="week" value="<?= htmlspecialchars($week) ?>">
+                                <button type="submit">
+                                    <img class="action-pngs" src="../img/checkmark.png" title="Accorderen">
+                                </button>
+                            </form>
                         </td>
                     <?php else: ?>
                         <td class="editable"><?= htmlspecialchars($row["totaal"]) ?> Totaal</td>
@@ -228,11 +290,19 @@ try {
                             <?php if ($filter !== 'maand'): ?>
                                 <button class="edit-btn" title="Wijzigen">✏️</button>
                             <?php endif; ?>
-                            <button>
-                                <img class="action-pngs" src="../img/checkmark.png" title="Accorderen">
-                            </button>
+                            <form method="POST" action="" style="display:inline;">
+                                <input type="hidden" name="approve" value="1">
+                                <input type="hidden" name="user_id" value="<?= htmlspecialchars($row["user_id"]) ?>">
+                                <input type="hidden" name="filter" value="<?= htmlspecialchars($filter) ?>">
+                                <?php if ($filter === 'maand'): ?>
+                                    <input type="hidden" name="year" value="<?= htmlspecialchars($year) ?>">
+                                    <input type="hidden" name="month" value="<?= htmlspecialchars($month) ?>">
+                                <?php endif; ?>
+                                <button type="submit">
+                                    <img class="action-pngs" src="../img/checkmark.png" title="Accorderen">
+                                </button>
+                            </form>
                         </td>
-
                     <?php endif; ?>
                 </tr>
             <?php endforeach; ?>
@@ -241,7 +311,8 @@ try {
     </div>
 </div>
 
-<!-- Hidden form to submit changes (updates are processed in this same file) -->
+
+<!-- Hidden form to submit inline hour changes (updates are processed in this same file) -->
 <form id="hiddenUpdateForm" method="POST" action="" style="display:none;">
     <input type="hidden" name="user_id" value="">
     <input type="hidden" name="filter" value="">
@@ -286,7 +357,7 @@ try {
                 // Prevent multiple inputs in one cell.
                 if (cell.querySelector("input")) return;
 
-                var originalValue = cell.textContent.replace(" Totaal", " totaal").trim();
+                var originalValue = cell.textContent.replace(" Totaal", "").trim();
                 cell.innerHTML = "";
                 var input = document.createElement("input");
                 input.type = "number";
