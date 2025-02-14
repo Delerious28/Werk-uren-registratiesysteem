@@ -104,6 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['download_pdf'])) {
     exit();  // Stop het uitvoeren van de script
 }
 
+
 // Fetch alle gebruikers uit de database
 $sql = "SELECT DISTINCT users.user_id, users.name, users.role FROM users 
         LEFT JOIN hours ON users.user_id = hours.user_id 
