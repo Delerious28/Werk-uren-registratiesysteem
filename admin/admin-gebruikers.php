@@ -40,6 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message = "Fout: Naam mag geen cijfers bevatten!";
         } elseif ($userExists) {
             $failMessage = "Fout: Gebruikersnaam bestaat al!";
+            header('refresh: 2;');
         } elseif (strlen($password) > 0 && strlen($password) < 5) {
             $message = "Fout: Wachtwoord moet meer dan 4 tekens bevatten.";
         } else {
@@ -56,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare($update_sql);
             $stmt->execute($params);
             $message = "Gebruiker succesvol bijgewerkt!";
+            header('refresh: 2;');
         }
     }
 
@@ -81,6 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message = "Fout: Naam mag geen cijfers bevatten!";
         } elseif ($userExists) {
             $failMessage = "Fout: Gebruikersnaam bestaat al!";
+            header('refresh: 2;');
         } elseif (strlen($password) < 5) {
             $message = "Fout: Wachtwoord moet meer dan 4 tekens bevatten!";
         } else {
