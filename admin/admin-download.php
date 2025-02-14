@@ -16,7 +16,7 @@ $user_name = htmlspecialchars($_SESSION['user'], ENT_QUOTES, 'UTF-8');
 function generatePDF($pdo, $user_id, $user_name) {
     $sql = "SELECT hours_id, date, hours FROM hours 
             WHERE user_id = :user_id 
-            AND hours_id IS NOT NULL 
+            AND accord = 'Approved'  -- Alleen goedgekeurde uren
             AND MONTH(date) = MONTH(CURDATE()) 
             AND YEAR(date) = YEAR(CURDATE()) 
             ORDER BY date ASC";
@@ -29,35 +29,29 @@ function generatePDF($pdo, $user_id, $user_name) {
     $pdf->AddPage();
 
     // Voeg logo toe in het midden bovenaan
-    $pdf->Image('../img/logo.png', 75, 6, 50); // Pas de positie van het logo aan (X = 75, Y = 6)
+    $pdf->Image('../img/logo.png', 75, 6, 50);
 
     // Zet de font voor de tekst
-    $pdf->SetFont('Arial', 'B', 16);  // Maak de tekst dikgedrukt en groter voor "Maandelijkse Uren"
-
-    // Zet de positie voor "Maandelijkse Uren" iets dichter onder het logo
-    $pdf->SetXY(10, 30); // Verplaats de tekst omhoog, nu dichter onder het logo
-    $pdf->Cell(0, 10, 'Maandelijkse Uren', 0, 1, 'L');
+    $pdf->SetFont('Arial', 'B', 16);
+    $pdf->SetXY(10, 30);
+    $pdf->Cell(0, 10, 'Maandelijkse Uren (Goedgekeurd)', 0, 1, 'L'); // Aangepaste titel
 
     // Zet de font voor de andere tekst
     $pdf->SetFont('Arial', '', 12);
-
-    // Zet de positie voor "Gegevens" en "Naam: User"
-    $pdf->SetXY(10, 40); // Positie voor "Gegevens"
+    $pdf->SetXY(10, 40);
     $pdf->Cell(0, 10, 'Gegevens', 0, 1, 'L');
-
-    $pdf->SetXY(10, 50); // Positie voor "Naam: User"
+    $pdf->SetXY(10, 50);
     $pdf->Cell(0, 10, 'Naam: ' . $user_name, 0, 1, 'L');
 
-    // Tabelkoppen met aangepaste achtergrondkleur en witte tekst
-    $pdf->SetFillColor(109, 15, 16); // Stel de achtergrondkleur in op #6D0F10 (rgb(109, 15, 16))
-    $pdf->SetTextColor(255, 255, 255); // Zet de tekstkleur op wit
+    // Tabelkoppen
+    $pdf->SetFillColor(109, 15, 16);
+    $pdf->SetTextColor(255, 255, 255);
+    $pdf->SetXY(10, 60);
+    $pdf->Cell(60, 10, 'Datum', 1, 0, 'C', true);
+    $pdf->Cell(60, 10, 'Gewerkte uren', 1, 1, 'C', true);
 
-    $pdf->SetXY(10, 60); // Zet de positie voor de tabelkoppen
-    $pdf->Cell(60, 10, 'Datum', 1, 0, 'C', true); // Kolom "Datum" met de nieuwe achtergrondkleur
-    $pdf->Cell(60, 10, 'Gewerkte uren', 1, 1, 'C', true); // Kolom "Gewerkte uren" met de nieuwe achtergrondkleur
-
-    // Reset de tekstkleur voor de gegevens
-    $pdf->SetTextColor(0, 0, 0); // Zet de tekstkleur terug naar zwart
+    // Reset de tekstkleur
+    $pdf->SetTextColor(0, 0, 0);
 
     $total_hours = 0;
     foreach ($rows as $row) {
@@ -67,11 +61,15 @@ function generatePDF($pdo, $user_id, $user_name) {
         $total_hours += $row['hours'];
     }
 
-    // Totaal uren toevoegen
-    $pdf->Ln();
-    $pdf->SetFont('Arial', 'B', 12);
-    $pdf->Cell(60, 10, 'Totaal Uren:', 1);
-    $pdf->Cell(60, 10, $total_hours, 1);
+    // Controleer of er uren zijn
+    if ($total_hours == 0) {
+        $pdf->Cell(120, 10, 'Geen goedgekeurde uren gevonden voor deze maand.', 1, 1, 'C');
+    } else {
+        $pdf->Ln();
+        $pdf->SetFont('Arial', 'B', 12);
+        $pdf->Cell(60, 10, 'Totaal Uren:', 1);
+        $pdf->Cell(60, 10, $total_hours, 1);
+    }
 
     // Download de PDF
     $pdf->Output('D', 'Maandelijkse_Urenoverzicht.pdf');
