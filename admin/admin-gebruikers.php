@@ -189,7 +189,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 </div>
 
-<script src="../js/admin.js"></script>
+<?php
+$scripts = [
+    "../js/admin-gebruikers-form.js",
+    "../js/admin-berichten.js"
+];
+?>
+
+<?php foreach ($scripts as $script): ?>
+    <script src="<?php echo $script; ?>"></script>
+<?php endforeach; ?>
 
 </body>
 </html>
