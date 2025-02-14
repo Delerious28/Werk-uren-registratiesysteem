@@ -150,7 +150,6 @@ foreach ($hours_data as $row) {
 
     // Global hoursData-object met alle ingevoerde uren (datum => uren)
     let hoursData = <?php echo json_encode($hours_map); ?>;
-    console.log(hoursData);
 </script>
 <script src="js/main.js"></script>
 </body>
