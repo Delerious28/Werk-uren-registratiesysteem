@@ -16,8 +16,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['approve'])) {
               AND accord = 'pending'
               AND DATE(date) = CURDATE()");
         $stmt->execute([':user_id' => $user_id]);
+        $_SESSION['message'] = "Uren van vandaag zijn geapproved";
     } elseif ($filter === 'week') {
-        // Get the current week/year from the hidden fields (or fallback to current)
+        // Get the current week/year from hidden fields or fallback to current
         $year = isset($_POST['year']) ? (int)$_POST['year'] : (int) date("Y");
         $week = isset($_POST['week']) ? (int)$_POST['week'] : (int) date("W");
         // Calculate start and end date for the ISO week.
@@ -37,8 +38,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['approve'])) {
             ':start_date' => $start_date,
             ':end_date'   => $end_date
         ]);
+        $_SESSION['message'] = "Uren van deze week (week $week) zijn geapproved";
     } elseif ($filter === 'maand') {
-        // Get the month and year from the hidden fields (or fallback to current)
+        // Get the month and year from hidden fields or fallback to current
         $year  = isset($_POST['year']) ? (int)$_POST['year'] : (int) date("Y");
         $month = isset($_POST['month']) ? (int)$_POST['month'] : (int) date("n");
 
@@ -53,6 +55,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['approve'])) {
             ':month'   => $month,
             ':year'    => $year
         ]);
+        $monthName = date('F', mktime(0, 0, 0, $month, 10));
+        $_SESSION['message'] = "Uren van deze maand ($monthName) zijn geapproved";
     }
 
     // Redirect to avoid form resubmission.
@@ -176,21 +180,17 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
     <link rel="stylesheet" href="../css/admin-index.css">
-    <style>
-        /* Highlight the active (editable) row */
-        tr.active-edit {
-            background-color: #ffeeba;
-        }
-        /* Style inline inputs */
-        td input.inline-edit {
-            width: 80%;
-            font-size: 1em;
-        }
-    </style>
 </head>
 <body>
 <div class="container">
     <?php include 'admin-header.php'; ?>
+
+    <?php if(isset($_SESSION['message'])): ?>
+        <div>
+            <?= htmlspecialchars($_SESSION['message']) ?>
+        </div>
+        <?php unset($_SESSION['message']); ?>
+    <?php endif; ?>
 
     <div class="content">
         <div class="dateNfilter-header <?= 'filter-' . $filter ?>">
@@ -310,7 +310,6 @@ try {
         </table>
     </div>
 </div>
-
 
 <!-- Hidden form to submit inline hour changes (updates are processed in this same file) -->
 <form id="hiddenUpdateForm" method="POST" action="" style="display:none;">
