@@ -73,7 +73,7 @@ function generatePDF($pdo, $user_id, $user_name) {
     $total_hours = 0;
     foreach ($rows as $row) {
         // Voeg elke rij met datum en uren toe aan de PDF
-        $pdf->Cell(60, 10, $row['date'], 1);  // Voeg de datum van de werkdag toe
+        $pdf->Cell(60, 10, (new DateTime($row['date']))->format('d-m-Y'), 1);  // Datum in dd-mm-jjjj formaat
         $pdf->Cell(60, 10, $row['hours'], 1);  // Voeg het aantal gewerkte uren toe
         $pdf->Ln();  // Voeg een nieuwe regel toe
         $total_hours += $row['hours'];  // Voeg de gewerkte uren toe aan het totaal
@@ -113,6 +113,7 @@ $stmt = $pdo->prepare($sql);  // Bereid de SQL-query voor
 $stmt->execute();  // Voer de query uit
 $users = $stmt->fetchAll(PDO::FETCH_ASSOC);  // Haal alle resultaten op
 ?>
+
 
 
 
