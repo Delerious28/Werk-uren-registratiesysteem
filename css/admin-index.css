@@ -27,6 +27,15 @@ html{
     margin: auto;
 }
 
+.container.accord-verandering{
+    display: grid;
+    justify-content: center;
+    max-width: 1024px;
+    grid-template-rows: auto 1fr;
+    justify-items: end;
+    margin: auto;
+}
+
 .content{
     background-color: #F0EFEF;
     border-radius: 10px;
@@ -214,8 +223,20 @@ td input.inline-edit {
     background-color: transparent;
     transition: transform 0.1s linear;
 }
+
 .action-icons button:hover {
     transform: scale(1.3);
+}
+
+.accorderen-berichten{
+    background-color: darkseagreen;
+    text-align: center;
+    font-weight: bold;
+    width: 81%;
+    grid-column: span 2;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
 }
 
 /*admin-download.php*/
@@ -354,6 +375,7 @@ td input.inline-edit {
     grid-column: span 2;
     padding: 10px;
     border-radius: 8px;
+    margin-bottom: 10px;
 }
 
 .fout-gebruiker-bericht{
@@ -365,6 +387,7 @@ td input.inline-edit {
     padding: 10px;
     border-radius: 8px;
     color: white;
+    margin-bottom: 10px;
 }
 
 /* New code to style the create and edit user forms */
