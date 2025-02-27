@@ -1,15 +1,3 @@
-<?php
-session_start();
-include "db/conn.php";
-
-if (!isset($_SESSION['user_id'])) {
-    header("Location: inloggen.php");
-    exit();
-}
-
-$username = isset($_SESSION['username']) ? $_SESSION['username'] : 'Gebruiker';
-
-?>
 <!DOCTYPE html>
 <html lang="nl">
 <head>
