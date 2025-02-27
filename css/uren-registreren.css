@@ -1,0 +1,102 @@
+body {
+    font-family: sans-serif;
+    background: #f7f7f7;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.bigbox {
+    width: 85%;
+    max-width: 1250px;
+}
+
+.topheader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 10px;
+}
+
+.datum {
+    font-size: 1.3em;
+    font-weight: bold;
+}
+
+.week-nav button {
+    background: #5f1010;
+    color: white;
+    padding: 5px 12px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.wrapper {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.blok-1, .block-b {
+    background: white;
+    padding: 18px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 7px rgba(0, 0, 0, 0.1);
+    flex: 1;
+}
+
+.blok-1 input, .blok-1 button {
+    width: 100%;
+    margin-bottom: 8px;
+    padding: 7px;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+}
+
+button {
+    background: #5f1010;
+    color: white;
+    border: none;
+    padding: 9px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #aaa;
+}
+
+.overzicht {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.dag {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #e5e5e5;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.info {
+    flex: 1;
+    padding-left: 12px;
+}
+
+.tijd {
+    text-align: right;
+}
+
+.totaalweek {
+    text-align: right;
+    background: #ddd;
+    padding: 10px;
+    border-radius: 4px;
+    font-weight: bold;
+}
