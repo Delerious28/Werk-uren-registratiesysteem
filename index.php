@@ -93,7 +93,7 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : 'Gebruiker';
         }
 
         .boven-container-links {
-            background: linear-gradient(to left, #F8CECC, #C33B3B);
+            background: linear-gradient(to left, #C33B3B, #F8CECC);
             top: -60px;
             left: 105px;
             height: 300px;
@@ -107,7 +107,7 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : 'Gebruiker';
         }
 
         .boven-container-rechts {
-            background: linear-gradient(to right, #F8CECC, #C33B3B); 
+            background: linear-gradient(to right, #C33B3B, #F8CECC);
             top: -60px;
             right: 105px;
             height: 300px;
@@ -121,7 +121,7 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : 'Gebruiker';
         }
 
         .onder-container {
-            background: linear-gradient(to bottom, #F8CECC, #C33B3B);
+            background: linear-gradient(to bottom, #C33B3B, #F8CECC);
             width: 0; 
             height: 300px;
             bottom: -90px;

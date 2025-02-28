@@ -104,9 +104,9 @@
 <div id="mySidebar" class="sidebar">
     <button class="close-btn" onclick="toggleSidebar()">❌</button>
     <img src="img/logo.png" alt="Profile Image">
-    <a href="#">Home</a>
-    <a href="#">Uren</a>
-    <a href="#">Profiel</a>
+    <a href="index.php">Home</a>
+    <a href="uren-registreren.php">Uren</a>
+    <a href="profiel.php">Profiel</a>
     <a href="#">Overzicht</a>
     <a href="uitloggen.php" class="logout-btn">Uitloggen</a>
     </div>
