@@ -7,8 +7,19 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-$username = isset($_SESSION['username']) ? $_SESSION['username'] : 'Gebruiker';
+$user_id = $_SESSION['user_id']; // Haal de user_id op uit de sessie
 
+// Haal zowel de voornaam als de achternaam van de gebruiker op uit de database
+$query = "SELECT name, achternaam FROM users WHERE user_id = :user_id"; 
+$stmt = $pdo->prepare($query);
+$stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+$stmt->execute();
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+$first_name = $user ? $user['name'] : 'Gebruiker';
+$last_name = $user ? $user['achternaam'] : ''; // Als achternaam leeg is, stel het dan in op een lege string
+
+$username = $first_name . ' ' . $last_name; // Combineer voornaam en achternaam
 ?>
 <!DOCTYPE html>
 <html lang="nl">
@@ -51,7 +62,6 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : 'Gebruiker';
             border-radius: 10px;
             opacity: 0;
             background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
             z-index: 1; 
         }
 
@@ -93,7 +103,7 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : 'Gebruiker';
         }
 
         .boven-container-links {
-            background: linear-gradient(to left, #C33B3B, #F8CECC);
+            background: linear-gradient(to left, #8e0c0d, #FF847E);
             top: -60px;
             left: 105px;
             height: 300px;
@@ -107,7 +117,7 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : 'Gebruiker';
         }
 
         .boven-container-rechts {
-            background: linear-gradient(to right, #C33B3B, #F8CECC);
+            background: linear-gradient(to right, #8e0c0d, #FF847E);
             top: -60px;
             right: 105px;
             height: 300px;
@@ -121,7 +131,7 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : 'Gebruiker';
         }
 
         .onder-container {
-            background: linear-gradient(to bottom, #C33B3B, #F8CECC);
+            background: linear-gradient(to bottom, #8e0c0d, #FF847E);
             width: 0; 
             height: 300px;
             bottom: -90px;
@@ -233,7 +243,7 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : 'Gebruiker';
 <?php include 'sidebar.php'; ?>
     <div class="start">
         <div class="container boven-container-links">
-            <h1 id="percentageText">Je heb nog 70% tegaan</h1>
+            <h1 id="percentageText">Je hebt nog 70% te gaan</h1>
             <div class="progress-bar-container">
                 <div class="progress-bar" id="progress"></div>
             </div>
@@ -246,7 +256,7 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : 'Gebruiker';
         </div>
         <div class="container onder-container">
             <div class="welkom-container" id="welkomContainer">
-                <h2>Welkom, <span id="username">Gebruiker</span>!</h2>
+                <h2>Welkom, <span id="username"><?php echo htmlspecialchars($username); ?></span></h2>
             </div>
         </div>
     </div>
