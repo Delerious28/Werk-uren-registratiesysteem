@@ -1,0 +1,165 @@
+body {
+    font-family: sans-serif;
+    background: #f7f7f7;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.bigbox {
+    width: 90%;
+    max-width: 1300px;
+}
+
+.topheader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+}
+
+.datum {
+    font-size: 1.4em;
+    font-weight: bold;
+}
+
+.week-nav button {
+    background: #007bff;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 1em;
+    transition: background 0.3s;
+}
+
+.week-nav button:hover {
+    background: #0056b3;
+}
+
+.wrapper {
+    display: flex;
+    justify-content: space-between;
+    gap: 50px;
+    margin-top: 20px;
+}
+/* Invoervelden */
+.blok-1 {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    border: 2px solid #ccc;
+}
+
+.blok-1 input,
+.blok-1 select,
+.blok-1 button {
+    padding: 12px;
+    font-size: 1em;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    background: #f9f9f9;
+    transition: border 0.3s;
+    width: calc(100% - 24px); /* Vermindert de breedte zodat er ruimte is links en rechts */
+    margin: 5px auto;
+}
+
+.blok-1 input:focus,
+.blok-1 select:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+.blok-1 button {
+    background: #28a745;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    transition: background 0.3s, transform 0.2s;
+}
+
+.blok-1 button:hover {
+    background: #218838;
+    transform: scale(1.05);
+}
+
+.block-b {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    flex: 1;
+    border: 2px solid #ccc;
+}
+
+.dag {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #e5e5e5;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    transition: background 0.3s;
+}
+
+.dag:hover {
+    background: #d6d6d6;
+}
+
+.dag-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 120px;
+}
+
+.dagnaam {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.datum-klein {
+    font-size: 0.9em;
+    color: #555;
+}
+
+.info {
+    flex: 1;
+    padding-left: 20px;
+    min-width: 250px;
+    font-size: 1em;
+}
+
+.tijd {
+    text-align: center;
+    min-width: 120px;
+}
+
+.uren-dik {
+    font-weight: bold;
+    font-size: 1.3em;
+}
+
+.totaalweek {
+    text-align: right;
+    background: #ddd;
+    padding: 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    margin-top: 20px;
+    font-size: 1.2em;
+}
+
+@media (max-width: 768px) {
+    .wrapper {
+        flex-direction: column;
+        gap: 30px;
+    }
+}
