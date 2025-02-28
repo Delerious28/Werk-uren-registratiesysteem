@@ -1,5 +1,6 @@
 <?php
 require 'db/conn.php';
+require 'sidebar.php';
 
 // Klanten ophalen
 $klantenQuery = "SELECT klant_id, voornaam, achternaam FROM klant";
@@ -66,7 +67,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['klant'], $_POST['proj
 }
 ?>
 
-?>
 <!DOCTYPE html>
 <html lang="nl">
 <head>
