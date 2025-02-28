@@ -2,7 +2,7 @@
 $servername = "localhost";
 $username = "root";
 $password = "";
-$dbname = "werk_uren_registratiesysteem";
+$dbname = "werk_uren_registratiesysteem2";
 // ""
 // Creëer PDO connectie
 try {
