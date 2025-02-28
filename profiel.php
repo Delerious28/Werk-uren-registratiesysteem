@@ -108,28 +108,34 @@ try {
 
 // Haal klantgegevens op
 try {
-    $klant_sql = "SELECT klant_id, klant_voornaam, klant_achternaam, email, telefoon FROM klant WHERE klant_id = :id";
+
+
+    // Correcte SQL query voor de klant
+    $klant_sql = "SELECT voornaam, achternaam, email, telefoon FROM klant WHERE klant_id = :id";
     $klant_stmt = $pdo->prepare($klant_sql);
     $klant_stmt->execute(['id' => $_SESSION['user_id']]);
     $klant_row = $klant_stmt->fetch(PDO::FETCH_ASSOC);
 
+    // Controleer of de klantgegevens zijn gevonden
     if ($klant_row) {
-        $klant_id = $klant_row['klant_id'];
-        $klant_voornaam = $klant_row['klant_voornaam'];
-        $klant_achternaam = $klant_row['klant_achternaam'];
+        $klant_voornaam = $klant_row['voornaam'];
+        $klant_achternaam = $klant_row['achternaam'];
         $klant_email = $klant_row['email'];
         $klant_telefoon = $klant_row['telefoon'];
     } else {
-        $klant_id = null;
+        // Zet standaardwaarden in geval van geen resultaten
         $klant_voornaam = 'Onbekend';
         $klant_achternaam = 'Onbekend';
         $klant_email = 'Onbekend';
         $klant_telefoon = 'Onbekend';
     }
 } catch (PDOException $e) {
+    // Log en toon foutmelding bij problemen met de query
     error_log("Klant query mislukt: " . $e->getMessage());
     die("Er is iets mis met de query voor klant: " . $e->getMessage());
 }
+
+
 
 // Haal contactgegevens op
 try {
@@ -150,6 +156,7 @@ try {
     error_log("Contact query mislukt: " . $e->getMessage());
     die("Er is iets mis met de query voor contact: " . $e->getMessage());
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -158,266 +165,13 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profiel Pagina</title>
-    <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const container = document.querySelector('.container');
-    const notificationContainer = document.getElementById('notification-container');
-
-    // Event delegation voor toggle buttons
-    container.addEventListener('click', function (event) {
-        if (event.target.classList.contains('toggle-button')) {
-            const targetId = event.target.dataset.target;
-            console.log("Toggle button clicked, target:", targetId);
-            toggleContainer(targetId);
-        }
-    });
-
-    // Event delegation voor edit buttons
-    container.addEventListener('click', function (event) {
-        if (event.target.classList.contains('edit-button')) {
-            const fieldName = event.target.dataset.field;
-            const currentValue = event.target.dataset.value;
-            console.log("Edit button clicked, field:", fieldName, "value:", currentValue);
-            editField(fieldName, currentValue);
-        }
-    });
-
-    // Zorg ervoor dat de bedrijf-container zichtbaar is bij het laden van de pagina
-    toggleContainer('bedrijfContainer');
-    console.log("Page loaded, showing bedrijfContainer");
-});
-
-async function saveField(fieldName) {
-    const newValue = document.getElementById(`edit${fieldName}`).value;
-    console.log("Saving field:", fieldName, "new value:", newValue);
-
-    // Bepaal het ID van de klant of de andere entiteit (chief/contact)
-    const entityId = document.getElementById(fieldName).dataset.id;
-
-    try {
-        const response = await fetch('profiel.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `field=${encodeURIComponent(fieldName)}&value=${encodeURIComponent(newValue)}&id=${encodeURIComponent(entityId)}`,
-        });
-
-        console.log("Fetch response:", response);
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log("JSON response:", data);
-
-        if (data.status === 'success') {
-            document.getElementById(fieldName).textContent = newValue;
-            console.log("Field updated successfully");
-            showNotification('Veld succesvol bijgewerkt!', 'success'); // Succesbericht
-        } else {
-            showNotification('Er is een fout opgetreden bij het bijwerken van het veld.', 'error'); // Foutbericht
-            console.error("Field update failed:", data.message);
-        }
-    } catch (error) {
-        console.error('Er is een probleem met de serverrespons:', error);
-        showNotification('Er is een probleem met de serverrespons.', 'error'); // Foutbericht
-    }
-}
-
-function editField(fieldName, currentValue) {
-    const fieldElement = document.getElementById(fieldName);
-    fieldElement.innerHTML = `
-        <input type="text" id="edit${fieldName}" value="${currentValue}">
-        <button onclick="saveField('${fieldName}')">Opslaan</button>
-    `;
-    console.log("Field made editable:", fieldName);
-}
-
-function toggleContainer(containerId) {
-    const containers = document.querySelectorAll('.container-section');
-    containers.forEach(container => {
-        container.style.display = container.id === containerId ? 'flex' : 'none';
-    });
-    console.log("Toggled container:", containerId);
-}
-
-function showNotification(message, type) {
-    const notificationContainer = document.getElementById('notification-container');
-    notificationContainer.textContent = message;
-    notificationContainer.className = `notification ${type}`;
-    notificationContainer.style.display = 'block';
-
-    // Verberg de notificatie na 3 seconden
-    setTimeout(() => {
-        notificationContainer.classList.add('hide'); // Voeg de 'hide' class toe
-    }, 3000); // Verberg de melding na 3 seconden
-
-    // Zorg ervoor dat de notificatie na de animatie verdwijnt
-    setTimeout(() => {
-        notificationContainer.style.display = 'none';
-        notificationContainer.classList.remove('hide'); // Verwijder de 'hide' class voor de volgende keer
-    }, 3300); // 3300 ms omdat de animatie 300ms duurt
-}
-
-</script>
-
+    <link rel="stylesheet" href="css/profiel.css">
+   
 </head>
 <body>
-<style>
-    /* CSS-stijlen blijven hetzelfde */
-    body {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background-color: white;
-        overflow: hidden;
-        background-image: url('img/achtergrond.jpg');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        height: 100vh;
-        font-size: 20px;
-    }
 
-    .container {
-        background-color: #fff;
-        padding: 20px;
-        border-radius: 8px;
-        border: 1px solid rgb(0, 0, 0);
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        width: 900px;
-        text-align: center;
-        position: relative;
-        height: 520px;
-    }
-
-    .buttons {
-        display: flex;
-        justify-content: center;
-        margin-bottom: 20px;
-        gap: 20px;
-    }
-
-    .buttons button {
-        padding: 12px 30px;
-        border: none;
-        border-radius: 5px;
-        background-color: #5f0101;
-        color: white;
-        cursor: pointer;
-        font-size: 18px;
-        transition: transform 0.3s ease, background-color 0.3s ease;
-    }
-
-    .buttons button:hover {
-        transform: scale(1.05);
-        background-color: #d00b0b;
-    }
-
-    .container-section {
-        display: none;
-        opacity: ;
-        transition: opacity 0.5s ease-in-out;
-        width: 100%;
-    }
-
-    .fade-in {
-        opacity: 1;
-    }
-
-    .columns {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-        width: 100%;
-        text-align: center;
-        margin-top: 20px;
-    }
-
-    .column {
-        padding: 10px;
-        background-color: transparent;
-        border-radius: 8px;
-    }
-
-    .column h3 {
-        margin-bottom: 10px;
-        color: #333;
-        font-size: 20px;
-    }
-
-    .column p {
-        margin: -8px;
-        font-size: 18px;
-        color: #666;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-    }
-
-    .column p img {
-        margin-right: 10px;
-        width: 16px;
-        height: 16px;
-        cursor: pointer;
-    }
-
-    #klantContainer {
-        position: relative;
-        left: 25%;
-    }
-    .notification {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    padding: 15px 20px;
-    border-radius: 5px;
-    color: white;
-    display: none;
-    z-index: 1000;
-}
-
-.notification {
-    animation: scaleUp 0.3s ease-out forwards;
-}
-
-@keyframes scaleUp {
-    0% {
-        transform: scale(0);
-    }
-    100% {
-        transform: scale(1);
-    }
-}
-
-.notification.hide {
-    animation: scaleDown 0.3s ease-in forwards;
-}
-
-@keyframes scaleDown {
-    0% {
-        transform: scale(1);
-    }
-    100% {
-        transform: scale(0);
-    }
-}
-
-.notification.success {
-    background-color: #4CAF50; /* Groen voor succes */
-}
-
-.notification.error {
-    background-color: #F44336; /* Rood voor fout */
-}
-
-
-
-</style>
 <?php include 'sidebar.php'; ?>
+
 <div class="container2">
     <div id="notification-container" class="notification" style="display: none;"></div>
     </div>
@@ -515,7 +269,7 @@ function showNotification(message, type) {
         </div>
     </div>
 
-    <div id="klantContainer" class="container-section" style="display: none;">
+<div id="klantContainer" class="container-section" style="display: none;">
     <div class="columns">
         <div class="column">
             <h3>Klantgegevens</h3>
@@ -524,7 +278,8 @@ function showNotification(message, type) {
                 <h3>Voornaam</h3>
                 <p>
                     <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
-                         data-field="klant_voornaam" data-value="<?php echo htmlspecialchars($klant_voornaam); ?>" class="edit-button">
+                         data-field="klant_voornaam" data-value="<?php echo htmlspecialchars($klant_voornaam); ?>" 
+                         class="edit-button">
                     <span id="klant_voornaam"><?php echo htmlspecialchars($klant_voornaam); ?></span>
                 </p>
             </div>
@@ -561,7 +316,6 @@ function showNotification(message, type) {
         </div>
     </div>
 </div>
-</div>
-</div>
 </body>
+<script src="js/profiel.js"></script>
 </html>
