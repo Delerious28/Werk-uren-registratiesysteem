@@ -108,9 +108,6 @@ try {
 
 // Haal klantgegevens op
 try {
-
-
-    // Correcte SQL query voor de klant
     $klant_sql = "SELECT voornaam, achternaam, email, telefoon FROM klant WHERE klant_id = :id";
     $klant_stmt = $pdo->prepare($klant_sql);
     $klant_stmt->execute(['id' => $_SESSION['user_id']]);
@@ -174,7 +171,7 @@ try {
 
 <div class="container2">
     <div id="notification-container" class="notification" style="display: none;"></div>
-    </div>
+</div>
 <div class="container">
     <div class="buttons">
         <button data-target="bedrijfContainer" class="toggle-button">Bedrijf</button>
@@ -182,93 +179,98 @@ try {
     </div>
 
     <div id="bedrijfContainer" class="container-section fade-in">
-        <div class="columns">
-            <div class="column">
-                <h3>Bedrijfsnaam</h3>
-                <p>
+    <div class="columns">
+        <!-- First Column: Bedrijfsnaam -->
+        <div class="column">
+            <h3>Bedrijfsnaam</h3>
+            <p>
                 <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
                     data-field="Bedrijfnaam" data-value="<?php echo htmlspecialchars($bedrijfsnaam); ?>"
                     class="edit-button">
                 <span id="Bedrijfnaam"><?php echo htmlspecialchars($bedrijfsnaam); ?></span>
             </p>
-                <h3>Telefoon</h3>
-                <p>
-                    <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
-                        data-field="telefoon" data-value="<?php echo htmlspecialchars($telefoon); ?>"
-                        class="edit-button">
-                    <span id="telefoon"><?php echo htmlspecialchars($telefoon); ?></span>
-                </p>
-                <h3>Adres</h3>
-                <p>
-                    <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
-                        data-field="adres" data-value="<?php echo htmlspecialchars($adres); ?>"
-                        class="edit-button">
-                    <span id="adres"><?php echo htmlspecialchars($adres); ?></span>
-                </p>
-                <h3>Stad</h3>
-                <p>
-                    <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
-                        data-field="stad" data-value="<?php echo htmlspecialchars($stad); ?>"
-                        class="edit-button">
-                    <span id="stad"><?php echo htmlspecialchars($stad); ?></span>
-                </p>
-                <h3>Postcode</h3>
-                <p>
-                    <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
-                        data-field="postcode" data-value="<?php echo htmlspecialchars($postcode); ?>"
-                        class="edit-button">
-                    <span id="postcode"><?php echo htmlspecialchars($postcode); ?></span>
-                </p>
-                <h3>Provincie</h3>
-                <p>
-                    <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
-                        data-field="provincie" data-value="<?php echo htmlspecialchars($provincie); ?>"
-                        class="edit-button">
-                    <span id="provincie"><?php echo htmlspecialchars($provincie); ?></span>
-                </p>
-                <h3>Land</h3>
-                <p>
-                    <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
-                        data-field="land" data-value="<?php echo htmlspecialchars($land); ?>"
-                        class="edit-button">
-                    <span id="land"><?php echo htmlspecialchars($land); ?></span>
-                </p>
-            </div>
+            <h3>Telefoon</h3>
+            <p>
+                <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
+                    data-field="telefoon" data-value="<?php echo htmlspecialchars($telefoon); ?>"
+                    class="edit-button">
+                <span id="telefoon"><?php echo htmlspecialchars($telefoon); ?></span>
+            </p>
+            <h3>Adres</h3>
+            <p>
+                <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
+                    data-field="adres" data-value="<?php echo htmlspecialchars($adres); ?>"
+                    class="edit-button">
+                <span id="adres"><?php echo htmlspecialchars($adres); ?></span>
+            </p>
+            <h3>Stad</h3>
+            <p>
+                <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
+                    data-field="stad" data-value="<?php echo htmlspecialchars($stad); ?>"
+                    class="edit-button">
+                <span id="stad"><?php echo htmlspecialchars($stad); ?></span>
+            </p>
+        </div>
 
-            <div class="column">
-                <h3>Contactpersoon</h3>
-                <h3>Voornaam</h3>
-                <p>
-                    <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
-                        data-field="contact_voornaam"
-                        data-value="<?php echo htmlspecialchars($contact_voornaam); ?>" class="edit-button">
-                    <span id="contact_voornaam"><?php echo htmlspecialchars($contact_voornaam); ?></span>
-                </p>
-                <h3>Achternaam</h3>
-                <p>
-                    <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
-                        data-field="contact_achternaam"
-                        data-value="<?php echo htmlspecialchars($contact_achternaam); ?>" class="edit-button">
-                    <span id="contact_achternaam"><?php echo htmlspecialchars($contact_achternaam); ?></span>
-                </p>
-                <h3>Email</h3>
-                <p>
-                    <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
-                        data-field="contact_email"
-                        data-value="<?php echo htmlspecialchars($contact_email); ?>" class="edit-button">
-                    <span id="contact_email"><?php echo htmlspecialchars($contact_email); ?></span>
-                </p>
-                <h3>Telefoon</h3>
-                <p>
-                    <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
-                        data-field="contact_telefoon"
-                        data-value="<?php echo htmlspecialchars($contact_telefoon); ?>" class="edit-button">
-                    <span id="contact_telefoon"><?php echo htmlspecialchars($contact_telefoon); ?></span>
-                </p>
-            </div>
+        <!-- Second Column: Postcode, Provincie, Land -->
+        <div class="column">
+            <h3>Postcode</h3>
+            <p>
+                <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
+                    data-field="postcode" data-value="<?php echo htmlspecialchars($postcode); ?>"
+                    class="edit-button">
+                <span id="postcode"><?php echo htmlspecialchars($postcode); ?></span>
+            </p>
+            <h3>Provincie</h3>
+            <p>
+                <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
+                    data-field="provincie" data-value="<?php echo htmlspecialchars($provincie); ?>"
+                    class="edit-button">
+                <span id="provincie"><?php echo htmlspecialchars($provincie); ?></span>
+            </p>
+            <h3>Land</h3>
+            <p>
+                <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
+                    data-field="land" data-value="<?php echo htmlspecialchars($land); ?>"
+                    class="edit-button">
+                <span id="land"><?php echo htmlspecialchars($land); ?></span>
+            </p>
+        </div>
+
+        <!-- Third Column: Contactpersoon -->
+        <div class="column">
+            <h3>Contactpersoon</h3>
+            <h3>Voornaam</h3>
+            <p>
+                <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
+                    data-field="contact_voornaam"
+                    data-value="<?php echo htmlspecialchars($contact_voornaam); ?>" class="edit-button">
+                <span id="contact_voornaam"><?php echo htmlspecialchars($contact_voornaam); ?></span>
+            </p>
+            <h3>Achternaam</h3>
+            <p>
+                <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
+                    data-field="contact_achternaam"
+                    data-value="<?php echo htmlspecialchars($contact_achternaam); ?>" class="edit-button">
+                <span id="contact_achternaam"><?php echo htmlspecialchars($contact_achternaam); ?></span>
+            </p>
+            <h3>Email</h3>
+            <p>
+                <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
+                    data-field="contact_email"
+                    data-value="<?php echo htmlspecialchars($contact_email); ?>" class="edit-button">
+                <span id="contact_email"><?php echo htmlspecialchars($contact_email); ?></span>
+            </p>
+            <h3>Telefoon</h3>
+            <p>
+                <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
+                    data-field="contact_telefoon"
+                    data-value="<?php echo htmlspecialchars($contact_telefoon); ?>" class="edit-button">
+                <span id="contact_telefoon"><?php echo htmlspecialchars($contact_telefoon); ?></span>
+            </p>
         </div>
     </div>
-
+</div>
 <div id="klantContainer" class="container-section" style="display: none;">
     <div class="columns">
         <div class="column">
