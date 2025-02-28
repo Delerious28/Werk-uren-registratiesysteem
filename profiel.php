@@ -16,6 +16,7 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+
 // Verwerk formulierinzendingen
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['field']) && isset($_POST['value'])) {
     $field = filter_input(INPUT_POST, 'field', FILTER_SANITIZE_STRING);
