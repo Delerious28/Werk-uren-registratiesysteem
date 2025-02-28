@@ -2,7 +2,7 @@
 require 'db/conn.php';
 
 // Klanten ophalen
-$klantenQuery = "SELECT klant_id, klant_voornaam, klant_achternaam FROM klant";
+$klantenQuery = "SELECT klant_id, voornaam, achternaam FROM klant";
 $klantenStmt = $pdo->prepare($klantenQuery);
 $klantenStmt->execute();
 $klanten = $klantenStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -35,6 +35,37 @@ if (isset($_POST['begin']) && isset($_POST['eind'])) {
         $totaalUren = "Ongeldige tijd";
     }
 }
+
+// Insert the data into the database when the form is submitted
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['klant'], $_POST['project'], $_POST['begin'], $_POST['eind'], $_POST['beschrijving'])) {
+    // Sanitize the form inputs
+    $klantId = $_POST['klant'];
+    $projectId = $_POST['project'];
+    $beschrijving = htmlspecialchars($_POST['beschrijving']);
+    $begin = $_POST['begin'];
+    $eind = $_POST['eind'];
+    $totaaluren = htmlspecialchars($totaalUren);
+
+    // Insert into the `hours` table
+    $insertQuery = "INSERT INTO hours (user_id, date, start_hours, eind_hours, hours, accord, contract_hours)
+                VALUES (?, ?, ?, ?, ?, ?, ?)";
+    $insertStmt = $pdo->prepare($insertQuery);
+    $insertStmt->execute([$userId, $date, $startHours, $endHours, $hours, $accord, $contractHours]);
+
+    $stmt = $pdo->prepare($insertQuery);
+    $stmt->bindParam(':user_id', $klantId, PDO::PARAM_INT);
+    $stmt->bindParam(':start_hours', $begin, PDO::PARAM_STR);
+    $stmt->bindParam(':eind_hours', $eind, PDO::PARAM_STR);
+    $stmt->bindParam(':hours', $totaaluren, PDO::PARAM_STR);
+
+    if ($stmt->execute()) {
+        echo "Uren succesvol toegevoegd!";
+    } else {
+        echo "Er is een fout opgetreden bij het toevoegen van de uren.";
+    }
+}
+?>
+
 ?>
 <!DOCTYPE html>
 <html lang="nl">
@@ -66,7 +97,7 @@ if (isset($_POST['begin']) && isset($_POST['eind'])) {
                     <option value="">-- Kies Klant --</option>
                     <?php foreach ($klanten as $klant): ?>
                         <option value="<?= $klant['klant_id']; ?>" <?= ($klant['klant_id'] == $selectedKlant) ? 'selected' : ''; ?>>
-                            <?= $klant['klant_voornaam'] . ' ' . $klant['klant_achternaam']; ?>
+                            <?= $klant['voornaam'] . ' ' . $klant['achternaam']; ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
