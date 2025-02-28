@@ -59,14 +59,14 @@ body {
 .blok-1 input,
 .blok-1 select,
 .blok-1 button {
-    width: 100%;
-    margin-bottom: 12px;
     padding: 12px;
     font-size: 1em;
     border: 1px solid #aaa;
     border-radius: 4px;
     background: #f9f9f9;
     transition: border 0.3s;
+    width: calc(100% - 24px); /* Vermindert de breedte zodat er ruimte is links en rechts */
+    margin: 5px auto;
 }
 
 .blok-1 input:focus,
@@ -114,7 +114,9 @@ body {
 }
 
 .dag-info {
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     min-width: 120px;
 }
 
@@ -159,9 +161,5 @@ body {
     .wrapper {
         flex-direction: column;
         gap: 30px;
-    }
-
-    .blok-1 {
-        width: 100%;
     }
 }
