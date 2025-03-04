@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
                 // Redirect op basis van de gebruikersrol
                 if ($_SESSION['role'] == "admin") {
                     // Redirect naar het admin-dashboard als de rol admin is
-                    header("Location: admin/admin-index.php");
+                    header("Location: admin/admin-download.php");
                 } else {
                     // Redirect naar de gebruikershomepage als de rol user is
                     header("Location: index.php");
