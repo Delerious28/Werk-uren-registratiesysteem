@@ -1,5 +1,5 @@
 <?php
-include 'db/conn.php'; 
+include 'db/conn.php';
 
 $filter = $_GET['filter'] ?? 'day';
 $selectedAchternaam = $_GET['achternaam'] ?? '';
@@ -21,6 +21,7 @@ switch ($filter) {
 
 $limit = 10; 
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$page = max($page, 1); 
 $offset = ($page - 1) * $limit;
 
 $sql = "
@@ -67,7 +68,7 @@ $lastNames = $stmtLastNames->fetchAll(PDO::FETCH_COLUMN);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Urenregistratie</title>
-    <link rel="stylesheet" href="css/gebruikers_uren.css"> 
+    <link rel="stylesheet" href="css/gebruikers_uren.css">
 </head>
 <body>
 <?php include 'sidebar.php'; ?>
@@ -82,17 +83,16 @@ $lastNames = $stmtLastNames->fetchAll(PDO::FETCH_COLUMN);
         </div>
 
         <div class="filters">
-            <label for="achternaamFilter">Achternaam:</label>
-            <select id="achternaamFilter" onchange="updateAchternaamFilter()">
-                <option value="">Selecteer achternaam</option>
-                <?php
-                foreach ($lastNames as $lastName) {
-                    $selected = ($lastName === $selectedAchternaam) ? 'selected' : '';
-                    echo "<option value='$lastName' $selected>$lastName</option>";
-                }
-                ?>
-            </select>
-        </div>
+    <select id="achternaamFilter" onchange="updateAchternaamFilter()">
+        <option value="">Alle Gebruikers</option>
+        <?php
+        foreach ($lastNames as $lastName) {
+            $selected = ($lastName === $selectedAchternaam) ? 'selected' : '';
+            echo "<option value='$lastName' $selected>$lastName</option>";
+        }
+        ?>
+    </select>
+</div>
 
         <table id="urenTabel">
             <thead>
@@ -107,8 +107,8 @@ $lastNames = $stmtLastNames->fetchAll(PDO::FETCH_COLUMN);
             </thead>
             <tbody>
                 <div class="pagination">
-                    <a href="?page=<?php echo $page - 1; ?>&filter=<?php echo urlencode($filter); ?>&achternaam=<?php echo urlencode($selectedAchternaam); ?>" class="prev <?php echo ($page <= 1) ? 'disabled' : ''; ?>">&#8592;</a>
-                    <a href="?page=<?php echo $page + 1; ?>&filter=<?php echo urlencode($filter); ?>&achternaam=<?php echo urlencode($selectedAchternaam); ?>" class="next <?php echo ($page >= $totalPages) ? 'disabled' : ''; ?>">&#8594;</a>
+                    <a href="?page=<?php echo max(1, $page - 1); ?>&filter=<?php echo urlencode($filter); ?>&achternaam=<?php echo urlencode($selectedAchternaam); ?>" class="prev <?php echo ($page <= 1) ? 'disabled' : ''; ?>" <?php echo ($page <= 1) ? 'aria-disabled="true"' : ''; ?>>&#8592;</a>
+                    <a href="?page=<?php echo min($totalPages, $page + 1); ?>&filter=<?php echo urlencode($filter); ?>&achternaam=<?php echo urlencode($selectedAchternaam); ?>" class="next <?php echo ($page >= $totalPages) ? 'disabled' : ''; ?>" <?php echo ($page >= $totalPages) ? 'aria-disabled="true"' : ''; ?>>&#8594;</a>
                 </div>
 
                 <?php
@@ -128,7 +128,7 @@ $lastNames = $stmtLastNames->fetchAll(PDO::FETCH_COLUMN);
                 }
                 ?>
             </tbody>
-        </table>    
+        </table>
     </div>
 
     <script>

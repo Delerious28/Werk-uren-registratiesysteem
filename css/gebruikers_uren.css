@@ -25,43 +25,71 @@ body {
 
 h1 {
     text-align: center;
-    color: #444;
+    color: #333;
     margin-top: 30px;
-    font-size: 2em;
+    font-size: 2.5em;
 }
 
 .filter-links {
     text-align: center;
-    margin-bottom: 20px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 140px;
 }
 
 .filter-links a {
-    padding: 10px 15px;
+    padding: 12px 20px;
     margin: 5px;
     text-decoration: none;
     color: #fff;
-    background: #721c24;
+    background: #8b0000;
     border-radius: 5px;
     transition: background-color 0.3s;
     font-weight: bold;
 }
 
 .filter-links a:hover, .filter-links a.active {
-    background: #24020588;
+    background: #5a0000;
 }
 
 .filters {
-    text-align: center;
     margin-bottom: 20px;
 }
+
 
 .filters select, .filters input, .filters button {
     padding: 10px;
     margin: 5px;
-    border: 1px solid #ccc;
+    border: 1px solid #ddd;
     border-radius: 5px;
     font-size: 16px;
+    background-color: #8b0000;
+    color: white;
+    transition: background-color 0.3s, color 0.3s;
 }
+
+.filters select {
+    padding: 10px;
+    margin: 5px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+    background-color: #8b0000; 
+    color: white;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+
+.filters select:focus {
+    color: white;
+    outline: none;
+}
+.filters select option {
+    color: white; 
+}
+
+
 
 table {
     width: 100%;
@@ -86,11 +114,12 @@ th {
 }
 
 tr:nth-child(even) {
-    background: #f9f9f9;
+    background: #f4f4f4;
 }
 
 tr:hover {
-    background: #f1f1f1;
+    background: #e0e0e0;
+    
 }
 
 .status {
@@ -115,12 +144,10 @@ tr:hover {
     color: #856404; 
 }
 
-
-
 .pagination {
     position: absolute;
     right: 15px;
-    top: 170px;
+    top: 122px;
     display: flex;
     justify-content: flex-end;
     align-items: center;
@@ -128,19 +155,19 @@ tr:hover {
 
 .pagination a {
     padding: 6px 14px;
-  text-decoration: none;
-  background-color: #721c24;
-  color: white;
-  margin: 10px 5px;
-  font-size: 20px;
-  display: inline-block;
-  transition: background-color 0.3s;
-  border-radius: 10%;
-  text-align: center;
+    text-decoration: none;
+    background-color: #8b0000;
+    color: white;
+    margin: 10px 5px;
+    font-size: 20px;
+    display: inline-block;
+    transition: background-color 0.3s;
+    border-radius: 10%;
+    text-align: center;
 }
 
 .pagination a:hover:not(.disabled) {
-    background-color: #24020588;
+    background-color: #5a0000;
     color: rgb(206, 206, 206);
 }
 
@@ -153,5 +180,8 @@ tr:hover {
     outline: none;
 }
 
-
-
+.filter-links .disabled {
+    pointer-events: none;
+    color: #ccc;
+    cursor: not-allowed;
+}
