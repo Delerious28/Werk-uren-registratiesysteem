@@ -109,26 +109,25 @@ try {
 
 // Haal klantgegevens op
 try {
-    $klant_sql = "SELECT voornaam, achternaam, email, telefoon FROM klant WHERE klant_id = :id";
+    $klant_sql = "SELECT voornaam, achternaam, email, telefoon, bedrijfnaam FROM klant WHERE klant_id = :id";
     $klant_stmt = $pdo->prepare($klant_sql);
     $klant_stmt->execute(['id' => $_SESSION['user_id']]);
     $klant_row = $klant_stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Controleer of de klantgegevens zijn gevonden
     if ($klant_row) {
         $klant_voornaam = $klant_row['voornaam'];
         $klant_achternaam = $klant_row['achternaam'];
         $klant_email = $klant_row['email'];
         $klant_telefoon = $klant_row['telefoon'];
+        $klant_bedrijfnaam = $klant_row['bedrijfnaam']; 
     } else {
-        // Zet standaardwaarden in geval van geen resultaten
         $klant_voornaam = 'Onbekend';
         $klant_achternaam = 'Onbekend';
         $klant_email = 'Onbekend';
         $klant_telefoon = 'Onbekend';
+        $klant_bedrijfnaam = 'Onbekend'; 
     }
 } catch (PDOException $e) {
-    // Log en toon foutmelding bij problemen met de query
     error_log("Klant query mislukt: " . $e->getMessage());
     die("Er is iets mis met de query voor klant: " . $e->getMessage());
 }
@@ -316,6 +315,16 @@ try {
                     <span id="klant_telefoon"><?php echo htmlspecialchars($klant_telefoon); ?></span>
                 </p>
             </div>
+            <div>
+    <h3>Bedrijfsnaam</h3>
+    <p>
+        <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
+             data-field="klant_bedrijfnaam" data-value="<?php echo htmlspecialchars($klant_bedrijfnaam); ?>"
+             class="edit-button">
+        <span id="klant_bedrijfnaam"><?php echo htmlspecialchars($klant_bedrijfnaam); ?></span>
+    </p>
+</div>
+
         </div>
     </div>
 </div>
