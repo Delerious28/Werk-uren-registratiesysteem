@@ -127,6 +127,7 @@ tr:hover {
     text-align: center;
     padding: 5px 10px;
     border-radius: 5px;
+    min-width: 100px;
 }
 
 .status.approved {
