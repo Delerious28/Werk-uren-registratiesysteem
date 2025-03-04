@@ -1,0 +1,230 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-image: url("../img/achtergrond.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.start {
+    position: relative;
+    background-color: transparent;
+    width: 926px;
+    height: 480px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.container {
+    position: absolute;
+    border-radius: 10px;
+    opacity: 0;
+    background: rgba(255, 255, 255, 0.1);
+    z-index: 1;
+}
+
+@keyframes slideInLeft {
+    from {
+        transform: translateX(-150%);
+        opacity: 0;
+        width: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(150%);
+        opacity: 0;
+        width: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInBottom {
+    from {
+        transform: translate(-50%);
+        opacity: 0;
+        width: 0;
+    }
+    to {
+        transform: translate(-50%, 0);
+        opacity: 1;
+        width: 720px;
+    }
+}
+
+.boven-container-links {
+    background: linear-gradient(to left, #8e0c0d, #FF847E);
+    top: -60px;
+    left: 105px;
+    height: 300px;
+    width: 340px;
+    animation: slideInLeft 1s ease-out forwards;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.boven-container-rechts {
+    background: linear-gradient(to right, #8e0c0d, #FF847E);
+    top: -60px;
+    right: 105px;
+    height: 300px;
+    width: 340px;
+    animation: slideInRight 1s ease-out forwards;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.onder-container {
+    background: linear-gradient(to bottom, #8e0c0d, #FF847E);
+    width: 0;
+    height: 300px;
+    bottom: -90px;
+    left: 50%;
+    transform: translateX(-50%);
+    position: absolute;
+    animation: slideInBottom 1s ease-out 0.5s forwards;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.foto-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 250px;
+    max-width: 100%;
+    z-index: 10;
+}
+
+.midden-foto {
+    width: 100%;
+    height: auto;
+    display: block;
+    position: relative;
+    z-index: 999;
+    left: 10px;
+    top: 10px;
+}
+
+.welkom-container {
+    background: transparent;
+    width: 100%;
+    text-align: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+}
+
+.welkom-container.visible {
+    margin: 51px 0 15px;
+  color: white;
+}
+
+.welkom-container.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+
+.progress-bar-container {
+    background: rgba(255, 255, 255, 0.3);
+    height: 20px;
+    width: 100%;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 20px;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    background: white;
+    transition: width 1s ease-in-out;
+}
+
+h1 {
+    position: absolute;
+  color: white;
+  font-size: 25px;
+  margin-top: 60px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+  top: 120px;
+  text-align: center;
+  margin-right: 10px;
+  width: 13ch;
+  word-wrap: break-word;
+}
+
+h1.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+h4 {
+    position: absolute;
+    color: white;
+    font-size: 33px;
+    margin-top: -20px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+    padding: 20px;
+    text-align: center;
+    margin-left: 20px;
+}
+
+
+h4.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+h2 {
+    font-size: 60px;}
+
+h3 {
+    position: absolute;
+  color: white;
+  font-size: 25px;
+  margin-top: -61px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+  padding: 20px;
+  text-align: center;
+  width: 340px;
+}
+
+h3.visible {
+    opacity: 1;
+    visibility: visible;
+}
