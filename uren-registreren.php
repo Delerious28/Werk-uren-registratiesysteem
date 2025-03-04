@@ -8,213 +8,206 @@ $klantenStmt = $pdo->prepare($klantenQuery);
 $klantenStmt->execute();
 $klanten = $klantenStmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Gekozen klant ophalen uit het formulier
+// Gekozen klant ophalen uit het formulier (voor het filteren van projecten)
 $selectedKlant = isset($_POST['klant']) ? $_POST['klant'] : "";
 
 // Projecten ophalen op basis van de geselecteerde klant
 $projecten = [];
 if (!empty($selectedKlant)) {
-    $projectenQuery = "SELECT p.project_id, p.project_naam 
-                       FROM project p
-                       JOIN klant k ON k.project_id = p.project_id
-                       WHERE k.klant_id = ?";
+    // Omdat in de projecttabel elk project een klant_id heeft
+    $projectenQuery = "SELECT project_id, project_naam FROM project WHERE klant_id = ?";
     $projectenStmt = $pdo->prepare($projectenQuery);
     $projectenStmt->execute([$selectedKlant]);
     $projecten = $projectenStmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-$totaalUren = "";
-if (isset($_POST['begin']) && isset($_POST['eind'])) {
-    $startTijd = strtotime($_POST['begin']);
-    $eindTijd = strtotime($_POST['eind']);
+$message = "";
 
-    // Zorg dat de eindtijd later is dan de starttijd
-    if ($eindTijd > $startTijd) {
-        $urenVerschil = ($eindTijd - $startTijd) / 3600; // Converteer seconden naar uren
-        $totaalUren = $urenVerschil . " uur";
+// Formulier verwerken
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['klant'], $_POST['project'], $_POST['begin'], $_POST['eind'])) {
+    if (!empty($_POST['klant']) && !empty($_POST['project']) && !empty($_POST['begin']) && !empty($_POST['eind'])) {
+        // De geselecteerde klant (voor filtering) wordt gebruikt voor het ophalen van projecten.
+        // Voor de urenregistratie gebruiken we de geselecteerde project-ID en een standaard user_id (bijv. de ingelogde gebruiker).
+        $klantId   = $_POST['klant'];
+        $projectId = $_POST['project'];
+        $beschrijving = isset($_POST['beschrijving']) ? htmlspecialchars($_POST['beschrijving']) : "";
+        $begin = $_POST['begin']; // verwacht formaat "08:00"
+        $eind  = $_POST['eind'];  // verwacht formaat "12:00"
+
+        $date = date('Y-m-d'); // Huidige datum
+
+        // Omdat de kolommen in de tabel hours van het type TIME zijn, maken we van "08:00" -> "08:00:00"
+        $startHours = $begin . ":00";
+        $endHours   = $eind . ":00";
+
+        // Bereken het verschil in uren als integer
+        $startSeconds = strtotime($startHours);
+        $endSeconds   = strtotime($endHours);
+        if ($endSeconds > $startSeconds) {
+            $urenVerschil = ($endSeconds - $startSeconds) / 3600;
+            $totaalUren = (int)$urenVerschil;
+        } else {
+            $totaalUren = 0;
+        }
+
+        // In de tabel hours verwijst user_id naar de users-tabel.
+        // Voor dit voorbeeld gebruiken we een standaard waarde, bijvoorbeeld 1.
+        $userId = 1; 
+        $hours  = $totaalUren;
+        $accord = "Pending"; // Overeenkomend met je ENUM ('Pending','Approved','Rejected')
+        $contract_hours = 0;
+        $beschrijving = isset($_POST['beschrijving']) ? $_POST['beschrijving'] : '';
+        $start_hours = '';
+        $eind_hours = '';
+
+        // INSERT in de tabel hours
+        $insertQuery = "INSERT INTO hours ( date, start_hours, eind_hours, hours, accord, contract_hours, beschrijving) 
+        VALUES ( :date, :start_hours, :eind_hours, :hours, :accord, :contract_hours, :beschrijving)";
+        $stmt = $pdo->prepare($insertQuery);
+        $stmt->execute([
+            'date' => $date,
+            'start_hours' => $start_hours,
+            'eind_hours' => $eind_hours,
+            'hours' => $hours,
+            'accord' => $accord,
+            'contract_hours' => $contract_hours,
+            'beschrijving' => $beschrijving
+        ]);
+
+        if ($stmt->execute()) {
+            // Als er een beschrijving is ingevuld, werken we de projecttabel bij
+            if (!empty($beschrijving)) {
+                $updateProjectQuery = "UPDATE project SET beschrijving = :beschrijving WHERE project_id = :project_id";
+                $updateStmt = $pdo->prepare($updateProjectQuery);
+                $updateStmt->bindParam(':beschrijving', $beschrijving, PDO::PARAM_STR);
+                $updateStmt->bindParam(':project_id', $projectId, PDO::PARAM_INT);
+                $updateStmt->execute();
+            }
+            $message = "Uren succesvol toegevoegd!";
+        } else {
+            $message = "Er is een fout opgetreden bij het toevoegen van de uren.";
+        }
     } else {
-        $totaalUren = "Ongeldige tijd";
+        $message = "Vul alle vereiste velden in.";
     }
 }
 
-// Insert the data into the database when the form is submitted
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['klant'], $_POST['project'], $_POST['begin'], $_POST['eind'], $_POST['beschrijving'])) {
-    // Sanitize the form inputs
-    $klantId = $_POST['klant'];
-    $projectId = $_POST['project'];
-    $beschrijving = htmlspecialchars($_POST['beschrijving']);
-    $begin = $_POST['begin'];
-    $eind = $_POST['eind'];
-    $totaaluren = htmlspecialchars($totaalUren);
-
-    // Insert into the `hours` table
-    $insertQuery = "INSERT INTO hours (user_id, date, start_hours, eind_hours, hours, accord, contract_hours)
-                VALUES (?, ?, ?, ?, ?, ?, ?)";
-    $insertStmt = $pdo->prepare($insertQuery);
-    $insertStmt->execute([$userId, $date, $startHours, $endHours, $hours, $accord, $contractHours]);
-
-    $stmt = $pdo->prepare($insertQuery);
-    $stmt->bindParam(':user_id', $klantId, PDO::PARAM_INT);
-    $stmt->bindParam(':start_hours', $begin, PDO::PARAM_STR);
-    $stmt->bindParam(':eind_hours', $eind, PDO::PARAM_STR);
-    $stmt->bindParam(':hours', $totaaluren, PDO::PARAM_STR);
-
-    if ($stmt->execute()) {
-        echo "Uren succesvol toegevoegd!";
-    } else {
-        echo "Er is een fout opgetreden bij het toevoegen van de uren.";
-    }
-}
+// Haal alle ingevoerde uren op met bijbehorende project- en klantgegevens
+$hoursQuery = "SELECT h.*, p.project_naam, p.beschrijving, 
+                      k.voornaam AS klant_voornaam, k.achternaam AS klant_achternaam,
+                      u.name AS user_name, u.achternaam AS user_achternaam
+               FROM hours h
+               JOIN project p ON h.project_id = p.project_id
+               JOIN klant k ON p.klant_id = k.klant_id
+               JOIN users u ON h.user_id = u.user_id
+               ORDER BY h.date DESC, h.start_hours DESC";
+$hoursStmt = $pdo->prepare($hoursQuery);
+$hoursStmt->execute();
+$hoursRecords = $hoursStmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
-
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Uren Registreren</title>
-    <link rel="stylesheet" href="css/uren-registreren.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Uren Registreren</title>
+  <link rel="stylesheet" href="css/uren-registreren.css">
 </head>
 <body>
-
 <div class="bigbox">
-    <div class="topheader">
-        <div class="datum">
-            <h3 id="date-today">21 feb</h3>
-        </div>
-        <div class="week-nav">
-            <button id="prev">&larr;</button>
-            <button id="next">&rarr;</button>
-        </div>
+  <div class="topheader">
+    <div class="datum">
+      <h3 id="date-today"><?php echo date('d M'); ?></h3>
+    </div>
+    <div class="week-nav">
+      <button id="prev">&larr;</button>
+      <button id="next">&rarr;</button>
+    </div>
+  </div>
+  <div class="wrapper">
+    <!-- Linker container: invoerformulier -->
+    <div class="blok-1">
+      <?php if ($message): ?>
+        <p><?php echo $message; ?></p>
+      <?php endif; ?>
+      <form method="POST" action="">
+        <label>Klant:</label>
+        <select name="klant" class="small-input" onchange="this.form.submit()">
+          <option value="">-- Kies Klant --</option>
+          <?php foreach ($klanten as $klant): ?>
+            <option value="<?= $klant['klant_id']; ?>" <?= ($klant['klant_id'] == $selectedKlant) ? 'selected' : ''; ?>>
+              <?= $klant['voornaam'] . ' ' . $klant['achternaam']; ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+
+        <label>Project naam:</label>
+        <select name="project" class="small-input">
+          <option value="">-- Kies Project --</option>
+          <?php foreach ($projecten as $project): ?>
+            <option value="<?= $project['project_id']; ?>" <?= (isset($_POST['project']) && $_POST['project'] == $project['project_id']) ? 'selected' : ''; ?>>
+              <?= $project['project_naam']; ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+
+        <label>Beschrijving:</label>
+        <input type="text" name="beschrijving" class="small-input" placeholder="Projectbeschrijving (optioneel)">
+
+        <label>Starttijd:</label>
+        <select name="begin">
+          <option value="">-- Kies --</option>
+          <option value="08:00" <?= (isset($_POST['begin']) && $_POST['begin'] == '08:00') ? 'selected' : ''; ?>>08:00</option>
+          <option value="09:00" <?= (isset($_POST['begin']) && $_POST['begin'] == '09:00') ? 'selected' : ''; ?>>09:00</option>
+          <option value="10:00" <?= (isset($_POST['begin']) && $_POST['begin'] == '10:00') ? 'selected' : ''; ?>>10:00</option>
+          <option value="11:00" <?= (isset($_POST['begin']) && $_POST['begin'] == '11:00') ? 'selected' : ''; ?>>11:00</option>
+          <option value="12:00" <?= (isset($_POST['begin']) && $_POST['begin'] == '12:00') ? 'selected' : ''; ?>>12:00</option>
+        </select>
+
+        <label>Eindtijd:</label>
+        <select name="eind">
+          <option value="">-- Kies --</option>
+          <option value="12:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '12:00') ? 'selected' : ''; ?>>12:00</option>
+          <option value="13:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '13:00') ? 'selected' : ''; ?>>13:00</option>
+          <option value="14:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '14:00') ? 'selected' : ''; ?>>14:00</option>
+          <option value="15:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '15:00') ? 'selected' : ''; ?>>15:00</option>
+          <option value="16:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '16:00') ? 'selected' : ''; ?>>16:00</option>
+          <option value="17:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '17:00') ? 'selected' : ''; ?>>17:00</option>
+          <option value="18:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '18:00') ? 'selected' : ''; ?>>18:00</option>
+          <option value="19:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '19:00') ? 'selected' : ''; ?>>19:00</option>
+        </select>
+
+        <button type="submit">+ Voeg toe</button>
+      </form>
     </div>
 
-    <div class="wrapper">
-        <!-- invoer gedeelte -->
-        <form method="POST">
-            <div class="blok-1">
-                <label>Klant:</label>
-                <select name="klant" class="small-input" onchange="this.form.submit()">
-                    <option value="">-- Kies Klant --</option>
-                    <?php foreach ($klanten as $klant): ?>
-                        <option value="<?= $klant['klant_id']; ?>" <?= ($klant['klant_id'] == $selectedKlant) ? 'selected' : ''; ?>>
-                            <?= $klant['voornaam'] . ' ' . $klant['achternaam']; ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-
-                <label>Project naam:</label>
-                <select name="project" class="small-input">
-                    <option value="">-- Kies Project --</option>
-                    <?php foreach ($projecten as $project): ?>
-                        <option value="<?= $project['project_id']; ?>" <?= (isset($_POST['project']) && $_POST['project'] == $project['project_id']) ? 'selected' : ''; ?>>
-                            <?= $project['project_naam']; ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-
-                <label>Beschrijving:</label>
-                <input type="text" name="beschrijving" class="small-input">
-
-                <label>Starttijd:</label>
-                <select name="begin" onchange="this.form.submit()">
-                    <option value="">-- Kies --</option>
-                    <option value="08:00" <?= (isset($_POST['begin']) && $_POST['begin'] == '08:00') ? 'selected' : ''; ?>>08:00</option>
-                    <option value="09:00" <?= (isset($_POST['begin']) && $_POST['begin'] == '09:00') ? 'selected' : ''; ?>>09:00</option>
-                    <option value="10:00" <?= (isset($_POST['begin']) && $_POST['begin'] == '10:00') ? 'selected' : ''; ?>>10:00</option>
-                    <option value="11:00" <?= (isset($_POST['begin']) && $_POST['begin'] == '11:00') ? 'selected' : ''; ?>>11:00</option>
-                    <option value="12:00" <?= (isset($_POST['begin']) && $_POST['begin'] == '12:00') ? 'selected' : ''; ?>>12:00</option>
-                </select>
-
-                <label>Eindtijd:</label>
-                <select name="eind" onchange="this.form.submit()">
-                    <option value="">-- Kies --</option>
-                    <option value="12:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '12:00') ? 'selected' : ''; ?>>12:00</option>
-                    <option value="13:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '13:00') ? 'selected' : ''; ?>>13:00</option>
-                    <option value="14:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '14:00') ? 'selected' : ''; ?>>14:00</option>
-                    <option value="15:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '15:00') ? 'selected' : ''; ?>>15:00</option>
-                    <option value="16:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '16:00') ? 'selected' : ''; ?>>16:00</option>
-                    <option value="17:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '17:00') ? 'selected' : ''; ?>>17:00</option>
-                    <option value="18:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '18:00') ? 'selected' : ''; ?>>18:00</option>
-                    <option value="19:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '19:00') ? 'selected' : ''; ?>>19:00</option>
-                </select>
-
-                <label>Uren totaal:</label>
-                <input type="text" id="totaaluren" name="totaaluren" value="<?= htmlspecialchars($totaalUren); ?>" readonly class="small-input">
-
-                <button type="submit">+ Voeg toe</button>
+    <!-- Rechter container: overzicht van ingevoerde uren -->
+    <div class="block-b">
+      <div class="overzicht">
+        <?php if (count($hoursRecords) > 0): ?>
+          <?php foreach ($hoursRecords as $record): ?>
+            <div class="dag">
+              <div class="dag-info">
+                <span class="dagnaam"><?php echo date('l', strtotime($record['date'])); ?></span>
+                <span class="datum-klein"><?php echo date('d-m', strtotime($record['date'])); ?></span>
+              </div>
+              <div class="info">
+                Klant: <?php echo $record['klant_voornaam'] . ' ' . $record['klant_achternaam']; ?><br>
+                Project: <?php echo $record['project_naam']; ?><br>
+                Beschrijving: <?php echo $record['beschrijving']; ?>
+              </div>
+              <div class="tijd">
+                <span class="uren-dik"><?php echo $record['hours']; ?> uur</span><br>
+                <?php echo date('H:i', strtotime($record['start_hours'])); ?> - <?php echo date('H:i', strtotime($record['eind_hours'])); ?>
+              </div>
             </div>
-        </form>
-
-        <div class="block-b">
-            <div class="overzicht">
-                <div class="dag">
-                    <div class="dag-info">
-                        <span class="dagnaam">Maandag</span>
-                        <span class="datum-klein">26-02</span>
-                    </div>
-                    <div class="info">
-                        Klant: <br> Project: <br> Beschrijving:
-                    </div>
-                    <div class="tijd">
-                        <span class="uren-dik">8 uur</span> <br> 08:00 - 17:00
-                    </div>
-                </div>
-                <div class="dag">
-                    <div class="dag-info">
-                        <span class="dagnaam">Dinsdag</span>
-                        <span class="datum-klein">27-02</span>
-                    </div>
-                    <div class="info">
-                        Klant: <br> Project: <br> Beschrijving:
-                    </div>
-                    <div class="tijd">
-                        <span class="uren-dik">7 uur</span> <br> 09:00 - 16:00
-                    </div>
-                </div>
-                <div class="dag">
-                    <div class="dag-info">
-                        <span class="dagnaam">Woensdag</span>
-                        <span class="datum-klein">28-02</span>
-                    </div>
-                    <div class="info">
-                        Klant: <br> Project: <br> Beschrijving:
-                    </div>
-                    <div class="tijd">
-                        <span class="uren-dik">6 uur</span> <br> 10:00 - 16:00
-                    </div>
-                </div>
-                <div class="dag">
-                    <div class="dag-info">
-                        <span class="dagnaam">Donderdag</span>
-                        <span class="datum-klein">29-02</span>
-                    </div>
-                    <div class="info">
-                        Klant: <br> Project: <br> Beschrijving:
-                    </div>
-                    <div class="tijd">
-                        <span class="uren-dik">8 uur</span> <br> 08:00 - 17:00
-                    </div>
-                </div>
-                <div class="dag">
-                    <div class="dag-info">
-                        <span class="dagnaam">Vrijdag</span>
-                        <span class="datum-klein">01-03</span>
-                    </div>
-                    <div class="info">
-                        Klant: <br> Project: <br> Beschrijving:
-                    </div>
-                    <div class="tijd">
-                        <span class="uren-dik">7 uur</span> <br> 09:00 - 16:00
-                    </div>
-                </div>
-
-                <div class="totaalweek">
-                    <span> Totaal week: 36 uur</span>
-                </div>
-            </div>
-        </div>
+          <?php endforeach; ?>
+        <?php else: ?>
+          <p>Geen ingevoerde uren.</p>
+        <?php endif; ?>
+      </div>
     </div>
+  </div>
 </div>
-
 </body>
 </html>
