@@ -109,6 +109,7 @@
     <a href="uren-registreren.php">Uren</a>
     <a href="profiel.php">Profiel</a>
     <a href="gebruiker_uren.php">Gebruiker uren</a>
+    <a href="uren-registreren.php"> uren-registreren</a>
     <a href="uitloggen.php" class="logout-btn">Uitloggen</a>
     </div>
 
