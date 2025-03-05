@@ -25,6 +25,7 @@
             gap: 15px;
             border-right: outset 5px black;
             box-shadow: 4px 0px 10px rgba(0, 0, 0, 0.2);
+            z-index: 9999;
         }
 
         .sidebar img {
@@ -105,10 +106,10 @@
     <button class="close-btn" onclick="toggleSidebar()">❌</button>
     <img src="img/logo.png" alt="Profile Image">
     <a href="index.php">Home</a>
-    <a href="#">Uren</a>
-    <a href="#">Profiel</a>
-    <a href="#">Overzicht</a>
-    <a href="uren-registreren.php">Urenoverzicht</a>
+    <a href="uren-registreren.php">Uren</a>
+    <a href="profiel.php">Profiel</a>
+    <a href="gebruiker_uren.php">Gebruiker uren</a>
+    <a href="uren-registreren.php"> uren-registreren</a>
     <a href="uitloggen.php" class="logout-btn">Uitloggen</a>
     </div>
 

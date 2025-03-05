@@ -7,8 +7,45 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-$username = isset($_SESSION['username']) ? $_SESSION['username'] : 'Gebruiker';
+$user_id = $_SESSION['user_id']; 
 
+$query = "SELECT name, achternaam FROM users WHERE user_id = :user_id"; 
+$stmt = $pdo->prepare($query);
+$stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+$stmt->execute();
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+$first_name = $user ? $user['name'] : 'Gebruiker';
+$last_name = $user ? $user['achternaam'] : ''; 
+
+$username = $first_name . ' ' . $last_name;
+
+$query_hours = "SELECT SUM(hours) AS total_hours, SUM(contract_hours) AS total_contract_hours 
+                FROM hours 
+                WHERE user_id = :user_id";
+$stmt_hours = $pdo->prepare($query_hours);
+$stmt_hours->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+$stmt_hours->execute();
+$hours_data = $stmt_hours->fetch(PDO::FETCH_ASSOC);
+
+$total_hours = $hours_data['total_hours'] ?? 0;
+$total_contract_hours = $hours_data['total_contract_hours'] ?? 1; 
+
+$percentage = ($total_hours / $total_contract_hours) * 100;
+$percentage = min($percentage, 100); 
+
+$remaining_hours = $total_contract_hours - $total_hours;
+
+$query_project = "SELECT p.project_naam, k.bedrijfnaam 
+                  FROM project p
+                  JOIN klant k ON p.klant_id = k.klant_id
+                  WHERE p.user_id = :user_id LIMIT 1";
+$stmt_project = $pdo->prepare($query_project);
+$stmt_project->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+$stmt_project->execute();
+$project_data = $stmt_project->fetch(PDO::FETCH_ASSOC);
+
+$company_name = $project_data ? $project_data['bedrijfnaam'] : 'Onbekend bedrijf';
 ?>
 <!DOCTYPE html>
 <html lang="nl">
@@ -16,247 +53,40 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : 'Gebruiker';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pagina met Containers</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body{
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: white;
-            overflow: hidden;
-            background-image: url('img/achtergrond.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            height: 100vh;
-        }
-
-        .start {
-            position: relative;
-            background-color: transparent;
-            width: 926px;
-            height: 480px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .container {
-            position: absolute;
-            border-radius: 10px;
-            opacity: 0;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            z-index: 1; 
-        }
-
-        @keyframes slideInLeft {
-            from {
-                transform: translateX(-150%);
-                opacity: 0;
-                width: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        @keyframes slideInRight {
-            from {
-                transform: translateX(150%);
-                opacity: 0;
-                width: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        @keyframes slideInBottom {
-            from {
-                transform: translate(-50%);
-                opacity: 0;
-                width: 0;
-            }
-            to {
-                transform: translate(-50%, 0);
-                opacity: 1;
-                width: 720px; 
-            }
-        }
-
-        .boven-container-links {
-            background: linear-gradient(to left, #F8CECC, #C33B3B);
-            top: -60px;
-            left: 105px;
-            height: 300px;
-            width: 340px;
-            animation: slideInLeft 1s ease-out forwards;
-            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .boven-container-rechts {
-            background: linear-gradient(to right, #F8CECC, #C33B3B); 
-            top: -60px;
-            right: 105px;
-            height: 300px;
-            width: 340px;
-            animation: slideInRight 1s ease-out forwards;
-            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); 
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .onder-container {
-            background: linear-gradient(to bottom, #F8CECC, #C33B3B);
-            width: 0; 
-            height: 300px;
-            bottom: -90px;
-            left: 50%;
-            transform: translateX(-50%);
-            position: absolute;
-            animation: slideInBottom 1s ease-out 0.5s forwards;
-            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); 
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .foto-container {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 250px;
-            max-width: 100%;
-            z-index: 10;
-        }
-
-        .midden-foto {
-            width: 100%;
-            height: auto;
-            display: block;
-            position: relative;
-            z-index: 999;
-            left: 10px;
-            top: 10px;
-        }
-
-        .welkom-container {
-            background: transparent;
-            width: 100%;
-            text-align: center;
-            opacity: 0; 
-            visibility: hidden; 
-            transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
-        }
-
-        .welkom-container.visible {
-            opacity: 1; 
-            visibility: visible; 
-        }
-
-        .welkom-container h2 {
-            margin: 0 0 15px;
-            color: white;
-        }
-
-        .progress-bar-container {
-            background: rgba(255, 255, 255, 0.3);
-            height: 20px;
-            width: 100%;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .progress-bar {
-            height: 100%;
-            width: 0%; 
-            background: white;
-            transition: width 1s ease-in-out;
-        }
-
-        h1 {
-            position: absolute;
-            color: white;
-            font-size: 25px;
-            margin-top: 60px;
-            opacity: 0; 
-            visibility: hidden; 
-            transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
-        }
-
-        h1.visible {
-            opacity: 1; 
-            visibility: visible; 
-        }
-
-        h4 {
-            position: absolute;
-            color: white;
-            font-size: 40px;
-            margin-top: -20px;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
-            padding: 20px;
-            text-align: end;
-            }
-        
-
-        h4.visible {
-            opacity: 1; 
-            visibility: visible; 
-        }
-
-        h2{
-            font-size: 30px;
-        }
-    </style>
+    <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
 
 <?php include 'sidebar.php'; ?>
-    <div class="start">
-        <div class="container boven-container-links">
-            <h1 id="percentageText">Je heb nog 70% tegaan</h1>
-            <div class="progress-bar-container">
-                <div class="progress-bar" id="progress"></div>
-            </div>
+<div class="start">
+    <div class="container boven-container-links">
+        <h1 id="percentageText"><!--Text--><?php echo (100 - round($percentage, 2)); ?>%<!--Text--></h1>
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progress" style="width: <?php echo round($percentage, 2); ?>%;"></div>
         </div>
-        <div class="container boven-container-rechts">
-            <h4 id="workText">Vandaag werk je voor Rabbo bank</h4>
-        </div>
-        <div class="foto-container">
-            <img src="img/logoindex-modified.png" alt="Foto" class="midden-foto">
-        </div>
-        <div class="container onder-container">
-            <div class="welkom-container" id="welkomContainer">
-                <h2>Welkom, <span id="username">Gebruiker</span>!</h2>
-            </div>
+        <h3>Te werken uren: <?php echo $remaining_hours; ?> uur</h3>
+    </div>
+    <div class="container boven-container-rechts">
+        <h4 id="workText"><?php echo htmlspecialchars($company_name); ?></h4>
+    </div>
+    <div class="foto-container">
+        <img src="img/logoindex-modified.png" alt="Foto" class="midden-foto">
+    </div>
+    <div class="container onder-container">
+        <div class="welkom-container" id="welkomContainer">
+            <h2>Welkom, <span id="username"><?php echo htmlspecialchars($username); ?></span></h2>
         </div>
     </div>
+</div>
 
-    <script>
+<script>
         const bovenContainerLinks = document.querySelector('.boven-container-links');
         const percentageText = document.getElementById('percentageText');
+        const h3Text = document.querySelector('.boven-container-links h3');
 
         bovenContainerLinks.addEventListener('animationend', () => {
             percentageText.classList.add('visible');
+            h3Text.classList.add('visible');
         });
 
         const bovenContainerRechts = document.querySelector('.boven-container-rechts');
@@ -272,12 +102,7 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : 'Gebruiker';
         onderContainer.addEventListener('animationend', () => {
             welkomContainer.classList.add('visible');
         });
+</script>
 
-    
-        const progressBar = document.getElementById('progress');
-        setTimeout(() => {
-            progressBar.style.width = '70%';
-        }, 1000); 
-    </script>
 </body>
 </html>

@@ -26,17 +26,16 @@ $message = "";
 // Formulier verwerken
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['klant'], $_POST['project'], $_POST['begin'], $_POST['eind'])) {
     if (!empty($_POST['klant']) && !empty($_POST['project']) && !empty($_POST['begin']) && !empty($_POST['eind'])) {
-        // De geselecteerde klant (voor filtering) wordt gebruikt voor het ophalen van projecten.
-        // Voor de urenregistratie gebruiken we de geselecteerde project-ID en een standaard user_id (bijv. de ingelogde gebruiker).
-        $klantId   = $_POST['klant'];
-        $projectId = $_POST['project'];
+        // Verkrijg de ingevoerde waarden
+        $klantId      = $_POST['klant'];
+        $projectId    = $_POST['project'];
         $beschrijving = isset($_POST['beschrijving']) ? htmlspecialchars($_POST['beschrijving']) : "";
-        $begin = $_POST['begin']; // verwacht formaat "08:00"
-        $eind  = $_POST['eind'];  // verwacht formaat "12:00"
+        $begin        = $_POST['begin']; // verwacht formaat "08:00"
+        $eind         = $_POST['eind'];  // verwacht formaat "12:00"
 
         $date = date('Y-m-d'); // Huidige datum
 
-        // Omdat de kolommen in de tabel hours van het type TIME zijn, maken we van "08:00" -> "08:00:00"
+        // Maak van "08:00" -> "08:00:00"
         $startHours = $begin . ":00";
         $endHours   = $eind . ":00";
 
@@ -50,39 +49,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['klant'], $_POST['proj
             $totaalUren = 0;
         }
 
-        // In de tabel hours verwijst user_id naar de users-tabel.
-        // Voor dit voorbeeld gebruiken we een standaard waarde, bijvoorbeeld 1.
-        $userId = 1; 
-        $hours  = $totaalUren;
-        $accord = "Pending"; // Overeenkomend met je ENUM ('Pending','Approved','Rejected')
+        // Voor dit voorbeeld gebruiken we een standaard user_id (bijvoorbeeld de ingelogde gebruiker)
+        $userId         = 1; 
+        $hours          = $totaalUren;
+        $accord         = "Pending"; // Overeenkomend met je ENUM ('Pending','Approved','Rejected')
         $contract_hours = 0;
-        $beschrijving = isset($_POST['beschrijving']) ? $_POST['beschrijving'] : '';
-        $start_hours = '';
-        $eind_hours = '';
 
-        // INSERT in de tabel hours
-        $insertQuery = "INSERT INTO hours ( date, start_hours, eind_hours, hours, accord, contract_hours, beschrijving) 
-        VALUES ( :date, :start_hours, :eind_hours, :hours, :accord, :contract_hours, :beschrijving)";
+        // INSERT in de tabel hours (controleer of je tabel de kolom project_id bevat)
+        $insertQuery = "INSERT INTO hours (project_id, user_id, date, start_hours, eind_hours, hours, accord, contract_hours, beschrijving) 
+                        VALUES (:project_id, :user_id, :date, :start_hours, :eind_hours, :hours, :accord, :contract_hours, :beschrijving)";
         $stmt = $pdo->prepare($insertQuery);
-        $stmt->execute([
-            'date' => $date,
-            'start_hours' => $start_hours,
-            'eind_hours' => $eind_hours,
-            'hours' => $hours,
-            'accord' => $accord,
-            'contract_hours' => $contract_hours,
-            'beschrijving' => $beschrijving
+        $result = $stmt->execute([
+            'project_id'      => $projectId,
+            'user_id'         => $userId,
+            'date'            => $date,
+            'start_hours'     => $startHours,
+            'eind_hours'      => $endHours,
+            'hours'           => $hours,
+            'accord'          => $accord,
+            'contract_hours'  => $contract_hours,
+            'beschrijving'    => $beschrijving
         ]);
-
-        if ($stmt->execute()) {
-            // Als er een beschrijving is ingevuld, werken we de projecttabel bij
-            if (!empty($beschrijving)) {
-                $updateProjectQuery = "UPDATE project SET beschrijving = :beschrijving WHERE project_id = :project_id";
-                $updateStmt = $pdo->prepare($updateProjectQuery);
-                $updateStmt->bindParam(':beschrijving', $beschrijving, PDO::PARAM_STR);
-                $updateStmt->bindParam(':project_id', $projectId, PDO::PARAM_INT);
-                $updateStmt->execute();
-            }
+        if ($result) {
             $message = "Uren succesvol toegevoegd!";
         } else {
             $message = "Er is een fout opgetreden bij het toevoegen van de uren.";
@@ -93,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['klant'], $_POST['proj
 }
 
 // Haal alle ingevoerde uren op met bijbehorende project- en klantgegevens
-$hoursQuery = "SELECT h.*, p.project_naam, p.beschrijving, 
+$hoursQuery = "SELECT h.*, p.project_naam, 
                       k.voornaam AS klant_voornaam, k.achternaam AS klant_achternaam,
                       u.name AS user_name, u.achternaam AS user_achternaam
                FROM hours h
