@@ -33,44 +33,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['klant'], $_POST['proj
 
         $date = date('Y-m-d'); // Huidige datum
 
-        $startHours = $begin . ":00";
-        $endHours   = $eind . ":00";
+        // Controleer of er al uren zijn ingevoerd voor de huidige dag
+        $checkQuery = "SELECT COUNT(*) AS count FROM hours WHERE user_id = :user_id AND date = :date";
+        $checkStmt = $pdo->prepare($checkQuery);
+        $checkStmt->execute(['user_id' => 1, 'date' => $date]); // Gebruik de juiste user_id
+        $result = $checkStmt->fetch(PDO::FETCH_ASSOC);
 
-        $startSeconds = strtotime($startHours);
-        $endSeconds   = strtotime($endHours);
-        if ($endSeconds > $startSeconds) {
-            $urenVerschil = ($endSeconds - $startSeconds) / 3600;
-            $totaalUren = (int)$urenVerschil;
+        if ($result['count'] > 0) {
+            $message = "Er zijn al uren ingevoerd voor vandaag. U kunt geen nieuwe uren toevoegen.";
         } else {
-            $totaalUren = 0;
-        }
+            $startHours = $begin . ":00";
+            $endHours   = $eind . ":00";
 
-        $userId         = 1; 
-        $hours          = $totaalUren;
-        $accord         = "Pending";
-        $contract_hours = 0;
+            $startSeconds = strtotime($startHours);
+            $endSeconds   = strtotime($endHours);
+            if ($endSeconds > $startSeconds) {
+                $urenVerschil = ($endSeconds - $startSeconds) / 3600;
+                $totaalUren = (int)$urenVerschil;
+            } else {
+                $totaalUren = 0;
+            }
 
-        $insertQuery = "INSERT INTO hours (project_id, user_id, date, start_hours, eind_hours, hours, accord, contract_hours, beschrijving) 
-                        VALUES (:project_id, :user_id, :date, :start_hours, :eind_hours, :hours, :accord, :contract_hours, :beschrijving)";
-        $stmt = $pdo->prepare($insertQuery);
-        $result = $stmt->execute([
-            'project_id'      => $projectId,
-            'user_id'         => $userId,
-            'date'            => $date,
-            'start_hours'     => $startHours,
-            'eind_hours'      => $endHours,
-            'hours'           => $hours,
-            'accord'          => $accord,
-            'contract_hours'  => $contract_hours,
-            'beschrijving'    => $beschrijving
-        ]);
-        if ($result) {
-            $message = "Uren succesvol toegevoegd!";
-            // Redirect naar dezelfde pagina om de rechter container bij te werken
-            header("Location: " . $_SERVER['PHP_SELF']);
-            exit(); // Zorg ervoor dat de scriptuitvoering stopt na de redirect
-        } else {
-            $message = "Er is een fout opgetreden bij het toevoegen van de uren.";
+            $userId         = 1; // Gebruik de juiste user_id
+            $hours          = $totaalUren;
+            $accord         = "Pending";
+            $contract_hours = 0;
+
+            $insertQuery = "INSERT INTO hours (project_id, user_id, date, start_hours, eind_hours, hours, accord, contract_hours, beschrijving) 
+                            VALUES (:project_id, :user_id, :date, :start_hours, :eind_hours, :hours, :accord, :contract_hours, :beschrijving)";
+            $stmt = $pdo->prepare($insertQuery);
+            $result = $stmt->execute([
+                'project_id'      => $projectId,
+                'user_id'         => $userId,
+                'date'            => $date,
+                'start_hours'     => $startHours,
+                'eind_hours'      => $endHours,
+                'hours'           => $hours,
+                'accord'          => $accord,
+                'contract_hours'  => $contract_hours,
+                'beschrijving'    => $beschrijving
+            ]);
+            if ($result) {
+                $message = "Uren succesvol toegevoegd!";
+                // Redirect naar dezelfde pagina om de rechter container bij te werken
+                header("Location: " . $_SERVER['PHP_SELF']);
+                exit(); // Zorg ervoor dat de scriptuitvoering stopt na de redirect
+            } else {
+                $message = "Er is een fout opgetreden bij het toevoegen van de uren.";
+            }
         }
     } else {
         $message = "Vul alle vereiste velden in.";
@@ -177,7 +187,7 @@ foreach ($hoursRecords as $record) {
       </form>
     </div>
 
-    <!-- Rechter container: overzicht van ingevoerde uren ' -->
+    <!-- Rechter container: overzicht van ingevoerde uren voor de huidige week -->
     <div class="block-b">
       <div class="overzicht">
         <?php
