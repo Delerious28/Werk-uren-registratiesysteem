@@ -145,11 +145,13 @@ foreach ($hoursRecords as $record) {
       margin-bottom: 10px;
     }
     .dag.selected {
-      background-color: #e0f7fa; /* Highlight de geselecteerde dag */
+      background-color: #8b0000; /* Highlight de geselecteerde dag */
+      color: white;
     }
-    .overzicht {
-      height: 500px; /* Vaste hoogte voor de rechter container */
-      overflow-y: auto; /* Voeg een scrollbar toe als de inhoud te groot is */
+
+    .datum_klein [selected]{
+      color: white;
+
     }
   </style>
 </head>
@@ -157,7 +159,7 @@ foreach ($hoursRecords as $record) {
 <div class="bigbox">
   <div class="topheader">
     <div class="datum">
-      <h3 id="date-today"><?php echo date('d M'); ?></h3>
+      <h3 id="date-today"><?php echo date('d M'); ?> (Today)</h3>
     </div>
     <div class="week-nav">
       <form method="POST" action="" style="display: inline;">
@@ -176,11 +178,11 @@ foreach ($hoursRecords as $record) {
       <?php if ($message): ?>
         <p><?php echo $message; ?></p>
       <?php endif; ?>
-      <form method="POST" action="">
+      <form method="POST" action="" class="form-div">
         <!-- Verborgen veld om de geselecteerde dag door te geven -->
         <input type="hidden" name="selected_day" value="<?= $selectedDay; ?>">
 
-        <label>Klant:</label>
+        <li>Klant:</li>
         <select name="klant" class="small-input" onchange="this.form.submit()">
           <option value="">-- Kies Klant --</option>
           <?php foreach ($klanten as $klant): ?>
@@ -190,7 +192,7 @@ foreach ($hoursRecords as $record) {
           <?php endforeach; ?>
         </select>
 
-        <label>Project naam:</label>
+        <li>Project naam:</li>
         <select name="project" class="small-input">
           <option value="">-- Kies Project --</option>
           <?php foreach ($projecten as $project): ?>
@@ -200,10 +202,10 @@ foreach ($hoursRecords as $record) {
           <?php endforeach; ?>
         </select>
 
-        <label>Beschrijving:</label>
+        <li>Beschrijving:</li>
         <input type="text" name="beschrijving" class="small-input" placeholder="Projectbeschrijving (optioneel)">
 
-        <label>Starttijd:</label>
+        <li>Starttijd:</li>
         <select name="begin">
           <option value="">-- Kies --</option>
           <option value="08:00" <?= (isset($_POST['begin']) && $_POST['begin'] == '08:00') ? 'selected' : ''; ?>>08:00</option>
@@ -213,7 +215,7 @@ foreach ($hoursRecords as $record) {
           <option value="12:00" <?= (isset($_POST['begin']) && $_POST['begin'] == '12:00') ? 'selected' : ''; ?>>12:00</option>
         </select>
 
-        <label>Eindtijd:</label>
+        <li>Eindtijd:</li>
         <select name="eind">
           <option value="">-- Kies --</option>
           <option value="12:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '12:00') ? 'selected' : ''; ?>>12:00</option>
@@ -226,7 +228,7 @@ foreach ($hoursRecords as $record) {
           <option value="19:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '19:00') ? 'selected' : ''; ?>>19:00</option>
         </select>
 
-        <button type="submit">Voeg toe</button>
+        <button type="submit">+ Voeg toe</button>
       </form>
     </div>
 
