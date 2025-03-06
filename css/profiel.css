@@ -24,7 +24,7 @@ body {
     border: 1px solid #ddd;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     width: 900px;
-    text-align: center;
+    text-align: start;    
     position: relative;
     height: 600px;
         backdrop-filter: blur(5px);
@@ -78,7 +78,6 @@ body {
     padding: 20px;
     background-color: rgba(245, 245, 245, 0.8); 
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .column h3 {
@@ -97,7 +96,6 @@ body {
 }
 
 .column p img {
-    margin-right: 10px;
     width: 16px;
     height: 16px;
     cursor: pointer;
@@ -160,4 +158,57 @@ body {
 
 .notification.hide {
     animation: scaleDown 0.3s ease-in forwards;
+}
+
+
+#klantContainer > div {
+    display: flex;
+    flex-direction: row;
+    color: black;
+  font-size: 20px;
+  text-decoration: none;
+  border: 1px solid #ddd;
+  background-color: rgba(245, 245, 245, 0.8);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+}
+
+#klantenLijst {
+    width: 340px;
+        text-decoration: none;
+    height: 490px;
+    overflow: scroll;
+    background-color: rgba(245, 245, 245, 0.8);
+  border-radius: 8px;
+
+}
+
+#klantDetails {
+    flex-grow: 1;
+    min-height: 200px; 
+}
+
+.klant-link {
+    background-color: transparent;
+    padding: 10px;
+    gap: 20px;
+    font-weight: bold;
+    color: black;
+    text-decoration: none;
+    text-align: end;
+    font-weight: normal;
+}
+#klantenLijst ul li {
+    margin-bottom: 20px;
+}
+
+h6{
+    font-size: 25px;
+  font-weight: normal;
+  color: black;
+  padding: 20px;
+  margin-top: 0px;
+  background-color: transparent;
+  height: 30px;
 }

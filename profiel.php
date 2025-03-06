@@ -16,6 +16,37 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+if (isset($_GET['action']) && $_GET['action'] === 'klantDetails' && isset($_GET['klantId'])) {
+    $klant_id = filter_input(INPUT_GET, 'klantId', FILTER_SANITIZE_NUMBER_INT);
+
+    try {
+        $klant_sql = "SELECT klant_id, voornaam, achternaam, email, telefoon, bedrijfnaam FROM klant WHERE klant_id = :klant_id";
+        $klant_stmt = $pdo->prepare($klant_sql);
+        $klant_stmt->execute(['klant_id' => $klant_id]);
+        $klant = $klant_stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($klant) {
+            // Geef de klantgegevens terug als HTML
+            echo '<div class="columns">';
+            echo '<div class="column">';
+            echo '<h3>Klantgegevens</h3>';
+            echo '<div><h3>Voornaam</h3><p><img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16" data-field="klant_voornaam" data-value="' . htmlspecialchars($klant['voornaam']) . '" class="edit-button"><span id="klant_voornaam" data-id="' . $klant['klant_id'] . '">' . htmlspecialchars($klant['voornaam']) . '</span></p></div>';
+            echo '<div><h3>Achternaam</h3><p><img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16" data-field="klant_achternaam" data-value="' . htmlspecialchars($klant['achternaam']) . '" class="edit-button"><span id="klant_achternaam" data-id="' . $klant['klant_id'] . '">' . htmlspecialchars($klant['achternaam']) . '</span></p></div>';
+            echo '<div><h3>Email</h3><p><img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16" data-field="klant_email" data-value="' . htmlspecialchars($klant['email']) . '" class="edit-button"><span id="klant_email" data-id="' . $klant['klant_id'] . '">' . htmlspecialchars($klant['email']) . '</span></p></div>';
+            echo '<div><h3>Telefoon</h3><p><img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16" data-field="klant_telefoon" data-value="' . htmlspecialchars($klant['telefoon']) . '" class="edit-button"><span id="klant_telefoon" data-id="' . $klant['klant_id'] . '">' . htmlspecialchars($klant['telefoon']) . '</span></p></div>';
+            echo '<div><h3>Bedrijfsnaam</h3><p><img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16" data-field="klant_bedrijfnaam" data-value="' . htmlspecialchars($klant['bedrijfnaam']) . '" class="edit-button"><span id="klant_bedrijfnaam" data-id="' . $klant['klant_id'] . '">' . htmlspecialchars($klant['bedrijfnaam']) . '</span></p></div>';
+            echo '</div>';
+            echo '</div>';
+        } else {
+            echo '<p>Klant niet gevonden.</p>';
+        }
+    } catch (PDOException $e) {
+        error_log("Klantdetails query mislukt: " . $e->getMessage());
+        echo '<p>Er is een probleem bij het ophalen van de klantgegevens.</p>';
+    }
+    exit();
+}
+
 // Haal de rol van de gebruiker op
 try {
     $role_sql = "SELECT role FROM users WHERE user_id = :user_id";
@@ -51,56 +82,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['field']) && isset($_P
         $idColumn = 'klant_id';
     }
 
-    // Controleer of de gebruiker een toegestane rol heeft
-    $allowed_roles = ['user', 'admin', 'klant'];
-    if (in_array($user_role, $allowed_roles)) {
-        try {
-            $sql = "UPDATE $table SET $column = :value WHERE $idColumn = :id";
-            error_log("SQL Query: " . $sql);
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute(['value' => $value, 'id' => $id]); // Gebruik de juiste id
+    // Controleer de rol en veld voor autorisatie
+    $allowed = false;
+    if ($user_role === 'admin') {
+        $allowed = true;
+    } elseif ($user_role === 'klant' && strpos($field, 'klant_') === 0) {
+        $allowed = true;
+    }
 
-            echo json_encode(['status' => 'success', 'message' => 'Veld bijgewerkt']); // Geen extra haakje ')'
-        } catch (PDOException $e) {
-            error_log("Update query mislukt: " . $e->getMessage());
-            echo json_encode(['status' => 'error', 'message' => 'Kon veld niet bijwerken: ' . $e->getMessage()]);
-        }
-    } else {
-        echo json_encode(['status' => 'error', 'message' => 'Geen toestemming om velden bij te werken']);
+    if (!$allowed) {
+        die(json_encode(['status' => 'error', 'message' => 'Geen toestemming om dit veld te bewerken.']));
+    }
+
+    try {
+        $sql = "UPDATE $table SET $column = :value WHERE $idColumn = :id";
+        error_log("SQL Query: " . $sql);
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute(['value' => $value, 'id' => $id]);
+
+        echo json_encode(['status' => 'success', 'message' => 'Veld bijgewerkt']);
+    } catch (PDOException $e) {
+        error_log("Update query mislukt: " . $e->getMessage());
+        echo json_encode(['status' => 'error', 'message' => 'Kon veld niet bijwerken: ' . $e->getMessage()]);
     }
     exit();
-}
 
-// SSE-endpoint
-if (isset($_GET['action']) && $_GET['action'] === 'sse') {
-    header('Content-Type: text/event-stream');
-    header('Cache-Control: no-cache');
-
-    $lastId = isset($_SERVER['HTTP_LAST_EVENT_ID']) ? $_SERVER['HTTP_LAST_EVENT_ID'] : 0;
-
-    while (true) {
-        try {
-            $sql = "SELECT Bedrijfnaam, telefoon, adres, stad, postcode, provincie, land FROM chiefs";
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute();
-            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-            if ($rows) {
-                foreach ($rows as $row) {
-                    $data = json_encode($row);
-                    echo "id: " . ++$lastId . "\n";
-                    echo "data: " . $data . "\n\n";
-                }
-            }
-        } catch (PDOException $e) {
-            error_log("SSE query mislukt: " . $e->getMessage());
-        }
-
-        ob_flush();
-        flush();
-        sleep(5);
-    }
-    exit();
 }
 
 // Haal gegevens op uit de chiefs tabel
@@ -125,18 +131,26 @@ try {
     $project_stmt->execute(['user_id' => $_SESSION['user_id']]);
     $project_rows = $project_stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    if (!$project_rows) {
-        // Gebruiker heeft geen projecten, dus geen klanten
-        $klant_rows = [];
-    } else {
-        // Haal klantgegevens op voor de projecten van de gebruiker
-        $klant_ids = array_column($project_rows, 'klant_id'); // Haal alle klant_ids op
-        $klant_ids_str = implode(',', $klant_ids); // Maak een string van klant_ids voor de query
-
-        $klant_sql = "SELECT klant_id, voornaam, achternaam, email, telefoon, bedrijfnaam FROM klant WHERE klant_id IN ($klant_ids_str)";
+    if ($user_role === 'admin') {
+        // Admin: Haal alle klanten op
+        $klant_sql = "SELECT klant_id, voornaam, achternaam, email, telefoon, bedrijfnaam FROM klant";
         $klant_stmt = $pdo->prepare($klant_sql);
         $klant_stmt->execute();
         $klant_rows = $klant_stmt->fetchAll(PDO::FETCH_ASSOC);
+    } else {
+        if (!$project_rows) {
+            // Gebruiker heeft geen projecten, dus geen klanten
+            $klant_rows = [];
+        } else {
+            // Haal klantgegevens op voor de projecten van de gebruiker
+            $klant_ids = array_column($project_rows, 'klant_id'); // Haal alle klant_ids op
+            $klant_ids_str = implode(',', $klant_ids); // Maak een string van klant_ids voor de query
+
+            $klant_sql = "SELECT klant_id, voornaam, achternaam, email, telefoon, bedrijfnaam FROM klant WHERE klant_id IN ($klant_ids_str)";
+            $klant_stmt = $pdo->prepare($klant_sql);
+            $klant_stmt->execute();
+            $klant_rows = $klant_stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
     }
 } catch (PDOException $e) {
     error_log("Project/Klant query mislukt: " . $e->getMessage());
@@ -158,7 +172,6 @@ try {
     die("Er is iets mis met de query voor contact: " . $e->getMessage());
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -167,7 +180,7 @@ try {
     <title>Profiel Pagina</title>
     <link rel="stylesheet" href="css/profiel.css">
 </head>
-<body>
+<body data-user-role="<?php echo htmlspecialchars($user_role); ?>">
 
 <?php include 'sidebar.php'; ?>
 
@@ -195,7 +208,7 @@ try {
                     <h3>Telefoon</h3>
                     <p>
                         <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
-                             data-field="telefoon" data-value="<?php echo htmlspecialchars($chief['telefoon']); ?>"
+                             data-field="telefoon"data-value="<?php echo htmlspecialchars($chief['telefoon']); ?>"
                              class="edit-button">
                         <span id="telefoon" data-id="<?php echo $chief['chief_id']; ?>"><?php echo htmlspecialchars($chief['telefoon']); ?></span>
                     </p>
@@ -293,6 +306,24 @@ try {
     </div>
 
     <div id="klantContainer" class="container-section" style="display: none;">
+    <?php if ($user_role === 'admin'): ?>
+        <div style="display: flex; flex-direction: row;">
+            <div id="klantenLijst">
+                <h6>Klantenlijst</h6>
+                <ul>
+                <?php foreach ($klant_rows as $klant): ?>
+    <li>
+        <a href="#" data-klant-id="<?php echo $klant['klant_id']; ?>" class="klant-link">
+            <?php echo htmlspecialchars($klant['bedrijfnaam']); ?>
+        </a>
+    </li>
+<?php endforeach; ?>
+                </ul>
+            </div>
+            <div id="klantDetails" style="flex-grow: 1; background-color: transparant;">
+            </div>
+        </div>
+    <?php else: ?>
         <?php foreach ($klant_rows as $klant): ?>
             <div class="columns">
                 <div class="column">
@@ -301,8 +332,8 @@ try {
                         <h3>Voornaam</h3>
                         <p>
                             <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
-                                 data-field="klant_voornaam" data-value="<?php echo htmlspecialchars($klant['voornaam']); ?>"
-                                 class="edit-button">
+                                data-field="klant_voornaam" data-value="<?php echo htmlspecialchars($klant['voornaam']); ?>"
+                                class="edit-button">
                             <span id="klant_voornaam" data-id="<?php echo $klant['klant_id']; ?>"><?php echo htmlspecialchars($klant['voornaam']); ?></span>
                         </p>
                     </div>
@@ -310,17 +341,17 @@ try {
                         <h3>Achternaam</h3>
                         <p>
                             <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
-                                 data-field="klant_achternaam" data-value="<?php echo htmlspecialchars($klant['achternaam']); ?>"
-                                 class="edit-button">
-                            <span id="klant_achternaam" data-id="<?php echo $klant['klant_id']; ?>"><?php echo htmlspecialchars($klant['achternaam']); ?></span><span id="klant_achternaam" data-id="<?php echo $klant['klant_id']; ?>"><?php echo htmlspecialchars($klant['achternaam']); ?></span>
+                                data-field="klant_achternaam" data-value="<?php echo htmlspecialchars($klant['achternaam']); ?>"
+                                class="edit-button">
+                            <span id="klant_achternaam" data-id="<?php echo $klant['klant_id']; ?>"><?php echo htmlspecialchars($klant['achternaam']); ?></span>
                         </p>
                     </div>
                     <div>
                         <h3>Email</h3>
                         <p>
                             <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
-                                 data-field="klant_email" data-value="<?php echo htmlspecialchars($klant['email']); ?>"
-                                 class="edit-button">
+                                data-field="klant_email" data-value="<?php echo htmlspecialchars($klant['email']); ?>"
+                                class="edit-button">
                             <span id="klant_email" data-id="<?php echo $klant['klant_id']; ?>"><?php echo htmlspecialchars($klant['email']); ?></span>
                         </p>
                     </div>
@@ -328,8 +359,8 @@ try {
                         <h3>Telefoon</h3>
                         <p>
                             <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
-                                 data-field="klant_telefoon" data-value="<?php echo htmlspecialchars($klant['telefoon']); ?>"
-                                 class="edit-button">
+                                data-field="klant_telefoon" data-value="<?php echo htmlspecialchars($klant['telefoon']); ?>"
+                                class="edit-button">
                             <span id="klant_telefoon" data-id="<?php echo $klant['klant_id']; ?>"><?php echo htmlspecialchars($klant['telefoon']); ?></span>
                         </p>
                     </div>
@@ -337,15 +368,16 @@ try {
                         <h3>Bedrijfsnaam</h3>
                         <p>
                             <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
-                                 data-field="klant_bedrijfnaam" data-value="<?php echo htmlspecialchars($klant['bedrijfnaam']); ?>"
-                                 class="edit-button">
+                                data-field="klant_bedrijfnaam" data-value="<?php echo htmlspecialchars($klant['bedrijfnaam']); ?>"
+                                class="edit-button">
                             <span id="klant_bedrijfnaam" data-id="<?php echo $klant['klant_id']; ?>"><?php echo htmlspecialchars($klant['bedrijfnaam']); ?></span>
                         </p>
                     </div>
                 </div>
             </div>
         <?php endforeach; ?>
-    </div>
+    <?php endif; ?>
+</div>
 </div>
 
 <script src="js/profiel.js"></script>
