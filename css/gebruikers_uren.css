@@ -3,7 +3,6 @@ body {
     margin: 0;
     padding: 0;
     background-image: url("../img/achtergrond.jpg");
-    background-repeat: no-repeat;
     background-size: cover;
     height: 100vh;
     display: flex;
@@ -17,10 +16,9 @@ body {
     max-width: 1200px;
     margin: 20px auto;
     padding: 20px;
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: #EEEEEE;
     border-radius: 10px;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-    min-height: 690px;
 }
 
 h1 {
@@ -43,43 +41,40 @@ h1 {
     margin: 5px;
     text-decoration: none;
     color: #fff;
-    background: #8b0000;
+    background-color: rgba(99, 1, 1, 0.8);
     border-radius: 5px;
     transition: background-color 0.3s;
     font-weight: bold;
 }
 
 .filter-links a:hover, .filter-links a.active {
-    background: #5a0000;
+    background: #8b0000;
 }
 
 .filters {
     margin-bottom: 20px;
 }
 
-
-.filters select, .filters input, .filters button {
+.filters-select, .filters input, .filters button {
     padding: 10px;
     margin: 5px;
     border: 1px solid #ddd;
     border-radius: 5px;
     font-size: 16px;
-    background-color: #8b0000;
     color: white;
     transition: background-color 0.3s, color 0.3s;
 }
 
-.filters select {
+.filters-select{
     padding: 10px;
     margin: 5px;
     border: 1px solid #ddd;
     border-radius: 5px;
     font-size: 16px;
-    background-color: #8b0000; 
+    background-color: rgba(99, 1, 1, 0.8);
     color: white;
     transition: background-color 0.3s, color 0.3s;
 }
-
 
 .filters select:focus {
     color: white;
@@ -88,8 +83,6 @@ h1 {
 .filters select option {
     color: white; 
 }
-
-
 
 table {
     width: 100%;
@@ -186,3 +179,95 @@ tr:hover {
     color: #ccc;
     cursor: not-allowed;
 }
+
+/*klant-dashboard*/
+.klant-success-mess{
+    width: 200px;
+    line-height: 30px;
+    background-color: #155724;
+    padding: 10px;
+    font-weight: bold;
+    font-size: 14px;
+    color: white;
+    text-align: center;
+    border-radius: 8px;
+    position: absolute;
+    right: 20px;
+}
+
+.klant-fail-mess{
+    width: 200px;
+    line-height: 30px;
+    background-color: #F44336;
+    padding: 10px;
+    font-weight: bold;
+    font-size: 14px;
+    color: white;
+    text-align: center;
+    border-radius: 8px;
+    position: absolute;
+    right: 20px;
+}
+
+@keyframes scaleUp {
+    0% {
+        transform: scale(0);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes scaleDown {
+    0% {
+        transform: scale(1);
+    }
+    100% {
+        transform: scale(0);
+    }
+}
+
+.klant-success-mess, .klant-fail-mess {
+    animation: scaleUp 0.3s ease-out forwards;
+}
+
+.klant-success-mess, .klant-fail-mess.hide {
+    animation: scaleDown 0.3s ease-in forwards;
+    animation-delay: 2s;
+}
+
+select.status-dropdown {
+    height: 35px;
+    border-radius: 3px;
+    font-weight: bold;
+    padding-left: 10px;
+    padding-right: 5px;
+    border: solid 1px black;
+}
+
+select.status-dropdown option {
+    background-color: #fff;
+    border-radius: 0;
+    font-size: 14px;
+}
+
+select.status-dropdown option:hover{
+    background-color: #630101;
+    color: white;
+}
+
+select.status-dropdown::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    border: 6px solid transparent;
+    pointer-events: none;
+    transform: translateY(-50%);
+}
+
+.status-th{
+    width: 100px;
+}
+
+/**/
