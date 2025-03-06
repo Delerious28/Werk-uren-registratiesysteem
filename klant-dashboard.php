@@ -261,6 +261,13 @@ $bedrijven = $stmtBedrijven->fetchAll(PDO::FETCH_COLUMN);
             }, 3000);
         }
     });
+
+    function updateBedrijfFilter() {
+        let bedrijfsnaam = document.getElementById("bedrijfFilter").value;
+        let urlParams = new URLSearchParams(window.location.search);
+        urlParams.set("bedrijfsnaam", bedrijfsnaam);
+        window.location.search = urlParams.toString();
+    }
 </script>
 
 </body>
