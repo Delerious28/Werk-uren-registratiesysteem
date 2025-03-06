@@ -55,33 +55,35 @@ h1 {
     margin-bottom: 20px;
 }
 
-.filters-select, .filters input, .filters button {
+.filters select, .filters input, .filters button {
     padding: 10px;
     margin: 5px;
     border: 1px solid #ddd;
     border-radius: 5px;
     font-size: 16px;
+    background-color: #8b0000;
     color: white;
     transition: background-color 0.3s, color 0.3s;
 }
 
-.filters-select{
+.filters select {
     padding: 10px;
     margin: 5px;
     border: 1px solid #ddd;
     border-radius: 5px;
     font-size: 16px;
-    background-color: rgba(99, 1, 1, 0.8);
+    background-color: #8b0000;
     color: white;
     transition: background-color 0.3s, color 0.3s;
 }
+
 
 .filters select:focus {
     color: white;
     outline: none;
 }
 .filters select option {
-    color: white; 
+    color: white;
 }
 
 table {
