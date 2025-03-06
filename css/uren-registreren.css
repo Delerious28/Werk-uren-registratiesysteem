@@ -54,7 +54,6 @@ body {
     display: flex;
     align-items: center;
     height: 487px;
-    width: 500px;
     background: white;
     padding: 20px;
     border-radius: 10px;
@@ -125,7 +124,7 @@ body {
     height: 66px;
     border-radius: 6px;
     margin-bottom: 15px;
-    transition: background 0.3s;
+    transition:  0.3s;
 }
 
 .dag:hover {
@@ -186,6 +185,7 @@ li{
 
 .form-div{
     text-align: center;
+    width: 400px;
 }
 
 @media (max-width: 768px) {
