@@ -25,14 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
                 $_SESSION['user_id'] = $user['user_id']; // Zet de user_id in de sessie
                 $_SESSION['role'] = $user['role']; // Zet de rol van de gebruiker in de sessie
 
-                // Redirect op basis van de gebruikersrol
-                if ($_SESSION['role'] == "admin") {
-                    // Redirect naar het admin-dashboard als de rol admin is
-                    header("Location: admin/admin-download.php");
-                } else {
-                    // Redirect naar de gebruikershomepage als de rol user is
-                    header("Location: index.php");
-                }
+                // Redirect naar index.php voor zowel admin als user
+                header("Location: index.php");
                 exit(); // Zorg ervoor dat er geen verdere code wordt uitgevoerd na de redirect
             } else {
                 $error_message = "Ongeldig wachtwoord!"; // Foutmelding bij ongeldig wachtwoord
