@@ -14,7 +14,6 @@ $selectedKlant = isset($_POST['klant']) ? $_POST['klant'] : "";
 // Projecten ophalen op basis van de geselecteerde klant
 $projecten = [];
 if (!empty($selectedKlant)) {
-    // Omdat in de projecttabel elk project een klant_id heeft
     $projectenQuery = "SELECT project_id, project_naam FROM project WHERE klant_id = ?";
     $projectenStmt = $pdo->prepare($projectenQuery);
     $projectenStmt->execute([$selectedKlant]);
@@ -26,61 +25,72 @@ $message = "";
 // Formulier verwerken
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['klant'], $_POST['project'], $_POST['begin'], $_POST['eind'])) {
     if (!empty($_POST['klant']) && !empty($_POST['project']) && !empty($_POST['begin']) && !empty($_POST['eind'])) {
-        // Verkrijg de ingevoerde waarden
         $klantId      = $_POST['klant'];
         $projectId    = $_POST['project'];
         $beschrijving = isset($_POST['beschrijving']) ? htmlspecialchars($_POST['beschrijving']) : "";
-        $begin        = $_POST['begin']; // verwacht formaat "08:00"
-        $eind         = $_POST['eind'];  // verwacht formaat "12:00"
+        $begin        = $_POST['begin'];
+        $eind         = $_POST['eind'];
 
         $date = date('Y-m-d'); // Huidige datum
 
-        // Maak van "08:00" -> "08:00:00"
-        $startHours = $begin . ":00";
-        $endHours   = $eind . ":00";
+        // Controleer of er al uren zijn ingevoerd voor de huidige dag
+        $checkQuery = "SELECT COUNT(*) AS count FROM hours WHERE user_id = :user_id AND date = :date";
+        $checkStmt = $pdo->prepare($checkQuery);
+        $checkStmt->execute(['user_id' => 1, 'date' => $date]); // Gebruik de juiste user_id
+        $result = $checkStmt->fetch(PDO::FETCH_ASSOC);
 
-        // Bereken het verschil in uren als integer
-        $startSeconds = strtotime($startHours);
-        $endSeconds   = strtotime($endHours);
-        if ($endSeconds > $startSeconds) {
-            $urenVerschil = ($endSeconds - $startSeconds) / 3600;
-            $totaalUren = (int)$urenVerschil;
+        if ($result['count'] > 0) {
+            $message = "Er zijn al uren ingevoerd voor vandaag. U kunt geen nieuwe uren toevoegen.";
         } else {
-            $totaalUren = 0;
-        }
+            $startHours = $begin . ":00";
+            $endHours   = $eind . ":00";
 
-        // Voor dit voorbeeld gebruiken we een standaard user_id (bijvoorbeeld de ingelogde gebruiker)
-        $userId         = 1; 
-        $hours          = $totaalUren;
-        $accord         = "Pending"; // Overeenkomend met je ENUM ('Pending','Approved','Rejected')
-        $contract_hours = 0;
+            $startSeconds = strtotime($startHours);
+            $endSeconds   = strtotime($endHours);
+            if ($endSeconds > $startSeconds) {
+                $urenVerschil = ($endSeconds - $startSeconds) / 3600;
+                $totaalUren = (int)$urenVerschil;
+            } else {
+                $totaalUren = 0;
+            }
 
-        // INSERT in de tabel hours (controleer of je tabel de kolom project_id bevat)
-        $insertQuery = "INSERT INTO hours (project_id, user_id, date, start_hours, eind_hours, hours, accord, contract_hours, beschrijving) 
-                        VALUES (:project_id, :user_id, :date, :start_hours, :eind_hours, :hours, :accord, :contract_hours, :beschrijving)";
-        $stmt = $pdo->prepare($insertQuery);
-        $result = $stmt->execute([
-            'project_id'      => $projectId,
-            'user_id'         => $userId,
-            'date'            => $date,
-            'start_hours'     => $startHours,
-            'eind_hours'      => $endHours,
-            'hours'           => $hours,
-            'accord'          => $accord,
-            'contract_hours'  => $contract_hours,
-            'beschrijving'    => $beschrijving
-        ]);
-        if ($result) {
-            $message = "Uren succesvol toegevoegd!";
-        } else {
-            $message = "Er is een fout opgetreden bij het toevoegen van de uren.";
+            $userId         = 1; // Gebruik de juiste user_id
+            $hours          = $totaalUren;
+            $accord         = "Pending";
+            $contract_hours = 0;
+
+            $insertQuery = "INSERT INTO hours (project_id, user_id, date, start_hours, eind_hours, hours, accord, contract_hours, beschrijving) 
+                            VALUES (:project_id, :user_id, :date, :start_hours, :eind_hours, :hours, :accord, :contract_hours, :beschrijving)";
+            $stmt = $pdo->prepare($insertQuery);
+            $result = $stmt->execute([
+                'project_id'      => $projectId,
+                'user_id'         => $userId,
+                'date'            => $date,
+                'start_hours'     => $startHours,
+                'eind_hours'      => $endHours,
+                'hours'           => $hours,
+                'accord'          => $accord,
+                'contract_hours'  => $contract_hours,
+                'beschrijving'    => $beschrijving
+            ]);
+            if ($result) {
+                $message = "Uren succesvol toegevoegd!";
+                // Redirect naar dezelfde pagina om de rechter container bij te werken
+                header("Location: " . $_SERVER['PHP_SELF']);
+                exit(); // Zorg ervoor dat de scriptuitvoering stopt na de redirect
+            } else {
+                $message = "Er is een fout opgetreden bij het toevoegen van de uren.";
+            }
         }
     } else {
         $message = "Vul alle vereiste velden in.";
     }
 }
 
-// Haal alle ingevoerde uren op met bijbehorende project- en klantgegevens
+// Haal alle ingevoerde uren op met bijbehorende project- en klantgegevens voor de huidige week
+$currentWeekStart = date('Y-m-d', strtotime('monday this week')); // Start van de huidige week (maandag)
+$currentWeekEnd = date('Y-m-d', strtotime('friday this week'));   // Einde van de huidige week (vrijdag)
+
 $hoursQuery = "SELECT h.*, p.project_naam, 
                       k.voornaam AS klant_voornaam, k.achternaam AS klant_achternaam,
                       u.name AS user_name, u.achternaam AS user_achternaam
@@ -88,10 +98,18 @@ $hoursQuery = "SELECT h.*, p.project_naam,
                JOIN project p ON h.project_id = p.project_id
                JOIN klant k ON p.klant_id = k.klant_id
                JOIN users u ON h.user_id = u.user_id
-               ORDER BY h.date DESC, h.start_hours DESC";
+               WHERE h.date BETWEEN :weekStart AND :weekEnd
+               ORDER BY h.date ASC, h.start_hours ASC";
 $hoursStmt = $pdo->prepare($hoursQuery);
-$hoursStmt->execute();
+$hoursStmt->execute(['weekStart' => $currentWeekStart, 'weekEnd' => $currentWeekEnd]);
 $hoursRecords = $hoursStmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Groepeer de uren per dag
+$groupedHours = [];
+foreach ($hoursRecords as $record) {
+    $dayOfWeek = date('l', strtotime($record['date'])); // Bijv. "Monday"
+    $groupedHours[$dayOfWeek][] = $record;
+}
 ?>
 <!DOCTYPE html>
 <html lang="nl">
@@ -169,30 +187,38 @@ $hoursRecords = $hoursStmt->fetchAll(PDO::FETCH_ASSOC);
       </form>
     </div>
 
-    <!-- Rechter container: overzicht van ingevoerde uren -->
+    <!-- Rechter container: overzicht van ingevoerde uren voor de huidige week -->
     <div class="block-b">
       <div class="overzicht">
-        <?php if (count($hoursRecords) > 0): ?>
-          <?php foreach ($hoursRecords as $record): ?>
-            <div class="dag">
-              <div class="dag-info">
-                <span class="dagnaam"><?php echo date('l', strtotime($record['date'])); ?></span>
-                <span class="datum-klein"><?php echo date('d-m', strtotime($record['date'])); ?></span>
-              </div>
-              <div class="info">
-                Klant: <?php echo $record['klant_voornaam'] . ' ' . $record['klant_achternaam']; ?><br>
-                Project: <?php echo $record['project_naam']; ?><br>
-                Beschrijving: <?php echo $record['beschrijving']; ?>
-              </div>
-              <div class="tijd">
-                <span class="uren-dik"><?php echo $record['hours']; ?> uur</span><br>
-                <?php echo date('H:i', strtotime($record['start_hours'])); ?> - <?php echo date('H:i', strtotime($record['eind_hours'])); ?>
-              </div>
+        <?php
+        // Definieer de dagen van de week
+        $dagenVanDeWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        foreach ($dagenVanDeWeek as $dag): 
+            $dagNaam = strtolower($dag); // Bijv. "monday"
+            $dagRecords = $groupedHours[$dag] ?? []; // Haal de uren op voor deze dag
+        ?>
+          <div class="dag">
+            <div class="dag-info">
+              <span class="dagnaam"><?php echo ucfirst($dagNaam); ?></span>
+              <span class="datum-klein"><?php echo date('d-m', strtotime($dag . ' this week')); ?></span>
             </div>
-          <?php endforeach; ?>
-        <?php else: ?>
-          <p>Geen ingevoerde uren.</p>
-        <?php endif; ?>
+            <?php if (!empty($dagRecords)): ?>
+              <?php foreach ($dagRecords as $record): ?>
+                <div class="info">
+                  Klant: <?php echo $record['klant_voornaam'] . ' ' . $record['klant_achternaam']; ?><br>
+                  Project: <?php echo $record['project_naam']; ?><br>
+                  Beschrijving: <?php echo $record['beschrijving']; ?>
+                </div>
+                <div class="tijd">
+                  <span class="uren-dik"><?php echo $record['hours']; ?> uur</span><br>
+                  <?php echo date('H:i', strtotime($record['start_hours'])); ?> - <?php echo date('H:i', strtotime($record['eind_hours'])); ?>
+                </div>
+              <?php endforeach; ?>
+            <?php else: ?>
+              <p>Geen uren ingevoerd voor <?php echo ucfirst($dagNaam); ?>.</p>
+            <?php endif; ?>
+          </div>
+        <?php endforeach; ?>
       </div>
     </div>
   </div>
