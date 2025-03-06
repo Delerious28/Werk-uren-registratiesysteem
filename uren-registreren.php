@@ -145,11 +145,13 @@ foreach ($hoursRecords as $record) {
       margin-bottom: 10px;
     }
     .dag.selected {
-      background-color: #e0f7fa; /* Highlight de geselecteerde dag */
+      background-color: #8b0000; /* Highlight de geselecteerde dag */
+      color: white;
     }
-    .overzicht {
-      height: 500px; /* Vaste hoogte voor de rechter container */
-      overflow-y: auto; /* Voeg een scrollbar toe als de inhoud te groot is */
+
+    .datum_klein [selected]{
+      color: white;
+
     }
   </style>
 </head>
@@ -157,7 +159,7 @@ foreach ($hoursRecords as $record) {
 <div class="bigbox">
   <div class="topheader">
     <div class="datum">
-      <h3 id="date-today"><?php echo date('d M'); ?></h3>
+      <h3 id="date-today"><?php echo date('d M'); ?> (Today)</h3>
     </div>
     <div class="week-nav">
       <form method="POST" action="" style="display: inline;">
@@ -176,7 +178,7 @@ foreach ($hoursRecords as $record) {
       <?php if ($message): ?>
         <p><?php echo $message; ?></p>
       <?php endif; ?>
-      <form method="POST" action="">
+      <form method="POST" action="" class="form-div">
         <!-- Verborgen veld om de geselecteerde dag door te geven -->
         <input type="hidden" name="selected_day" value="<?= $selectedDay; ?>">
 
@@ -226,7 +228,7 @@ foreach ($hoursRecords as $record) {
           <option value="19:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '19:00') ? 'selected' : ''; ?>>19:00</option>
         </select>
 
-        <button type="submit">Voeg toe</button>
+        <button type="submit">+ Voeg toe</button>
       </form>
     </div>
 
