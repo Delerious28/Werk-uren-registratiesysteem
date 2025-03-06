@@ -100,7 +100,7 @@ $bedrijven = $stmtBedrijven->fetchAll(PDO::FETCH_COLUMN);
     </div>
 
     <div class="filters">
-        <select class="filters-select" id="bedrijfFilter" onchange="updateBedrijfFilter()">Filter
+        <select id="bedrijfFilter" onchange="updateBedrijfFilter()">Filter
             <option value="">Alle Bedrijven</option>
             <?php
             foreach ($bedrijven as $bedrijf) {
@@ -261,6 +261,13 @@ $bedrijven = $stmtBedrijven->fetchAll(PDO::FETCH_COLUMN);
             }, 3000);
         }
     });
+
+    function updateBedrijfFilter() {
+        let bedrijfsnaam = document.getElementById("bedrijfFilter").value;
+        let urlParams = new URLSearchParams(window.location.search);
+        urlParams.set("bedrijfsnaam", bedrijfsnaam);
+        window.location.search = urlParams.toString();
+    }
 </script>
 
 </body>
