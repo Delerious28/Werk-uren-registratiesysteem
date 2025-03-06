@@ -182,7 +182,7 @@ foreach ($hoursRecords as $record) {
         <!-- Verborgen veld om de geselecteerde dag door te geven -->
         <input type="hidden" name="selected_day" value="<?= $selectedDay; ?>">
 
-        <label>Klant:</label>
+        <li>Klant:</li>
         <select name="klant" class="small-input" onchange="this.form.submit()">
           <option value="">-- Kies Klant --</option>
           <?php foreach ($klanten as $klant): ?>
@@ -192,7 +192,7 @@ foreach ($hoursRecords as $record) {
           <?php endforeach; ?>
         </select>
 
-        <label>Project naam:</label>
+        <li>Project naam:</li>
         <select name="project" class="small-input">
           <option value="">-- Kies Project --</option>
           <?php foreach ($projecten as $project): ?>
@@ -202,10 +202,10 @@ foreach ($hoursRecords as $record) {
           <?php endforeach; ?>
         </select>
 
-        <label>Beschrijving:</label>
+        <li>Beschrijving:</li>
         <input type="text" name="beschrijving" class="small-input" placeholder="Projectbeschrijving (optioneel)">
 
-        <label>Starttijd:</label>
+        <li>Starttijd:</li>
         <select name="begin">
           <option value="">-- Kies --</option>
           <option value="08:00" <?= (isset($_POST['begin']) && $_POST['begin'] == '08:00') ? 'selected' : ''; ?>>08:00</option>
@@ -215,7 +215,7 @@ foreach ($hoursRecords as $record) {
           <option value="12:00" <?= (isset($_POST['begin']) && $_POST['begin'] == '12:00') ? 'selected' : ''; ?>>12:00</option>
         </select>
 
-        <label>Eindtijd:</label>
+        <li>Eindtijd:</li>
         <select name="eind">
           <option value="">-- Kies --</option>
           <option value="12:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '12:00') ? 'selected' : ''; ?>>12:00</option>
