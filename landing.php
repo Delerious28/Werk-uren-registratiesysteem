@@ -17,7 +17,7 @@
             align-items: center;
             background-color: white;
             overflow: hidden;
-            background-image: url('img/achtergrond.jpg');
+            background-image: url('img/achtergrond(nieuw).png');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -81,7 +81,7 @@
         }
 
         .boven-container-links {
-            background: linear-gradient(to left, #F8CECC, #C33B3B);
+            background: linear-gradient(to left, #5a0000, #000000);
             top: -60px;
             left: 105px;
             height: 300px;
@@ -95,7 +95,7 @@
         }
 
         .boven-container-rechts {
-            background: linear-gradient(to right, #F8CECC, #C33B3B); 
+            background: linear-gradient(to right, #5a0000, #000000);
             top: -60px;
             right: 105px;
             height: 300px;
@@ -109,7 +109,7 @@
         }
 
         .onder-container {
-            background: linear-gradient(to bottom, #F8CECC, #C33B3B);
+            background: linear-gradient(to bottom, #5a0000, #000000);
             width: 0; 
             height: 300px;
             bottom: -90px;
