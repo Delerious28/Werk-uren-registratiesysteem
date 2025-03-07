@@ -1,19 +1,27 @@
 <?php
 session_start();
 
-// Als de gebruiker niet is ingelogd, doorverwijzen naar inlogpagina
+// Controleer of de gebruiker is ingelogd
 if (!isset($_SESSION['user_id'])) {
     header("Location: inloggen.php");
     exit();
 }
 
-$user_id = $_SESSION['user_id']; // Verkrijg de user_id van de ingelogde gebruiker
+// Databaseverbinding
+try {
+    include 'db/conn.php';
+} catch (PDOException $e) {
+    die("Databaseverbinding mislukt: " . $e->getMessage());
+}
 
-include 'db/conn.php';
-
+// Filters en paginering
 $filter = $_GET['filter'] ?? 'day';
-$selectedBedrijfsnaam = $_GET['bedrijfsnaam'] ?? '';  // Veranderde variabele naar bedrijfsnaam
+$selectedBedrijfsnaam = $_GET['bedrijfsnaam'] ?? '';
+$limit = 10;
+$page = max(1, isset($_GET['page']) ? (int)$_GET['page'] : 1);
+$offset = ($page - 1) * $limit;
 
+// Datumbereik bepalen
 $today = date('Y-m-d');
 $start_date = $today;
 $end_date = $today;
@@ -29,56 +37,59 @@ switch ($filter) {
         break;
 }
 
-$limit = 10;
-$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$page = max($page, 1);
-$offset = ($page - 1) * $limit;
+try {
+    // SQL-query om alle uren op te halen binnen het datumbereik
+    $sql = "SELECT h.hours_id, h.date, u.name, u.achternaam, h.hours, h.accord, h.start_hours, h.eind_hours, k.bedrijfnaam AS bedrijfsnaam, p.project_naam AS projectnaam 
+            FROM hours h 
+            JOIN users u ON h.user_id = u.user_id 
+            LEFT JOIN project p ON h.project_id = p.project_id 
+            LEFT JOIN klant k ON p.klant_id = k.klant_id 
+            WHERE h.date BETWEEN :start_date AND :end_date";
 
-// Pas de query aan zodat de gegevens alleen voor de ingelogde gebruiker worden opgehaald
-$sql = "
-    SELECT h.hours_id, h.date, u.name, u.achternaam, h.hours, h.accord, h.start_hours, h.eind_hours, 
-           k.bedrijfnaam AS bedrijfsnaam, p.project_naam AS projectnaam
-    FROM hours h
-    JOIN users u ON h.user_id = u.user_id
-    LEFT JOIN project p ON h.project_id = p.project_id
-    LEFT JOIN klant k ON p.klant_id = k.klant_id
-    WHERE h.user_id = :user_id AND h.date BETWEEN :start_date AND :end_date
-";
+    $params = ['start_date' => $start_date, 'end_date' => $end_date];
 
-if (!empty($selectedBedrijfsnaam)) {  // Filteren op bedrijfsnaam
-    $sql .= " AND k.bedrijfnaam = :bedrijfsnaam";  // Gebruik bedrijfsnaam in de WHERE-clausule
+    if (!empty($selectedBedrijfsnaam)) {
+        $sql .= " AND k.bedrijfnaam = :bedrijfsnaam";
+        $params['bedrijfsnaam'] = $selectedBedrijfsnaam;
+    }
+
+    $sql .= " ORDER BY h.date ASC LIMIT :limit OFFSET :offset";
+
+    $stmt = $pdo->prepare($sql);
+
+    // Bind de parameters
+    $stmt->bindValue(':start_date', $start_date);
+    $stmt->bindValue(':end_date', $end_date);
+    if (isset($params['bedrijfsnaam'])) {
+        $stmt->bindValue(':bedrijfsnaam', $params['bedrijfsnaam']);
+    }
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+
+    $stmt->execute();
+    $hoursData = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // SQL-query voor het tellen van totale records
+    $sqlTotal = "SELECT COUNT(*) FROM hours h LEFT JOIN project p ON h.project_id = p.project_id LEFT JOIN klant k ON p.klant_id = k.klant_id WHERE h.date BETWEEN :start_date AND :end_date";
+    if (!empty($selectedBedrijfsnaam)) {
+        $sqlTotal .= " AND k.bedrijfnaam = :bedrijfsnaam";
+    }
+
+    $stmtTotal = $pdo->prepare($sqlTotal);
+    $stmtTotal->execute($params);
+    $totalRecords = $stmtTotal->fetchColumn();
+    $totalPages = ceil($totalRecords / $limit);
+
+    // SQL-query voor het ophalen van unieke bedrijfsnamen
+    $sqlBedrijven = "SELECT DISTINCT bedrijfnaam FROM klant ORDER BY bedrijfnaam ASC";
+    $stmtBedrijven = $pdo->prepare($sqlBedrijven);
+    $stmtBedrijven->execute();
+    $bedrijven = $stmtBedrijven->fetchAll(PDO::FETCH_COLUMN);
+
+} catch (PDOException $e) {
+    die("Fout bij het ophalen van gegevens: " . $e->getMessage());
 }
-$sql .= " ORDER BY h.date ASC LIMIT $limit OFFSET $offset";
-
-$stmt = $pdo->prepare($sql);
-$params = ['user_id' => $user_id, 'start_date' => $start_date, 'end_date' => $end_date];
-if (!empty($selectedBedrijfsnaam)) {
-    $params['bedrijfsnaam'] = $selectedBedrijfsnaam;  // Voeg de geselecteerde bedrijfsnaam toe aan de parameters
-}
-$stmt->execute($params);
-$hoursData = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-$sqlTotal = "
-    SELECT COUNT(*) FROM hours h
-    JOIN users u ON h.user_id = u.user_id
-    LEFT JOIN project p ON h.project_id = p.project_id
-    LEFT JOIN klant k ON p.klant_id = k.klant_id
-    WHERE h.user_id = :user_id AND h.date BETWEEN :start_date AND :end_date
-";
-if (!empty($selectedBedrijfsnaam)) {  // Filteren op bedrijfsnaam in de totalen
-    $sqlTotal .= " AND k.bedrijfnaam = :bedrijfsnaam";
-}
-$stmtTotal = $pdo->prepare($sqlTotal);
-$stmtTotal->execute($params);
-$totalRecords = $stmtTotal->fetchColumn();
-$totalPages = ceil($totalRecords / $limit);
-
-$sqlBedrijven = "SELECT DISTINCT bedrijfnaam FROM klant ORDER BY bedrijfnaam ASC";  // Haal alle unieke bedrijfsnamen
-$stmtBedrijven = $pdo->prepare($sqlBedrijven);
-$stmtBedrijven->execute();
-$bedrijven = $stmtBedrijven->fetchAll(PDO::FETCH_COLUMN);
 ?>
-
 <!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -91,7 +102,7 @@ $bedrijven = $stmtBedrijven->fetchAll(PDO::FETCH_COLUMN);
 <?php include 'sidebar.php'; ?>
 
 <div class="container">
-    <h1>Klant Dashboard</h1>
+    <h1>Urenoverzicht</h1>
 
     <div class="filter-links">
         <a href="?filter=day&bedrijfsnaam=<?php echo urlencode($selectedBedrijfsnaam); ?>" class="<?php echo $filter === 'day' ? 'active' : ''; ?>">Per Dag</a>
@@ -100,14 +111,11 @@ $bedrijven = $stmtBedrijven->fetchAll(PDO::FETCH_COLUMN);
     </div>
 
     <div class="filters">
-        <select id="bedrijfFilter" onchange="updateBedrijfFilter()">Filter
+        <select id="bedrijfFilter" onchange="updateBedrijfFilter()">
             <option value="">Alle Bedrijven</option>
-            <?php
-            foreach ($bedrijven as $bedrijf) {
-                $selected = ($bedrijf === $selectedBedrijfsnaam) ? 'selected' : '';
-                echo "<option value='$bedrijf' $selected>$bedrijf</option>";
-            }
-            ?>
+            <?php foreach ($bedrijven as $bedrijf): ?>
+                <option value="<?php echo htmlspecialchars($bedrijf); ?>" <?php echo $bedrijf === $selectedBedrijfsnaam ? 'selected' : ''; ?>><?php echo htmlspecialchars($bedrijf); ?></option>
+            <?php endforeach; ?>
         </select>
     </div>
 
@@ -120,36 +128,40 @@ $bedrijven = $stmtBedrijven->fetchAll(PDO::FETCH_COLUMN);
             <th>Bedrijfsnaam</th>
             <th>Projectnaam</th>
             <th>Uren</th>
-            <th class='status-th'>Status</th>
+            <th class="status-th">Status</th>
             <th>Tijd</th>
         </tr>
         </thead>
         <tbody>
-        <?php
-        if (!empty($hoursData)) {
-            foreach ($hoursData as $row) {
-                echo "<tr>";
-                echo "<td>" . htmlspecialchars($row['hours_id']) . "</td>";
-                echo "<td>" . htmlspecialchars($row['date']) . "</td>";
-                echo "<td>" . htmlspecialchars($row['name']) . " " . htmlspecialchars($row['achternaam']) . "</td>";
-                echo "<td>" . htmlspecialchars($row['bedrijfsnaam'] ?? 'N/A') . "</td>";
-                echo "<td>" . htmlspecialchars($row['projectnaam'] ?? 'N/A') . "</td>";
-                echo "<td>" . htmlspecialchars($row['hours']) . "</td>";
-                echo "<td>
-                    <select class='status-dropdown' data-hours-id='" . $row['hours_id'] . "'>
-                        <option class='option-tag' value='Pending' " . ($row['accord'] === 'Pending' ? 'selected' : '') . ">Pending</option>
-                        <option class='option-tag' value='Approved' " . ($row['accord'] === 'Approved' ? 'selected' : '') . ">Approved</option>
-                        <option class='option-tag' value='Rejected' " . ($row['accord'] === 'Rejected' ? 'selected' : '') . ">Rejected</option>
-                    </select>
-                    </td>";
-                echo "<td>" . date('H:i', strtotime($row['start_hours'])) . " - " . date('H:i', strtotime($row['eind_hours'])) . "</td>";
-                echo "</tr>";
-            }
-        }
-        ?>
+        <?php if (empty($hoursData)): ?>
+            <tr>
+                <td colspan="8">Geen gegevens gevonden.</td>
+            </tr>
+        <?php else: ?>
+            <?php foreach ($hoursData as $row): ?>
+                <tr>
+                    <td><?php echo htmlspecialchars($row['hours_id']); ?></td>
+                    <td><?php echo htmlspecialchars($row['date']); ?></td>
+                    <td><?php echo htmlspecialchars($row['name'] . ' ' . $row['achternaam']); ?></td>
+                    <td><?php echo htmlspecialchars($row['bedrijfsnaam'] ?? 'N/A'); ?></td>
+                    <td><?php echo htmlspecialchars($row['projectnaam'] ?? 'N/A'); ?></td>
+                    <td><?php echo htmlspecialchars($row['hours']); ?></td>
+                    <td>
+                        <select class="status-dropdown" data-hours-id="<?php echo htmlspecialchars($row['hours_id']); ?>">
+                            <option class="option-tag" value="Pending" <?php echo $row['accord'] === 'Pending' ? 'selected' : ''; ?>>Pending</option>
+                            <option class="option-tag" value="Approved" <?php echo $row['accord'] === 'Approved' ? 'selected' : ''; ?>>Approved</option>
+                            <option<option class="option-tag" value="Rejected" <?php echo $row['accord'] === 'Rejected' ? 'selected' : ''; ?>>Rejected</option>
+                        </select>
+                    </td>
+                    <td><?php echo date('H:i', strtotime($row['start_hours'])) . ' - ' . date('H:i', strtotime($row['eind_hours'])); ?></td>
+                </tr>
+            <?php endforeach; ?>
+        <?php endif; ?>
         </tbody>
     </table>
 </div>
+</body>
+</html>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
