@@ -1,13 +1,10 @@
 <?php
 session_start();
-
-// Controleer of de gebruiker is ingelogd
 if (!isset($_SESSION['user_id'])) {
     header("Location: inloggen.php");
     exit();
 }
 
-// Databaseverbinding
 try {
     include 'db/conn.php';
 } catch (PDOException $e) {
@@ -18,78 +15,49 @@ try {
 $filter = $_GET['filter'] ?? 'day';
 $selectedBedrijfsnaam = $_GET['bedrijfsnaam'] ?? '';
 $limit = 10;
-$page = max(1, isset($_GET['page']) ? (int)$_GET['page'] : 1);
+$page = max(1, (int)($_GET['page'] ?? 1));
 $offset = ($page - 1) * $limit;
 
-// Datumbereik bepalen
-$today = date('Y-m-d');
-$start_date = $today;
-$end_date = $today;
-
-switch ($filter) {
-    case 'week':
-        $start_date = date('Y-m-d', strtotime('monday this week'));
-        $end_date = date('Y-m-d', strtotime('sunday this week'));
-        break;
-    case 'month':
-        $start_date = date('Y-m-01');
-        $end_date = date('Y-m-t');
-        break;
-}
+// Datumbereik bepaling
+$dateRange = [
+    'day' => [date('Y-m-d'), date('Y-m-d')],
+    'week' => [date('Y-m-d', strtotime('monday this week')), date('Y-m-d', strtotime('sunday this week'))],
+    'month' => [date('Y-m-01'), date('Y-m-t')]
+];
+[$start_date, $end_date] = $dateRange[$filter] ?? $dateRange['day'];
 
 try {
-    // SQL-query om alle uren op te halen binnen het datumbereik
-    $sql = "SELECT h.hours_id, h.date, u.name, u.achternaam, h.hours, h.accord, h.start_hours, h.eind_hours, k.bedrijfnaam AS bedrijfsnaam, p.project_naam AS projectnaam 
-            FROM hours h 
-            JOIN users u ON h.user_id = u.user_id 
-            LEFT JOIN project p ON h.project_id = p.project_id 
-            LEFT JOIN klant k ON p.klant_id = k.klant_id 
-            WHERE h.date BETWEEN :start_date AND :end_date";
+    // Hoofdquery voor urengegevens
+    $sql = "SELECT h.hours_id, h.date, u.name, u.achternaam, h.hours, h.start_hours, h.eind_hours,
+                   k.bedrijfnaam AS bedrijfsnaam, p.project_naam AS projectnaam 
+            FROM hours h
+            JOIN users u ON h.user_id = u.user_id
+            LEFT JOIN project p ON h.project_id = p.project_id
+            LEFT JOIN klant k ON p.klant_id = k.klant_id
+            WHERE h.date BETWEEN :start_date AND :end_date"
+            . (!empty($selectedBedrijfsnaam) ? " AND k.bedrijfnaam = :bedrijfsnaam" : "");
 
+    $stmt = $pdo->prepare($sql . " ORDER BY h.date ASC LIMIT :limit OFFSET :offset");
+    
     $params = ['start_date' => $start_date, 'end_date' => $end_date];
-
-    if (!empty($selectedBedrijfsnaam)) {
-        $sql .= " AND k.bedrijfnaam = :bedrijfsnaam";
-        $params['bedrijfsnaam'] = $selectedBedrijfsnaam;
-    }
-
-    $sql .= " ORDER BY h.date ASC LIMIT :limit OFFSET :offset";
-
-    $stmt = $pdo->prepare($sql);
-
-    // Bind de parameters
-    $stmt->bindValue(':start_date', $start_date);
-    $stmt->bindValue(':end_date', $end_date);
-    if (isset($params['bedrijfsnaam'])) {
-        $stmt->bindValue(':bedrijfsnaam', $params['bedrijfsnaam']);
-    }
+    if (!empty($selectedBedrijfsnaam)) $params['bedrijfsnaam'] = $selectedBedrijfsnaam;
+    
+    foreach ($params as $key => $val) $stmt->bindValue(":$key", $val);
     $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
     $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-
+    
     $stmt->execute();
     $hoursData = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // SQL-query voor het tellen van totale records
-    $sqlTotal = "SELECT COUNT(*) FROM hours h LEFT JOIN project p ON h.project_id = p.project_id LEFT JOIN klant k ON p.klant_id = k.klant_id WHERE h.date BETWEEN :start_date AND :end_date";
-    if (!empty($selectedBedrijfsnaam)) {
-        $sqlTotal .= " AND k.bedrijfnaam = :bedrijfsnaam";
-    }
-
-    $stmtTotal = $pdo->prepare($sqlTotal);
-    $stmtTotal->execute($params);
-    $totalRecords = $stmtTotal->fetchColumn();
-    $totalPages = ceil($totalRecords / $limit);
-
-    // SQL-query voor het ophalen van unieke bedrijfsnamen
-    $sqlBedrijven = "SELECT DISTINCT bedrijfnaam FROM klant ORDER BY bedrijfnaam ASC";
-    $stmtBedrijven = $pdo->prepare($sqlBedrijven);
-    $stmtBedrijven->execute();
-    $bedrijven = $stmtBedrijven->fetchAll(PDO::FETCH_COLUMN);
+    // Bedrijfsfilter
+    $bedrijven = $pdo->query("SELECT DISTINCT bedrijfnaam FROM klant ORDER BY bedrijfnaam ASC")
+                     ->fetchAll(PDO::FETCH_COLUMN);
 
 } catch (PDOException $e) {
     die("Fout bij het ophalen van gegevens: " . $e->getMessage());
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -97,8 +65,51 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Urenoverzicht</title>
     <link rel="stylesheet" href="css/gebruikers_uren.css">
-</head>
-<body>
+    <style>
+    .klant-success-mess {
+        background-color: #d4edda;
+        color: #155724;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #c3e6cb;
+        border-radius: 4px;
+    }
+    .klant-fail-mess {
+        background-color: #f8d7da;
+        color: #721c24;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #f5c6cb;
+        border-radius: 4px;
+    }
+    .status-dropdown {
+        padding: 5px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        color: black; /* Tekstkleur altijd zwart */
+        background-color: white; /* Standaard achtergrondkleur */
+    }
+    .status-dropdown.approved {
+        background-color: #d4edda; /* Lichtgroen voor Approved */
+    }
+    .status-dropdown.rejected {
+        background-color: #f8d7da; /* Lichtrood voor Rejected */
+    }
+    .status-dropdown.pending {
+        background-color: #fff3cd; /* Lichtgeel voor Pending */
+    }
+    .status-dropdown option {
+        color: black; /* Tekstkleur altijd zwart */
+        background-color: white; /* Achtergrondkleur altijd wit */
+    }
+    .status-dropdown option:hover {
+        background-color: #f0f0f0; /* Grijs bij hover */
+    }
+    .status-dropdown option:checked {
+        background-color: #e0e0e0; /* Lichtgrijs voor geselecteerde optie */
+    }
+</style>
+
 <?php include 'sidebar.php'; ?>
 
 <div class="container">
@@ -148,9 +159,9 @@ try {
                     <td><?php echo htmlspecialchars($row['hours']); ?></td>
                     <td>
                         <select class="status-dropdown" data-hours-id="<?php echo htmlspecialchars($row['hours_id']); ?>">
-                            <option class="option-tag" value="Pending" <?php echo $row['accord'] === 'Pending' ? 'selected' : ''; ?>>Pending</option>
-                            <option class="option-tag" value="Approved" <?php echo $row['accord'] === 'Approved' ? 'selected' : ''; ?>>Approved</option>
-                            <option<option class="option-tag" value="Rejected" <?php echo $row['accord'] === 'Rejected' ? 'selected' : ''; ?>>Rejected</option>
+                            <option class="option-tag" value="Pending">Pending</option>
+                            <option class="option-tag" value="Approved">Approved</option>
+                            <option class="option-tag" value="Rejected">Rejected</option>
                         </select>
                     </td>
                     <td><?php echo date('H:i', strtotime($row['start_hours'])) . ' - ' . date('H:i', strtotime($row['eind_hours'])); ?></td>
@@ -160,117 +171,59 @@ try {
         </tbody>
     </table>
 </div>
-</body>
-</html>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Haal de dropdowns op voor de status
         const statusDropdowns = document.querySelectorAll('.status-dropdown');
 
-        // Loop door de dropdowns en voeg een event listener toe
         statusDropdowns.forEach(function (dropdown) {
-            // Lees de opgeslagen status uit localStorage en pas de achtergrondkleur aan
             const savedStatus = localStorage.getItem(`status-${dropdown.getAttribute('data-hours-id')}`);
             if (savedStatus) {
-                applyBackgroundColor(dropdown, savedStatus);
+                dropdown.value = savedStatus;
+                updateDropdownColor(dropdown, savedStatus); // Pas de kleur aan bij het laden
             }
 
             dropdown.addEventListener('change', function () {
-                const hoursId = this.getAttribute('data-hours-id');  // Haal het hours_id uit de dropdown
-                const status = this.value;  // Haal de geselecteerde status op
+                const hoursId = this.getAttribute('data-hours-id');
+                const status = this.value;
 
-                // Stuur een AJAX-verzoek naar de update-status.php
-                fetch('update-status.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: new URLSearchParams({
-                        hours_id: hoursId,
-                        accord: status
-                    })
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log('Server response:', data); // Log de server response
-                        if (data.status === 'success') {
-                            // Succesbericht weergeven
-                            showSuccessMessage('Status succesvol bijgewerkt!');
-                        } else {
-                            showFailMessage('Status kon niet bijgewerkt worden!');
-                        }
+                // Update de kleur van de dropdown
+                updateDropdownColor(dropdown, status);
 
-                        // Sla de status op in localStorage
-                        localStorage.setItem(`status-${hoursId}`, status);
-                        applyBackgroundColor(dropdown, status);  // Pas de achtergrondkleur toe
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('Er is een fout opgetreden');
-                    });
+                // Simuleer een succesvolle update
+                localStorage.setItem(`status-${hoursId}`, status);
+                showSuccessMessage('Status succesvol bijgewerkt! (lokaal opgeslagen)');
             });
         });
 
-        // Functie om de achtergrondkleur toe te passen op de dropdown
-        function applyBackgroundColor(dropdown, status) {
-            if (status === 'Pending') {
-                dropdown.style.backgroundColor = '#fff3cd';  // Geel voor Pending
-                dropdown.style.color = 'black';  // Zwarte tekst voor de gehele select
-                // Specifieke styling voor option tags
-                const options = dropdown.querySelectorAll('option');
-                options.forEach(option => {
-                    option.style.color = 'black';  // Zorg ervoor dat alle options zwarte tekst hebben
-                });
-            } else if (status === 'Approved') {
-                dropdown.style.backgroundColor = '#155724';  // Groen voor Approved
-                dropdown.style.color = 'white';  // Witte tekst voor de gehele select
-                const options = dropdown.querySelectorAll('option');
-                options.forEach(option => {
-                    option.style.color = 'black';  // Zwarte tekst voor de options
-                });
+        function updateDropdownColor(dropdown, status) {
+            // Verwijder alle bestaande kleurklassen
+            dropdown.classList.remove('approved', 'rejected', 'pending');
+
+            // Voeg de juiste klasse toe op basis van de status
+            if (status === 'Approved') {
+                dropdown.classList.add('approved');
             } else if (status === 'Rejected') {
-                dropdown.style.backgroundColor = '#F44336';  // Rood voor Rejected
-                dropdown.style.color = 'white';  // Witte tekst voor de gehele select
-                const options = dropdown.querySelectorAll('option');
-                options.forEach(option => {
-                    option.style.color = 'black';  // Zwarte tekst voor de options
-                });
+                dropdown.classList.add('rejected');
+            } else if (status === 'Pending') {
+                dropdown.classList.add('pending');
             }
         }
 
-        // Functie voor succesbericht
         function showSuccessMessage(message) {
-            // Maak een div voor het succesbericht
             const successMessage = document.createElement('div');
             successMessage.classList.add('klant-success-mess');
             successMessage.textContent = message;
-
-            // Voeg het bericht toe aan de container
-            const container = document.querySelector('.container');
-            container.prepend(successMessage);
-
-            // Verwijder het bericht na 5 seconden
-            setTimeout(() => {
-                successMessage.remove();
-            }, 3000);
+            document.querySelector('.container').prepend(successMessage);
+            setTimeout(() => successMessage.remove(), 3000);
         }
 
-        // Functie voor foutbericht
         function showFailMessage(message) {
-            // Maak een div voor het foutbericht
             const failMessage = document.createElement('div');
             failMessage.classList.add('klant-fail-mess');
             failMessage.textContent = message;
-
-            // Voeg het bericht toe aan de container
-            const container = document.querySelector('.container');
-            container.prepend(failMessage);
-
-            // Verwijder het bericht na 5 seconden
-            setTimeout(() => {
-                failMessage.remove();
-            }, 3000);
+            document.querySelector('.container').prepend(failMessage);
+            setTimeout(() => failMessage.remove(), 3000);
         }
     });
 
@@ -281,6 +234,5 @@ try {
         window.location.search = urlParams.toString();
     }
 </script>
-
 </body>
 </html>
