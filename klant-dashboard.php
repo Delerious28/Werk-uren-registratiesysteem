@@ -3,7 +3,7 @@ session_start();
 
 // Als de gebruiker niet is ingelogd, doorverwijzen naar inlogpagina
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+    header("Location: inloggen.php");
     exit();
 }
 
