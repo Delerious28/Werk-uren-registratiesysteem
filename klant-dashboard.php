@@ -38,14 +38,14 @@ try {
             . (!empty($selectedBedrijfsnaam) ? " AND k.bedrijfnaam = :bedrijfsnaam" : "");
 
     $stmt = $pdo->prepare($sql . " ORDER BY h.date ASC LIMIT :limit OFFSET :offset");
-    
+
     $params = ['start_date' => $start_date, 'end_date' => $end_date];
     if (!empty($selectedBedrijfsnaam)) $params['bedrijfsnaam'] = $selectedBedrijfsnaam;
-    
+
     foreach ($params as $key => $val) $stmt->bindValue(":$key", $val);
     $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
     $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-    
+
     $stmt->execute();
     $hoursData = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -109,7 +109,7 @@ try {
         background-color: #e0e0e0; /* Lichtgrijs voor geselecteerde optie */
     }
 </style>
-
+<body>
 <?php include 'sidebar.php'; ?>
 
 <div class="container">
