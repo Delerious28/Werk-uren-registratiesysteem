@@ -5,7 +5,7 @@ body{
     overflow: hidden;
     background-image: url("../img/achtergrond(nieuw).png");
     background-repeat: no-repeat;
-    background-size: 100vw 100vh;
+    background-size: 100% 100%;
 }
 
 header{

@@ -18,9 +18,7 @@
             background-color: white;
             overflow: hidden;
             background-image: url('img/achtergrond(nieuw).png');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
+            background-size: 100% 100%;
             height: 100vh;
         }
 
