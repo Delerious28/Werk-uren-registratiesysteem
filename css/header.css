@@ -3,9 +3,9 @@
 body{
     margin: 0;
     overflow: hidden;
-    background-image: url("../img/achtergrond.jpg");
+    background-image: url("../img/achtergrond(nieuw).png");
     background-repeat: no-repeat;
-    background-size: 100vw 100vh;
+    background-size: 100% 100%;
 }
 
 header{
@@ -19,6 +19,7 @@ header{
     height: 150px;
     width: 400px;
     background-color: transparent;
+    margin-top: 30px;
 }
 
 .image {
