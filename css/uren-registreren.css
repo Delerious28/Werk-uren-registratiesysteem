@@ -1,6 +1,7 @@
 body {
+    background-image: url("../img/achtergrond(nieuw).png");
+    background-size: 100% 100%;
     font-family: sans-serif;
-    background: #f7f7f7;
     margin: 0;
     padding: 0;
     display: flex;
@@ -10,7 +11,7 @@ body {
 }
 
 .bigbox {
-    width: 90%;
+    width: 75%;
     max-width: 1300px;
 }
 
@@ -53,7 +54,6 @@ body {
 .blok-1 {
     display: flex;
     align-items: center;
-    height: 487px;
     background: white;
     padding: 20px;
     border-radius: 10px;
@@ -92,7 +92,7 @@ body {
 }
 
 .blok-1 button {
-    background: #28a745;
+    background: #006317;
     color: white;
     font-weight: bold;
     cursor: pointer;
@@ -101,7 +101,7 @@ body {
 }
 
 .blok-1 button:hover {
-    background: #218838;
+    background: #004d11;
     transform: scale(1.05);
 }
 
@@ -197,4 +197,29 @@ li{
     .block-b {
         min-width: 100%;
     }
+}
+
+.vereisten-bericht{
+    margin: 0px;
+    text-align: right;
+    padding-right: 10px;
+    color: darkred;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.dupliceer-bericht{
+    font-weight: bold;
+    margin: 0;
+    padding: 10px;
+    background-color: red;
+    line-height: 25px;
+    color: white;
+    border-radius: 5px;
+}
+
+.error-bericht{
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
