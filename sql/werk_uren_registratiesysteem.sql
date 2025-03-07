@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 06, 2025 at 10:35 AM
+-- Generation Time: Mar 07, 2025 at 11:09 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -43,7 +43,7 @@ CREATE TABLE `chiefs` (
 --
 
 INSERT INTO `chiefs` (`chief_id`, `telefoon`, `adres`, `bedrijfnaam`, `stad`, `postcode`, `provincie`, `land`) VALUES
-    (1, '088 786 0100', '1119 Tupolevlaan 1', 'Chiefs of IT', 'Schiphol-Rijk', '1119 NW', 'Noord-Holland', 'Nederland');
+    (1, '088 786 0100', '1119 Tupolevlaan', 'Chiefs of IT', 'Schiphol-Rijk', '1119 NW', 'Noord-Holland', 'Nederland');
 
 -- --------------------------------------------------------
 
@@ -66,7 +66,7 @@ CREATE TABLE `contact` (
 --
 
 INSERT INTO `contact` (`contact_id`, `voornaam`, `achternaam`, `email`, `telefoon`, `bericht`, `created_at`) VALUES
-    (1, 'Test', 'User', 'test@example.com', '0612345678', NULL, '2025-03-04 10:43:05');
+    (1, 'hans', 'User', 'test@example.com', '0612345678', NULL, '2025-03-04 10:43:05');
 
 -- --------------------------------------------------------
 
@@ -83,7 +83,7 @@ CREATE TABLE `hours` (
                          `eind_hours` time NOT NULL,
                          `hours` decimal(4,2) NOT NULL CHECK (`hours` between 0 and 24),
                          `accord` enum('Pending','Approved','Rejected') NOT NULL DEFAULT 'Pending',
-                         `contract_hours` decimal(4,2) NOT NULL CHECK (`contract_hours` between 0 and 24),
+                         `contract_hours` decimal(6,2) DEFAULT NULL,
                          `beschrijving` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -92,12 +92,26 @@ CREATE TABLE `hours` (
 --
 
 INSERT INTO `hours` (`hours_id`, `user_id`, `project_id`, `date`, `start_hours`, `eind_hours`, `hours`, `accord`, `contract_hours`, `beschrijving`) VALUES
-                                                                                                                                                        (31, 1, 2, '2025-03-05', '09:00:00', '14:00:00', 5.00, 'Pending', 5.00, 'Front-end'),
-                                                                                                                                                        (32, 1, 1, '2025-03-04', '09:00:00', '13:00:00', 4.00, 'Pending', 0.00, '2'),
-                                                                                                                                                        (33, 1, 1, '2025-03-03', '08:00:00', '13:00:00', 5.00, 'Pending', 0.00, 'awd'),
-                                                                                                                                                        (35, 1, 1, '2025-03-06', '08:00:00', '14:00:00', 6.00, 'Pending', 0.00, 'Front end'),
-                                                                                                                                                        (37, 1, 2, '2025-03-07', '08:00:00', '13:00:00', 5.00, 'Pending', 0.00, 'klnion'),
-                                                                                                                                                        (38, 1, 2, '2025-02-24', '10:00:00', '14:00:00', 4.00, 'Pending', 0.00, ' jnkn');
+                                                                                                                                                        (31, 1, 2, '2025-03-05', '09:00:00', '14:00:00', 5.00, 'Approved', 5.00, 'Front-end'),
+                                                                                                                                                        (32, 1, 1, '2025-03-04', '09:00:00', '13:00:00', 4.00, 'Approved', 0.00, '2'),
+                                                                                                                                                        (33, 1, 1, '2025-03-03', '08:00:00', '13:00:00', 5.00, 'Approved', 209.00, 'awd'),
+                                                                                                                                                        (35, 1, 1, '2025-03-06', '08:00:00', '14:00:00', 6.00, 'Pending', 920.00, 'Front end'),
+                                                                                                                                                        (37, 1, 2, '2025-03-07', '08:00:00', '13:00:00', 5.00, 'Pending', 1900.00, 'klnion'),
+                                                                                                                                                        (38, 1, 2, '2025-02-24', '10:00:00', '14:00:00', 4.00, 'Pending', 0.00, ' jnkn'),
+                                                                                                                                                        (39, 1, 1, '2025-03-10', '09:00:00', '17:00:00', 8.00, 'Pending', 200.00, 'Front-end development'),
+                                                                                                                                                        (40, 1, 2, '2025-03-11', '08:00:00', '12:00:00', 4.00, 'Approved', 150.00, 'Back-end development'),
+                                                                                                                                                        (41, 1, 3, '2025-03-12', '10:00:00', '15:00:00', 5.00, 'Approved', 250.00, 'API integration'),
+                                                                                                                                                        (42, 1, 1, '2025-03-13', '09:00:00', '18:00:00', 9.00, 'Pending', 300.00, 'Database optimization'),
+                                                                                                                                                        (43, 1, 2, '2025-03-14', '08:00:00', '16:00:00', 8.00, 'Approved', 220.00, 'Bug fixing'),
+                                                                                                                                                        (44, 1, 3, '2025-03-15', '11:00:00', '14:00:00', 3.00, 'Pending', 180.00, 'UI/UX testing'),
+                                                                                                                                                        (45, 1, 1, '2025-03-16', '09:00:00', '17:00:00', 8.00, 'Approved', 210.00, 'Front-end redesign'),
+                                                                                                                                                        (46, 1, 2, '2025-03-17', '10:00:00', '14:00:00', 4.00, 'Pending', 160.00, 'Server-side scripting'),
+                                                                                                                                                        (47, 1, 3, '2025-03-18', '09:00:00', '15:00:00', 6.00, 'Approved', 230.00, 'API documentation'),
+                                                                                                                                                        (48, 1, 1, '2025-03-19', '08:00:00', '16:00:00', 8.00, 'Pending', 240.00, 'Performance testing'),
+                                                                                                                                                        (49, 1, 2, '2025-03-20', '09:00:00', '17:00:00', 8.00, 'Approved', 200.00, 'Code review'),
+                                                                                                                                                        (50, 1, 3, '2025-03-21', '08:00:00', '12:00:00', 4.00, 'Pending', 210.00, 'Security audit'),
+                                                                                                                                                        (51, 1, 1, '2025-03-22', '09:00:00', '18:00:00', 9.00, 'Approved', 250.00, 'Integration testing'),
+                                                                                                                                                        (52, 1, 2, '2025-03-23', '10:00:00', '14:00:00', 4.00, 'Pending', 220.00, 'Project management');
 
 -- --------------------------------------------------------
 
@@ -119,10 +133,10 @@ CREATE TABLE `klant` (
 --
 
 INSERT INTO `klant` (`klant_id`, `voornaam`, `achternaam`, `email`, `telefoon`, `bedrijfnaam`) VALUES
-                                                                                                   (1, 'John', 'Doe', 'johndoe@example.com', '0612345678', ''),
-                                                                                                   (2, 'Christian', 'de Winter', 'christian.winter@email.com', '0612345678', ''),
-                                                                                                   (3, 'Sophie', 'Jansen', 'sophie.jansen@email.com', '0623456789', ''),
-                                                                                                   (4, 'Mark', 'Vermeulen', 'mark.vermeulen@email.com', '0634567890', '');
+                                                                                                   (1, 'John', 'Doe', 'johndoe@example.com', '0612345678', 'JohnBV'),
+                                                                                                   (2, 'Christian', 'de Winter', 'christian.winter@email.com', '0612345678', 'ChristianBV'),
+                                                                                                   (3, 'Sophie1', 'Jansen', 'sophie.jansen@email.com', '0623456789', 'SophieBV'),
+                                                                                                   (4, 'Mark', 'Vermeulen', 'mark.vermeulen@email.com', '0634567890', 'MarkBV');
 
 -- --------------------------------------------------------
 
@@ -168,9 +182,9 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`user_id`, `name`, `achternaam`, `email`, `telefoon`, `password`, `role`) VALUES
-                                                                                                   (1, 'gebruiker', '', 'gebruiker@gmail.com', '0648247617', '$2y$10$hO4jjhDNRNG1jMfM3nTkc.3cawInIMNMcWSW9agbvbvWROeO5Lf7C', 'user'),
-                                                                                                   (2, 'User2', 'Test', 'user2@example.com', '0623456789', '$2y$10$examplehashedpassword12345', 'user'),
-                                                                                                   (3, 'User3', 'Test2', 'user3@example.com', '0634567890', 'test', 'admin');
+                                                                                                   (1, 'user', 'Aveiro ', 'beausulzle@gmail.com', '0648247617', '$2y$10$hO4jjhDNRNG1jMfM3nTkc.3cawInIMNMcWSW9agbvbvWROeO5Lf7C', 'user'),
+                                                                                                   (2, 'klant', 'Cuccittini', 'user2@example.com', '0623456789', '$2y$10$hO4jjhDNRNG1jMfM3nTkc.3cawInIMNMcWSW9agbvbvWROeO5Lf7C', 'klant'),
+                                                                                                   (3, 'admin', 'Lottin', 'user3@example.com', '0634567890', '$2y$10$hO4jjhDNRNG1jMfM3nTkc.3cawInIMNMcWSW9agbvbvWROeO5Lf7C', 'admin');
 
 --
 -- Indexes for dumped tables
@@ -238,7 +252,7 @@ ALTER TABLE `contact`
 -- AUTO_INCREMENT for table `hours`
 --
 ALTER TABLE `hours`
-    MODIFY `hours_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
+    MODIFY `hours_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
 
 --
 -- AUTO_INCREMENT for table `klant`

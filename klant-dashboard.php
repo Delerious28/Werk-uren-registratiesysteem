@@ -3,7 +3,7 @@ session_start();
 
 // Controleer of de gebruiker is ingelogd
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+    header("Location: inloggen.php");
     exit();
 }
 

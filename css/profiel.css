@@ -5,10 +5,8 @@ body {
     align-items: center;
     background-color: white;
     overflow: hidden;
-    background-image: url('../img/achtergrond.jpg');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+    background-image: url('../img/achtergrond(nieuw).png');
+    background-size: 100% 100%;
     height: 100vh;
     font-family: 'Arial', sans-serif;
     font-size: 18px;
