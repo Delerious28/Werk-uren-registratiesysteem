@@ -192,7 +192,7 @@ try {
 
                 // Simuleer een succesvolle update
                 localStorage.setItem(`status-${hoursId}`, status);
-                showSuccessMessage('Status succesvol bijgewerkt! (lokaal opgeslagen)');
+                showSuccessMessage('Status succesvol bijgewerkt!');
             });
         });
 
@@ -235,4 +235,3 @@ try {
     }
 </script>
 </body>
-</html>
