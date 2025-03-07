@@ -22,6 +22,7 @@ if (!empty($selectedKlant)) {
 }
 
 $message = "";
+$duplicateMessage = "";
 
 // Week navigatie
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['week_offset'])) {
@@ -58,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['klant'], $_POST['proj
         $result = $checkStmt->fetch(PDO::FETCH_ASSOC);
 
         if ($result['count'] > 0) {
-            $message = "Er zijn al uren ingevoerd voor de geselecteerde dag. U kunt geen nieuwe uren toevoegen.";
+            $duplicateMessage = "Er zijn al uren ingevoerd voor de geselecteerde dag. U kunt geen nieuwe uren toevoegen.";
         } else {
             $startHours = $begin . ":00";
             $endHours   = $eind . ":00";
@@ -172,12 +173,16 @@ foreach ($hoursRecords as $record) {
       </form>
     </div>
   </div>
+
+  <div class="error-bericht">
+    <?php if ($duplicateMessage): ?>
+        <p class="dupliceer-bericht"><?php echo $duplicateMessage; ?></p>
+    <?php endif; ?>
+  </div>
+
   <div class="wrapper">
     <!-- Linker container: invoerformulier -->
     <div class="blok-1">
-      <?php if ($message): ?>
-        <p><?php echo $message; ?></p>
-      <?php endif; ?>
       <form method="POST" action="" class="form-div">
         <!-- Verborgen veld om de geselecteerde dag door te geven -->
         <input type="hidden" name="selected_day" value="<?= $selectedDay; ?>">
@@ -192,6 +197,10 @@ foreach ($hoursRecords as $record) {
           <?php endforeach; ?>
         </select>
 
+          <?php if ($message): ?>
+              <p class="vereisten-bericht"><?php echo $message; ?></p>
+          <?php endif; ?>
+
         <li>Project naam:</li>
         <select name="project" class="small-input">
           <option value="">-- Kies Project --</option>
@@ -201,6 +210,10 @@ foreach ($hoursRecords as $record) {
             </option>
           <?php endforeach; ?>
         </select>
+
+          <?php if ($message): ?>
+              <p class="vereisten-bericht"><?php echo $message; ?></p>
+          <?php endif; ?>
 
         <li>Beschrijving:</li>
         <input type="text" name="beschrijving" class="small-input" placeholder="Projectbeschrijving (optioneel)">
@@ -215,6 +228,10 @@ foreach ($hoursRecords as $record) {
           <option value="12:00" <?= (isset($_POST['begin']) && $_POST['begin'] == '12:00') ? 'selected' : ''; ?>>12:00</option>
         </select>
 
+          <?php if ($message): ?>
+              <p class="vereisten-bericht"><?php echo $message; ?></p>
+          <?php endif; ?>
+
         <li>Eindtijd:</li>
         <select name="eind">
           <option value="">-- Kies --</option>
@@ -227,6 +244,10 @@ foreach ($hoursRecords as $record) {
           <option value="18:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '18:00') ? 'selected' : ''; ?>>18:00</option>
           <option value="19:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '19:00') ? 'selected' : ''; ?>>19:00</option>
         </select>
+
+          <?php if ($message): ?>
+              <p class="vereisten-bericht"><?php echo $message; ?></p>
+          <?php endif; ?>
 
         <button type="submit">+ Voeg toe</button>
       </form>
@@ -273,5 +294,16 @@ foreach ($hoursRecords as $record) {
     </div>
   </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const duplicateMessage = document.querySelector('.dupliceer-bericht');
+        if (duplicateMessage) {
+            setTimeout(() => {
+                duplicateMessage.remove();
+            }, 3000);
+        }
+    });
+</script>
 </body>
 </html>
