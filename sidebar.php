@@ -31,7 +31,6 @@ $role = $_SESSION['role'];
     <?php if ($role === 'admin'): ?>
         <a href="404.php">Downloads</a>
         <a href="404.php">Klanten toewijzen</a>
-        <a href="klant-dashboard.php">Klant Dashboard</a>
         <a href="profiel.php">Medewerker Dashboard</a>
 
     <?php elseif ($role === 'klant'): ?>

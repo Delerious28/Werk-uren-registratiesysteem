@@ -113,7 +113,7 @@ try {
 <?php include 'sidebar.php'; ?>
 
 <div class="container">
-    <h1>Urenoverzicht</h1>
+    <h1>Klant Dashboard</h1>
 
     <div class="filter-links">
         <a href="?filter=day&bedrijfsnaam=<?php echo urlencode($selectedBedrijfsnaam); ?>" class="<?php echo $filter === 'day' ? 'active' : ''; ?>">Per Dag</a>
