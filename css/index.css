@@ -73,7 +73,7 @@ body {
 }
 
 .boven-container-links {
-    background: linear-gradient(to left, #6D0F10, #3e2a2a);
+    background: linear-gradient(to left, #6D0F10, #7a0000);
     top: -60px;
     left: 105px;
     height: 300px;
@@ -86,7 +86,7 @@ body {
 }
 
 .boven-container-rechts {
-    background: linear-gradient(to right, #6D0F10, #3e2a2a);
+    background: linear-gradient(to right, #6D0F10, #7a0000);
     top: -60px;
     right: 105px;
     height: 300px;
@@ -99,7 +99,7 @@ body {
 }
 
 .onder-container {
-    background: linear-gradient(to bottom, #6D0F10, #3e2a2a);
+    background: linear-gradient(to bottom, #6D0F10, #7a0000);
     width: 0;
     height: 300px;
     bottom: -90px;
