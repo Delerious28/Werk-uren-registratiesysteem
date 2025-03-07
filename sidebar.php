@@ -1,101 +1,21 @@
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}require_once 'db\conn.php'; 
+
+if (!isset($_SESSION['role'])) {
+    die("Geen toegang. Log in om verder te gaan.");
+}
+
+$role = $_SESSION['role'];
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-
-    
-
-        .sidebar {
-            height: 100%;
-            width: 250px;
-            position: fixed;
-            top: 0;
-            left: -250px;
-            background-color: white;
-            opacity: 0.9;
-            overflow-x: hidden;
-            transition: 0.5s;
-            padding-top: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-            border-right: outset 5px black;
-            box-shadow: 4px 0px 10px rgba(0, 0, 0, 0.2);
-            z-index: 9999;
-        }
-
-        .sidebar img {
-            width: 150px;
-            margin-bottom: 20px;
-        }
-
-        .sidebar a {
-            width: 100%;
-            text-align: center;
-            padding: 12px 0;
-            text-decoration: none;
-            font-size: 20px;
-            color: black;
-            display: block;
-            transition: 0.1s;
-        }
-
-        .sidebar a:hover {
-            background-color: #940B10;
-            color: white;
-        }
-
-        .close-btn {
-            font-size: 18px;
-            cursor: pointer;
-            margin-bottom: 15px;
-            position: absolute;
-            margin-left: 210px;
-            margin-top: -10px;
-            border: none;
-            background-color: transparent;
-            transition: 0.2s;
-        }
-
-
-        .close-btn:hover {
-            transform: scale(1.2);
-        }
-
-        .logout-btn {
-            margin-top: auto;
-            width: 100%;
-            padding: 12px 0;
-            text-align: center;
-            background-color: white;
-            color: black;
-            border: none;
-            font-size: 18px;
-            cursor: pointer;
-            margin-bottom: 20px;
-        }
-
-        .logout-btn:hover {
-            background-color: #940B10;
-            color: white;
-        }
-
-        .toggle-btn {
-            position: absolute;
-            top: 10px;
-            left: 50px;
-            font-size: 60px;
-            cursor: pointer;
-            color: white;
-            background-color: transparent;
-            border: none;
-            transition: 0.3s;
-        }
-
-    </style>
+    <link href="css/sidebar.css" rel="stylesheet">
 </head>
 <body>
 
@@ -104,16 +24,29 @@
 <div id="mySidebar" class="sidebar">
     <button class="close-btn" onclick="toggleSidebar()">❌</button>
     <img src="img/logo.png" alt="Profile Image">
+    
     <a href="index.php">Home</a>
-    <a href="uren-registreren.php">Uren</a>
-    <a href="profiel.php">Profiel</a>
-    <a href="gebruiker_uren.php">Gebruiker uren</a>
-    <a href="uren-registreren.php"> uren-registreren</a>
+
+    <?php if ($role === 'admin'): ?>
+        <a href="404.php">Downloads</a>
+        <a href="404.php">Klanten toewijzen</a>
+        <a href="klant-dashboard.php">Klant Dashboard</a>
+        <a href="profiel.php">Medewerker Dashboard</a>
+
+    <?php elseif ($role === 'klant'): ?>
+        <a href="profiel.php">Profiel</a>
+        <a href="klant-dashboard.php">Klanten Dashboard</a>
+
+    <?php elseif ($role === 'user'): ?>
+        <a href="profiel.php">Profiel</a>
+        <a href="uren-registreren.php">Uren invoeren</a>
+        <a href="gebruiker_uren.php">Gebruiker Uren</a>
+    <?php endif; ?>
+
     <a href="uitloggen.php" class="logout-btn">Uitloggen</a>
-    </div>
+</div>
 
 <script>
-   
     function toggleSidebar() {
         var sidebar = document.getElementById("mySidebar");
         var toggleBtn = document.getElementById("toggleBtn");
@@ -127,7 +60,6 @@
         }
     }
 
-    
     document.addEventListener("click", function(event) {
         var sidebar = document.getElementById("mySidebar");
         var toggleBtn = document.getElementById("toggleBtn");
@@ -140,7 +72,6 @@
             toggleBtn.style.display = "block"; 
         }
     });
-
 </script>
 
 </body>
