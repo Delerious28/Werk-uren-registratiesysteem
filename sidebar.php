@@ -1,7 +1,8 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
-}require_once 'db\conn.php'; 
+}
+require_once 'db/conn.php';
 
 if (!isset($_SESSION['role'])) {
     die("Geen toegang. Log in om verder te gaan.");
@@ -24,7 +25,7 @@ $role = $_SESSION['role'];
 <div id="mySidebar" class="sidebar">
     <button class="close-btn" onclick="toggleSidebar()">❌</button>
     <img src="img/logo.png" alt="Profile Image">
-    
+
     <a href="index.php">Home</a>
 
     <?php if ($role === 'admin'): ?>
@@ -38,8 +39,8 @@ $role = $_SESSION['role'];
         <a href="klant-dashboard.php">Klanten Dashboard</a>
 
     <?php elseif ($role === 'user'): ?>
-        <a href="profiel.php">Profiel</a>
         <a href="uren-registreren.php">Uren invoeren</a>
+        <a href="profiel.php">Profiel</a>
         <a href="gebruiker_uren.php">Gebruiker Uren</a>
     <?php endif; ?>
 
@@ -47,31 +48,45 @@ $role = $_SESSION['role'];
 </div>
 
 <script>
-    function toggleSidebar() {
-        var sidebar = document.getElementById("mySidebar");
-        var toggleBtn = document.getElementById("toggleBtn");
+    document.addEventListener("DOMContentLoaded", function () {
+    var sidebar = document.getElementById("mySidebar");
+    var toggleBtn = document.getElementById("toggleBtn");
 
-        if (window.getComputedStyle(sidebar).left === "-250px") {
-            sidebar.style.left = "0"; 
-            toggleBtn.style.display = "none"; 
-        } else {
-            sidebar.style.left = "-250px"; 
-            toggleBtn.style.display = "block"; 
-        }
+    // Check of de sidebar open was
+    if (localStorage.getItem("sidebarOpen") === "true") {
+        sidebar.style.transition = "none"; // Geen animatie bij laden
+        sidebar.style.left = "0";
+        toggleBtn.style.display = "none";
+
+        setTimeout(() => {
+            sidebar.style.transition = "0.5s ease"; // Zet animatie terug na laden
+        }, 100);
     }
 
-    document.addEventListener("click", function(event) {
-        var sidebar = document.getElementById("mySidebar");
-        var toggleBtn = document.getElementById("toggleBtn");
+    // Toggle Sidebar open/close
+    window.toggleSidebar = function () {
+        if (sidebar.style.left === "0px") {
+            sidebar.style.left = "-250px";
+            localStorage.setItem("sidebarOpen", "false");
+            toggleBtn.style.display = "block";
+        } else {
+            sidebar.style.transition = "0.5s ease"; // Alleen animatie bij klikken
+            sidebar.style.left = "0";
+            localStorage.setItem("sidebarOpen", "true");
+            toggleBtn.style.display = "none";
+        }
+    };
 
-        if (window.getComputedStyle(sidebar).left === "0px" &&
-            !sidebar.contains(event.target) &&
-            !toggleBtn.contains(event.target)) {
-
-            sidebar.style.left = "-250px"; 
-            toggleBtn.style.display = "block"; 
+    // Sluit de sidebar als er buiten de sidebar wordt geklikt
+    document.addEventListener("click", function (event) {
+        if (sidebar.style.left === "0px" && !sidebar.contains(event.target) && !toggleBtn.contains(event.target)) {
+            sidebar.style.left = "-250px";
+            localStorage.setItem("sidebarOpen", "false");
+            toggleBtn.style.display = "block";
         }
     });
+});
+
 </script>
 
 </body>
