@@ -8,7 +8,7 @@ if (!isset($_SESSION['user_id'])) {
 require 'db/conn.php';
 require 'sidebar.php';
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['voornaam'], $_POST['achternaam'], $_POST['email'], $_POST['telefoon'], $_POST['password'])) {
     $role = $_POST['role'];
     $voornaam = $_POST['voornaam'];
     $achternaam = $_POST['achternaam'];
@@ -17,7 +17,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
 
     if ($role == 'klant') {
-        $bedrijfnaam = $_POST['bedrijfnaam'];
+        $bedrijfnaam = $_POST['bedrijfnaam'] ?? null;
         $sql = "INSERT INTO klant (voornaam, achternaam, email, telefoon, password, role, bedrijfnaam) 
                 VALUES (:voornaam, :achternaam, :email, :telefoon, :password, :role, :bedrijfnaam)";
     } else {
@@ -26,7 +26,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     try {
-        $stmt = $conn->prepare($sql);
+        $stmt = $pdo->prepare($sql);
         $params = [
             ':voornaam' => $voornaam,
             ':achternaam' => $achternaam,
@@ -55,6 +55,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 <body>
     <h2>Registratieformulier</h2>
+    
     <form method="POST">
         <label for="role">Kies rol:</label>
         <select id="role" name="role" onchange="this.form.submit()">
@@ -81,7 +82,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         <?php if($_POST['role'] == 'klant'): ?>
             <label>Bedrijf:</label>
-            <input type="text" name="bedrijfnaam" required>
+            <input type="text" name="bedrijfnaam">
         <?php endif; ?>
         
         <button type="submit">Registreren</button>
