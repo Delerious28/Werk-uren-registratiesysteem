@@ -118,9 +118,9 @@ try {
     <h1>Klant Dashboard</h1>
 
     <div class="filter-links">
-        <a href="?filter=day&bedrijfsnaam=<?php echo urlencode($selectedBedrijfsnaam); ?>" class="<?php echo $filter === 'day' ? 'active' : ''; ?>">Per Dag</a>
-        <a href="?filter=week&bedrijfsnaam=<?php echo urlencode($selectedBedrijfsnaam); ?>" class="<?php echo $filter === 'week' ? 'active' : ''; ?>">Per Week</a>
-        <a href="?filter=month&bedrijfsnaam=<?php echo urlencode($selectedBedrijfsnaam); ?>" class="<?php echo $filter === 'month' ? 'active' : ''; ?>">Per Maand</a>
+        <a href="?filter=day&user_id=<?php echo urlencode($selectedUserId); ?>" class="<?php echo $filter === 'day' ? 'active' : ''; ?>">Per Dag</a>
+        <a href="?filter=week&user_id=<?php echo urlencode($selectedUserId); ?>" class="<?php echo $filter === 'week' ? 'active' : ''; ?>">Per Week</a>
+        <a href="?filter=month&user_id=<?php echo urlencode($selectedUserId); ?>" class="<?php echo $filter === 'month' ? 'active' : ''; ?>">Per Maand</a>
     </div>
 
     <div class="filters">
