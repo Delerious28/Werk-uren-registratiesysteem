@@ -2,21 +2,47 @@
 session_start();
 require 'db/conn.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hours_id'], $_POST['status'])) {
-    $hours_id = $_POST['hours_id'];
-    $status = $_POST['status'];
+$accordMessage = '';
+$status = 'success'; // Standaardstatus is success
+
+// Maandnamen array
+$monthNames = [
+    '01' => 'Januari', '02' => 'Februari', '03' => 'Maart', '04' => 'April',
+    '05' => 'Mei', '06' => 'Juni', '07' => 'Juli', '08' => 'Augustus',
+    '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'December'
+];
+
+// Controleer of het een POST-aanroep is en of de maandparameter aanwezig is
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['month'])) {
+    $month = $_POST['month']; // Verkrijg de maandparameter (bijv. "2025-03")
+
+    // Extract de maand (bijv. "03") van de datum
+    $monthNumber = substr($month, 5, 2);
+
+    // Verkrijg de maandnaam uit de array
+    $monthName = $monthNames[$monthNumber];
 
     try {
-        $stmt = $pdo->prepare("UPDATE hours SET status = :status WHERE hours_id = :hours_id");
-        $stmt->bindParam(':status', $status);
-        $stmt->bindParam(':hours_id', $hours_id);
+        // Bereid een SQL-query voor om alle uren voor de opgegeven maand goed te keuren
+        $stmt = $pdo->prepare("UPDATE hours SET accord = 'Approved' WHERE DATE_FORMAT(date, '%Y-%m') = :month");
+        $stmt->bindParam(':month', $month);
         $stmt->execute();
 
-        echo "Status succesvol bijgewerkt.";
+        // Controleer of er uren zijn goedgekeurd
+        if ($stmt->rowCount() > 0) {
+            $accordMessage = "Alle uren voor $monthName zijn geaccordeerd!"; // Gebruik maandnaam
+        } else {
+            $accordMessage = "Geen uren voor $monthName gevonden!"; // Gebruik maandnaam
+            $status = 'error'; // Foutstatus als er geen uren zijn
+        }
     } catch (PDOException $e) {
-        echo "Fout bij bijwerken: " . $e->getMessage();
+        $accordMessage = "Fout bij goedkeuren: " . $e->getMessage();
+        $status = 'error'; // Foutstatus bij een databasefout
     }
+
+    // Stuur de bericht als JSON terug naar de frontend met een status
+    echo json_encode(['message' => $accordMessage, 'status' => $status]);
 } else {
-    echo "Ongeldig verzoek.";
+    echo json_encode(['message' => "Ongeldig verzoek. Maandparameter ontbreekt.", 'status' => 'error']);
 }
 ?>
