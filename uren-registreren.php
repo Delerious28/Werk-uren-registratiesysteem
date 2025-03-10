@@ -1,7 +1,13 @@
 <?php
-session_start(); // Start de sessie om de geselecteerde dag en week_offset op te slaan
+session_start(); // Start de sessie om de geselecteerde dag, week_offset en user_id op te slaan
 require 'db/conn.php';
 require 'sidebar.php';
+
+// Controleer of de gebruiker is ingelogd
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php"); // Redirect naar de loginpagina als de gebruiker niet is ingelogd
+    exit();
+}
 
 // Klanten ophalen
 $klantenQuery = "SELECT klant_id, voornaam, achternaam FROM klant";
@@ -55,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['klant'], $_POST['proj
         // Controleer of er al uren zijn ingevoerd voor de geselecteerde dag
         $checkQuery = "SELECT COUNT(*) AS count FROM hours WHERE user_id = :user_id AND date = :date";
         $checkStmt = $pdo->prepare($checkQuery);
-        $checkStmt->execute(['user_id' => 1, 'date' => $selectedDay]); // Gebruik de juiste user_id
+        $checkStmt->execute(['user_id' => $_SESSION['user_id'], 'date' => $selectedDay]); // Gebruik de user_id uit de sessie
         $result = $checkStmt->fetch(PDO::FETCH_ASSOC);
 
         if ($result['count'] > 0) {
@@ -73,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['klant'], $_POST['proj
                 $totaalUren = 0;
             }
 
-            $userId         = 1; // Gebruik de juiste user_id
+            $userId         = $_SESSION['user_id']; // Gebruik de user_id uit de sessie
             $hours          = $totaalUren;
             $accord         = "Pending";
             $contract_hours = 0;
@@ -119,9 +125,14 @@ $hoursQuery = "SELECT h.*, p.project_naam,
                JOIN klant k ON p.klant_id = k.klant_id
                JOIN users u ON h.user_id = u.user_id
                WHERE h.date BETWEEN :weekStart AND :weekEnd
+               AND h.user_id = :user_id
                ORDER BY h.date ASC, h.start_hours ASC";
 $hoursStmt = $pdo->prepare($hoursQuery);
-$hoursStmt->execute(['weekStart' => $currentWeekStart, 'weekEnd' => $currentWeekEnd]);
+$hoursStmt->execute([
+    'weekStart' => $currentWeekStart, 
+    'weekEnd'   => $currentWeekEnd,
+    'user_id'   => $_SESSION['user_id'] // Voeg de user_id van de ingelogde gebruiker toe
+]);
 $hoursRecords = $hoursStmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Groepeer de uren per dag
