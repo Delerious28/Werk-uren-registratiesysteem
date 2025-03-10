@@ -37,7 +37,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hours_id']) && isset(
 
 // Filters en paginering
 $filter = $_GET['filter'] ?? 'day';
-$selectedBedrijfsnaam = $_GET['bedrijfsnaam'] ?? '';
+$selectedUserId = $_GET['user_id'] ?? '';
+
+// Voeg de basis SQL-query toe voordat je de filters toepast
+$sql = "SELECT h.hours_id, h.date, u.name, u.achternaam, h.hours, h.start_hours, h.eind_hours, h.accord,
+                k.bedrijfnaam AS bedrijfsnaam, p.project_naam AS projectnaam 
+        FROM hours h
+        JOIN users u ON h.user_id = u.user_id
+        LEFT JOIN project p ON h.project_id = p.project_id
+        LEFT JOIN klant k ON p.klant_id = k.klant_id
+        WHERE h.date BETWEEN :start_date AND :end_date";
+
+// Voeg de extra WHERE-filter toe als een gebruiker is geselecteerd
+if (!empty($selectedUserId)) {
+    $sql .= " AND u.user_id = :user_id";
+    $params['user_id'] = $selectedUserId;
+}
+
 $limit = 7;
 $page = max(1, (int)($_GET['page'] ?? 1));
 $offset = ($page - 1) * $limit;
@@ -51,20 +67,11 @@ $dateRange = [
 [$start_date, $end_date] = $dateRange[$filter] ?? $dateRange['day'];
 
 try {
-    // Hoofdquery voor urengegevens
-    $sql = "SELECT h.hours_id, h.date, u.name, u.achternaam, h.hours, h.start_hours, h.eind_hours, h.accord,
-                    k.bedrijfnaam AS bedrijfsnaam, p.project_naam AS projectnaam 
-            FROM hours h
-            JOIN users u ON h.user_id = u.user_id
-            LEFT JOIN project p ON h.project_id = p.project_id
-            LEFT JOIN klant k ON p.klant_id = k.klant_id
-            WHERE h.date BETWEEN :start_date AND :end_date"
-        . (!empty($selectedBedrijfsnaam) ? " AND k.bedrijfnaam = :bedrijfsnaam" : "");
-
+    // Query voor urengegevens, inclusief eventuele filters
     $stmt = $pdo->prepare($sql . " ORDER BY h.date ASC LIMIT :limit OFFSET :offset");
 
     $params = ['start_date' => $start_date, 'end_date' => $end_date];
-    if (!empty($selectedBedrijfsnaam)) $params['bedrijfsnaam'] = $selectedBedrijfsnaam;
+    if (!empty($selectedUserId)) $params['user_id'] = $selectedUserId;
 
     foreach ($params as $key => $val) $stmt->bindValue(":$key", $val);
     $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
@@ -73,9 +80,9 @@ try {
     $stmt->execute();
     $hoursData = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Bedrijfsfilter
-    $bedrijven = $pdo->query("SELECT DISTINCT bedrijfnaam FROM klant ORDER BY bedrijfnaam ASC")
-        ->fetchAll(PDO::FETCH_COLUMN);
+    // Gebruikersfilter ophalen
+    $gebruikers = $pdo->query("SELECT user_id, name, achternaam FROM users WHERE role = 'user' ORDER BY name ASC")
+        ->fetchAll(PDO::FETCH_ASSOC);
 
     // Haal het totaal aantal records
     $sqlTotal = "
@@ -84,7 +91,7 @@ try {
         LEFT JOIN project p ON h.project_id = p.project_id
         LEFT JOIN klant k ON p.klant_id = k.klant_id
         WHERE h.date BETWEEN :start_date AND :end_date"
-        . (!empty($selectedBedrijfsnaam) ? " AND k.bedrijfnaam = :bedrijfsnaam" : "");
+        . (!empty($selectedUserId) ? " AND u.user_id = :user_id" : "");
 
     $stmtTotal = $pdo->prepare($sqlTotal);
     $stmtTotal->execute($params);
@@ -117,10 +124,13 @@ try {
     </div>
 
     <div class="filters">
-        <select id="bedrijfFilter" onchange="updateBedrijfFilter()">
-            <option value="">Alle Bedrijven</option>
-            <?php foreach ($bedrijven as $bedrijf): ?>
-                <option value="<?php echo htmlspecialchars($bedrijf); ?>" <?php echo $bedrijf === $selectedBedrijfsnaam ? 'selected' : ''; ?>><?php echo htmlspecialchars($bedrijf); ?></option>
+        <select id="gebruikerFilter" onchange="updateGebruikerFilter()">
+            <option value="">Alle Gebruikers</option>
+            <?php foreach ($gebruikers as $gebruiker): ?>
+                <option value="<?php echo htmlspecialchars($gebruiker['user_id']); ?>"
+                    <?php echo $gebruiker['user_id'] == ($_GET['user_id'] ?? '') ? 'selected' : ''; ?>>
+                    <?php echo htmlspecialchars($gebruiker['name'] . ' ' . $gebruiker['achternaam']); ?>
+                </option>
             <?php endforeach; ?>
         </select>
     </div>
@@ -207,7 +217,33 @@ try {
         }
 
         // Voeg event listener toe aan de knop om de dropdown te tonen of verbergen
-        document.getElementById("dropdown-btn").addEventListener('click', toggleDropdown);
+        document.getElementById("dropdown-btn").addEventListener('click', function (event) {
+            event.stopPropagation(); // Voorkom dat het venster-klikevent de dropdown meteen sluit
+            toggleDropdown();
+        });
+
+        // Verberg dropdown zodra op een accordeer-knop wordt geklikt
+        document.querySelectorAll(".approve-month").forEach(button => {
+            button.addEventListener("click", function () {
+                const dropdownContent = document.getElementById("dropdown-content");
+                if (dropdownContent) {
+                    dropdownContent.style.display = "none";
+                }
+            });
+        });
+
+        // Verberg dropdown als er buiten wordt geklikt
+        document.addEventListener("click", function (event) {
+            const dropdownContent = document.getElementById("dropdown-content");
+            const dropdownBtn = document.getElementById("dropdown-btn");
+
+            // Controleer of de klik buiten de dropdown-content en de knop was
+            if (dropdownContent && dropdownContent.style.display === "block" &&
+                !dropdownContent.contains(event.target) &&
+                !dropdownBtn.contains(event.target)) {
+                dropdownContent.style.display = "none";
+            }
+        });
 
         // Event listener voor de status dropdowns
         document.querySelectorAll('.status-dropdown').forEach(dropdown => {
@@ -319,11 +355,16 @@ try {
         }
     });
 
-    // Functie voor het bijwerken van het bedrijfsfilter
-    function updateBedrijfFilter() {
-        let bedrijfsnaam = document.getElementById("bedrijfFilter").value;
-        let urlParams = new URLSearchParams(window.location.search);
-        urlParams.set("bedrijfsnaam", bedrijfsnaam);
+    function updateGebruikerFilter() {
+        const userId = document.getElementById("gebruikerFilter").value;
+        const urlParams = new URLSearchParams(window.location.search);
+
+        if (userId) {
+            urlParams.set("user_id", userId);
+        } else {
+            urlParams.delete("user_id");
+        }
+
         window.location.search = urlParams.toString();
     }
 
