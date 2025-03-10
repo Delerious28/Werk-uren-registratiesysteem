@@ -1,64 +1,48 @@
 <?php
 session_start();
-include 'db/conn.php';
+require 'db/conn.php';
 
-// foutmeldingen
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
+$accordMessage = '';
+$status = 'success'; // Standaardstatus is success
 
-header('Content-Type: application/json');
+// Maandnamen array
+$monthNames = [
+    '01' => 'Januari', '02' => 'Februari', '03' => 'Maart', '04' => 'April',
+    '05' => 'Mei', '06' => 'Juni', '07' => 'Juli', '08' => 'Augustus',
+    '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'December'
+];
 
-// Controleer of de gebruiker ingelogd is
-if (!isset($_SESSION['user_id'])) {
-    echo json_encode(["status" => "error", "message" => "Niet geautoriseerd"]);
-    exit();
-}
+// Controleer of het een POST-aanroep is en of de maandparameter aanwezig is
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['month'])) {
+    $month = $_POST['month']; // Verkrijg de maandparameter (bijv. "2025-03")
 
-$user_id = $_SESSION['user_id'];
+    // Extract de maand (bijv. "03") van de datum
+    $monthNumber = substr($month, 5, 2);
 
-// Controleer of de POST-gegevens aanwezig zijn
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hours_id'], $_POST['accord'])) {
-    // Log de ontvangen gegevens
-    error_log('POST-gegevens: ' . print_r($_POST, true));
+    // Verkrijg de maandnaam uit de array
+    $monthName = $monthNames[$monthNumber];
 
-    $hours_id = $_POST['hours_id'];
-    $accord = $_POST['accord'];
-
-    // Controleer of de gebruiker toegang heeft tot het project dat bij dit urenrecord hoort
     try {
-        $checkSql = "
-        SELECT p.klant_id 
-        FROM hours h 
-        JOIN project p ON h.project_id = p.project_id 
-        JOIN klant k ON p.klant_id = k.klant_id 
-        WHERE h.hours_id = :hours_id AND p.user_id = :user_id";
+        // Bereid een SQL-query voor om alle uren voor de opgegeven maand goed te keuren
+        $stmt = $pdo->prepare("UPDATE hours SET accord = 'Approved' WHERE DATE_FORMAT(date, '%Y-%m') = :month");
+        $stmt->bindParam(':month', $month);
+        $stmt->execute();
 
-        $checkStmt = $pdo->prepare($checkSql);
-        $checkStmt->execute(['hours_id' => $hours_id, 'user_id' => $user_id]);
-
-        // Als de gebruiker toegang heeft, werk dan de status bij
-        if ($checkStmt->rowCount() > 0) {
-            try {
-                // Update de status van het urenrecord
-                $updateSql = "UPDATE hours SET accord = :accord WHERE hours_id = :hours_id";
-                $updateStmt = $pdo->prepare($updateSql);
-                $updateStmt->execute(['accord' => $accord, 'hours_id' => $hours_id]);
-
-                // Stuur een succesbericht terug
-                echo json_encode(["status" => "success", "message" => "Status bijgewerkt"]);
-            } catch (PDOException $e) {
-                // Als er een fout optreedt bij de update
-                echo json_encode(["status" => "error", "message" => "Er is een fout opgetreden bij het bijwerken van de status: " . $e->getMessage()]);
-            }
+        // Controleer of er uren zijn goedgekeurd
+        if ($stmt->rowCount() > 0) {
+            $accordMessage = "Alle uren voor $monthName zijn geaccordeerd!"; // Gebruik maandnaam
         } else {
-            // Als de gebruiker geen toegang heeft tot het project
-            echo json_encode(["status" => "error", "message" => "Geen toegang tot dit project"]);
+            $accordMessage = "Geen uren voor $monthName gevonden!"; // Gebruik maandnaam
+            $status = 'error'; // Foutstatus als er geen uren zijn
         }
     } catch (PDOException $e) {
-        // Foutmelding als de toegangsscontrole niet werkt
-        echo json_encode(["status" => "error", "message" => "Fout bij toegang tot het project: " . $e->getMessage()]);
+        $accordMessage = "Fout bij goedkeuren: " . $e->getMessage();
+        $status = 'error'; // Foutstatus bij een databasefout
     }
+
+    // Stuur de bericht als JSON terug naar de frontend met een status
+    echo json_encode(['message' => $accordMessage, 'status' => $status]);
 } else {
-    // Als de vereiste POST-gegevens ontbreken
-    echo json_encode(["status" => "error", "message" => "Ongeldige aanvraag"]);
+    echo json_encode(['message' => "Ongeldig verzoek. Maandparameter ontbreekt.", 'status' => 'error']);
 }
+?>

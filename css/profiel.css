@@ -7,13 +7,14 @@ body {
     overflow: hidden;
     background-image: url('../img/achtergrond(nieuw).png');
     background-size: 100% 100%;
+    background-position: center;
+    background-repeat: no-repeat;
     height: 100vh;
     font-family: 'Arial', sans-serif;
     font-size: 18px;
     margin: 0;
     padding: 0;
 }
-
 
 .container {
     background-color: rgba(255, 255, 255, 0.9);
