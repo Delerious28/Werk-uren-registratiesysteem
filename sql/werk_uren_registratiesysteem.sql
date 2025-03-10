@@ -123,6 +123,8 @@ CREATE TABLE `klant` (
                          `klant_id` int(11) NOT NULL,
                          `voornaam` varchar(255) NOT NULL,
                          `achternaam` varchar(255) NOT NULL,
+                         `password` varchar(255) NOT NULL,
+                         `role` varchar(50) NOT NULL DEFAULT 'klant',
                          `email` varchar(255) NOT NULL,
                          `telefoon` varchar(50) NOT NULL,
                          `bedrijfnaam` varchar(255) NOT NULL DEFAULT ''
@@ -132,11 +134,11 @@ CREATE TABLE `klant` (
 -- Dumping data for table `klant`
 --
 
-INSERT INTO `klant` (`klant_id`, `voornaam`, `achternaam`, `email`, `telefoon`, `bedrijfnaam`) VALUES
-                                                                                                   (1, 'John', 'Doe', 'johndoe@example.com', '0612345678', 'JohnBV'),
-                                                                                                   (2, 'Christian', 'de Winter', 'christian.winter@email.com', '0612345678', 'ChristianBV'),
-                                                                                                   (3, 'Sophie1', 'Jansen', 'sophie.jansen@email.com', '0623456789', 'SophieBV'),
-                                                                                                   (4, 'Mark', 'Vermeulen', 'mark.vermeulen@email.com', '0634567890', 'MarkBV');
+INSERT INTO `klant` (`klant_id`, `voornaam`, `achternaam`, `password`, `role`, `email`, `telefoon`, `bedrijfnaam`) VALUES
+                                                                                                   (1, 'John', 'Doe', '$2y$10$hO4jjhDNRNG1jMfM3nTkc.3cawInIMNMcWSW9agbvbvWROeO5Lf7C', 'klant', 'johndoe@example.com', '0612345678', 'JohnBV'),
+                                                                                                   (2, 'Christian', 'de Winter', '$2y$10$hO4jjhDNRNG1jMfM3nTkc.3cawInIMNMcWSW9agbvbvWROeO5Lf7C', 'klant', 'christian.winter@email.com', '0612345678', 'ChristianBV'),
+                                                                                                   (3, 'Sophie1', 'Jansen', '$2y$10$hO4jjhDNRNG1jMfM3nTkc.3cawInIMNMcWSW9agbvbvWROeO5Lf7C', 'klant', 'sophie.jansen@email.com', '0623456789', 'SophieBV'),
+                                                                                                   (4, 'Mark', 'Vermeulen', '$2y$10$hO4jjhDNRNG1jMfM3nTkc.3cawInIMNMcWSW9agbvbvWROeO5Lf7C', 'klant', 'mark.vermeulen@email.com', '0634567890', 'MarkBV');
 
 -- --------------------------------------------------------
 
