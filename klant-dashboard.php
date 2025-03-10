@@ -11,6 +11,30 @@ try {
     die("Databaseverbinding mislukt: " . $e->getMessage());
 }
 
+// Functie om de status in de database bij te werken
+function updateStatus($pdo, $hoursId, $status) {
+    try {
+        $stmt = $pdo->prepare("UPDATE hours SET accord = :status WHERE hours_id = :hours_id");
+        $stmt->execute(['status' => $status, 'hours_id' => $hoursId]);
+        return true;
+    } catch (PDOException $e) {
+        error_log("Fout bij het bijwerken van de status: " . $e->getMessage());
+        return false;
+    }
+}
+
+// Verwerk statusupdates
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hours_id']) && isset($_POST['status'])) {
+    $hoursId = $_POST['hours_id'];
+    $status = $_POST['status'];
+    if (updateStatus($pdo, $hoursId, $status)) {
+        echo json_encode(['success' => true, 'message' => 'Status succesvol bijgewerkt!']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Fout bij het bijwerken van de status.']);
+    }
+    exit; // Stop verdere verwerking
+}
+
 // Filters en paginering
 $filter = $_GET['filter'] ?? 'day';
 $selectedBedrijfsnaam = $_GET['bedrijfsnaam'] ?? '';
@@ -28,8 +52,8 @@ $dateRange = [
 
 try {
     // Hoofdquery voor urengegevens
-    $sql = "SELECT h.hours_id, h.date, u.name, u.achternaam, h.hours, h.start_hours, h.eind_hours,
-                   k.bedrijfnaam AS bedrijfsnaam, p.project_naam AS projectnaam 
+    $sql = "SELECT h.hours_id, h.date, u.name, u.achternaam, h.hours, h.start_hours, h.eind_hours, h.accord,
+                    k.bedrijfnaam AS bedrijfsnaam, p.project_naam AS projectnaam 
             FROM hours h
             JOIN users u ON h.user_id = u.user_id
             LEFT JOIN project p ON h.project_id = p.project_id
@@ -51,7 +75,7 @@ try {
 
     // Bedrijfsfilter
     $bedrijven = $pdo->query("SELECT DISTINCT bedrijfnaam FROM klant ORDER BY bedrijfnaam ASC")
-                     ->fetchAll(PDO::FETCH_COLUMN);
+                        ->fetchAll(PDO::FETCH_COLUMN);
 
 } catch (PDOException $e) {
     die("Fout bij het ophalen van gegevens: " . $e->getMessage());
@@ -66,49 +90,18 @@ try {
     <title>Urenoverzicht</title>
     <link rel="stylesheet" href="css/gebruikers_uren.css">
     <style>
-    .klant-success-mess {
-        background-color: #d4edda;
-        color: #155724;
-        padding: 10px;
-        margin-bottom: 15px;
-        border: 1px solid #c3e6cb;
-        border-radius: 4px;
-    }
-    .klant-fail-mess {
-        background-color: #f8d7da;
-        color: #721c24;
-        padding: 10px;
-        margin-bottom: 15px;
-        border: 1px solid #f5c6cb;
-        border-radius: 4px;
-    }
-    .status-dropdown {
-        padding: 5px;
-        border-radius: 4px;
-        border: 1px solid #ccc;
-        color: black; /* Tekstkleur altijd zwart */
-        background-color: white; /* Standaard achtergrondkleur */
-    }
-    .status-dropdown.approved {
-        background-color: #d4edda; /* Lichtgroen voor Approved */
-    }
-    .status-dropdown.rejected {
-        background-color: #f8d7da; /* Lichtrood voor Rejected */
-    }
-    .status-dropdown.pending {
-        background-color: #fff3cd; /* Lichtgeel voor Pending */
-    }
-    .status-dropdown option {
-        color: black; /* Tekstkleur altijd zwart */
-        background-color: white; /* Achtergrondkleur altijd wit */
-    }
-    .status-dropdown option:hover {
-        background-color: #f0f0f0; /* Grijs bij hover */
-    }
-    .status-dropdown option:checked {
-        background-color: #e0e0e0; /* Lichtgrijs voor geselecteerde optie */
-    }
-</style>
+        .klant-success-mess, .klant-fail-mess { padding: 10px; margin-bottom: 15px; border-radius: 4px; }
+        .klant-success-mess { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .klant-fail-mess { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .status-dropdown { padding: 5px; border-radius: 4px; border: 1px solid #ccc; color: black; background-color: white; }
+        .status-dropdown.approved { background-color: #d4edda; }
+        .status-dropdown.rejected { background-color: #f8d7da; }
+        .status-dropdown.pending { background-color: #fff3cd; }
+        .status-dropdown option { color: black; background-color: white; }
+        .status-dropdown option:hover { background-color: #f0f0f0; }
+        .status-dropdown option:checked { background-color: #e0e0e0; }
+    </style>
+</head>
 <body>
 <?php include 'sidebar.php'; ?>
 
@@ -145,9 +138,7 @@ try {
         </thead>
         <tbody>
         <?php if (empty($hoursData)): ?>
-            <tr>
-                <td colspan="8">Geen gegevens gevonden.</td>
-            </tr>
+            <tr><td colspan="8">Geen gegevens gevonden.</td></tr>
         <?php else: ?>
             <?php foreach ($hoursData as $row): ?>
                 <tr>
@@ -158,10 +149,10 @@ try {
                     <td><?php echo htmlspecialchars($row['projectnaam'] ?? 'N/A'); ?></td>
                     <td><?php echo htmlspecialchars($row['hours']); ?></td>
                     <td>
-                        <select class="status-dropdown" data-hours-id="<?php echo htmlspecialchars($row['hours_id']); ?>">
-                            <option class="option-tag" value="Pending">Pending</option>
-                            <option class="option-tag" value="Approved">Approved</option>
-                            <option class="option-tag" value="Rejected">Rejected</option>
+                        <select class="status-dropdown <?php echo strtolower($row['accord']); ?>" data-hours-id="<?php echo htmlspecialchars($row['hours_id']); ?>">
+                            <option value="Pending" <?php echo $row['accord'] === 'Pending' ? 'selected' : ''; ?>>Pending</option>
+                            <option value="Approved" <?php echo $row['accord'] === 'Approved' ? 'selected' : ''; ?>>Approved</option>
+                            <option value="Rejected" <?php echo $row['accord'] === 'Rejected' ? 'selected' : ''; ?>>Rejected</option>
                         </select>
                     </td>
                     <td><?php echo date('H:i', strtotime($row['start_hours'])) . ' - ' . date('H:i', strtotime($row['eind_hours'])); ?></td>
@@ -177,23 +168,34 @@ try {
         const statusDropdowns = document.querySelectorAll('.status-dropdown');
 
         statusDropdowns.forEach(function (dropdown) {
-            const savedStatus = localStorage.getItem(`status-${dropdown.getAttribute('data-hours-id')}`);
-            if (savedStatus) {
-                dropdown.value = savedStatus;
-                updateDropdownColor(dropdown, savedStatus); // Pas de kleur aan bij het laden
-            }
-
             dropdown.addEventListener('change', function () {
                 const hoursId = this.getAttribute('data-hours-id');
                 const status = this.value;
 
-                // Update de kleur van de dropdown
-                updateDropdownColor(dropdown, status);
-
-                // Simuleer een succesvolle update
-                localStorage.setItem(`status-${hoursId}`, status);
-                showSuccessMessage('Status succesvol bijgewerkt!');
+                fetch('', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `hours_id=${encodeURIComponent(hoursId)}&status=${encodeURIComponent(status)}`,
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showSuccessMessage(data.message);
+                        // Update de kleur van de dropdown
+                        updateDropdownColor(dropdown, status);
+                    } else {
+                        showFailMessage(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Fout bij het bijwerken van de status:', error);
+                    showFailMessage('Fout bij het bijwerken van de status.');
+                });
             });
+            // Initialiseer de kleur van de dropdown bij het laden
+            updateDropdownColor(dropdown, dropdown.value);
         });
 
         function updateDropdownColor(dropdown, status) {
@@ -235,3 +237,4 @@ try {
     }
 </script>
 </body>
+</html>
