@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hours_id']) && isset(
 // Filters en paginering
 $filter = $_GET['filter'] ?? 'day';
 $selectedBedrijfsnaam = $_GET['bedrijfsnaam'] ?? '';
-$limit = 10;
+$limit = 7;
 $page = max(1, (int)($_GET['page'] ?? 1));
 $offset = ($page - 1) * $limit;
 
@@ -59,7 +59,7 @@ try {
             LEFT JOIN project p ON h.project_id = p.project_id
             LEFT JOIN klant k ON p.klant_id = k.klant_id
             WHERE h.date BETWEEN :start_date AND :end_date"
-            . (!empty($selectedBedrijfsnaam) ? " AND k.bedrijfnaam = :bedrijfsnaam" : "");
+        . (!empty($selectedBedrijfsnaam) ? " AND k.bedrijfnaam = :bedrijfsnaam" : "");
 
     $stmt = $pdo->prepare($sql . " ORDER BY h.date ASC LIMIT :limit OFFSET :offset");
 
@@ -75,7 +75,21 @@ try {
 
     // Bedrijfsfilter
     $bedrijven = $pdo->query("SELECT DISTINCT bedrijfnaam FROM klant ORDER BY bedrijfnaam ASC")
-                        ->fetchAll(PDO::FETCH_COLUMN);
+        ->fetchAll(PDO::FETCH_COLUMN);
+
+    // Haal het totaal aantal records
+    $sqlTotal = "
+        SELECT COUNT(*) FROM hours h
+        JOIN users u ON h.user_id = u.user_id
+        LEFT JOIN project p ON h.project_id = p.project_id
+        LEFT JOIN klant k ON p.klant_id = k.klant_id
+        WHERE h.date BETWEEN :start_date AND :end_date"
+        . (!empty($selectedBedrijfsnaam) ? " AND k.bedrijfnaam = :bedrijfsnaam" : "");
+
+    $stmtTotal = $pdo->prepare($sqlTotal);
+    $stmtTotal->execute($params);
+    $totalRecords = $stmtTotal->fetchColumn();
+    $totalPages = ceil($totalRecords / $limit);
 
 } catch (PDOException $e) {
     die("Fout bij het ophalen van gegevens: " . $e->getMessage());
@@ -89,18 +103,6 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Urenoverzicht</title>
     <link rel="stylesheet" href="css/gebruikers_uren.css">
-    <style>
-        .klant-success-mess, .klant-fail-mess { padding: 10px; margin-bottom: 15px; border-radius: 4px; }
-        .klant-success-mess { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .klant-fail-mess { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        .status-dropdown { padding: 5px; border-radius: 4px; border: 1px solid #ccc; color: black; background-color: white; }
-        .status-dropdown.approved { background-color: #d4edda; }
-        .status-dropdown.rejected { background-color: #f8d7da; }
-        .status-dropdown.pending { background-color: #fff3cd; }
-        .status-dropdown option { color: black; background-color: white; }
-        .status-dropdown option:hover { background-color: #f0f0f0; }
-        .status-dropdown option:checked { background-color: #e0e0e0; }
-    </style>
 </head>
 <body>
 <?php include 'sidebar.php'; ?>
@@ -132,11 +134,28 @@ try {
             <th>Bedrijfsnaam</th>
             <th>Projectnaam</th>
             <th>Uren</th>
-            <th class="status-th">Status</th>
+            <th class="status-th">
+                Status
+                <button id="dropdown-btn" class="dropdown-btn">▼</button>
+                <div id="dropdown-content" style="display: none;">
+                    <div class="grid-dropdown">
+                    <select id="month-select" class="month-select">
+                        <!-- De maanden worden hier dynamisch toegevoegd -->
+                    </select>
+                    <button class="approve-month">Accordeer</button>
+                    </div>
+                </div>
+            </th>
             <th>Tijd</th>
         </tr>
         </thead>
         <tbody>
+
+        <div class="pagination">
+            <a href="?page=<?php echo max(1, $page - 1); ?>&filter=<?php echo urlencode($filter); ?>&bedrijfsnaam=<?php echo urlencode($selectedBedrijfsnaam); ?>" class="prev <?php echo ($page <= 1) ? 'disabled' : ''; ?>" <?php echo ($page <= 1) ? 'aria-disabled="true"' : ''; ?>>&#8592;</a>
+            <a href="?page=<?php echo min($totalPages, $page + 1); ?>&filter=<?php echo urlencode($filter); ?>&bedrijfsnaam=<?php echo urlencode($selectedBedrijfsnaam); ?>" class="next <?php echo ($page >= $totalPages) ? 'disabled' : ''; ?>" <?php echo ($page >= $totalPages) ? 'aria-disabled="true"' : ''; ?>>&#8594;</a>
+        </div>
+
         <?php if (empty($hoursData)): ?>
             <tr><td colspan="8">Geen gegevens gevonden.</td></tr>
         <?php else: ?>
@@ -148,7 +167,7 @@ try {
                     <td><?php echo htmlspecialchars($row['bedrijfsnaam'] ?? 'N/A'); ?></td>
                     <td><?php echo htmlspecialchars($row['projectnaam'] ?? 'N/A'); ?></td>
                     <td><?php echo htmlspecialchars($row['hours']); ?></td>
-                    <td>
+                    <td class="select-td">
                         <select class="status-dropdown <?php echo strtolower($row['accord']); ?>" data-hours-id="<?php echo htmlspecialchars($row['hours_id']); ?>">
                             <option value="Pending" <?php echo $row['accord'] === 'Pending' ? 'selected' : ''; ?>>Pending</option>
                             <option value="Approved" <?php echo $row['accord'] === 'Approved' ? 'selected' : ''; ?>>Approved</option>
@@ -165,44 +184,47 @@ try {
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const statusDropdowns = document.querySelectorAll('.status-dropdown');
+        // Maanden dynamisch toevoegen aan de dropdown
+        const monthSelect = document.getElementById('month-select');
+        const currentYear = new Date().getFullYear();
+        const months = [
+            'Januari', 'Februari', 'Maart', 'April', 'Mei', 'Juni',
+            'Juli', 'Augustus', 'September', 'Oktober', 'November', 'December'
+        ];
 
-        statusDropdowns.forEach(function (dropdown) {
+        // Voeg de maanden toe aan de dropdown
+        months.forEach((month, index) => {
+            const option = document.createElement('option');
+            option.value = `${currentYear}-${String(index + 1).padStart(2, '0')}`;  // YYYY-MM formaat
+            option.textContent = month;
+            monthSelect.appendChild(option);
+        });
+
+        // Functie om de dropdown-content te tonen of verbergen
+        function toggleDropdown() {
+            const dropdownContent = document.getElementById("dropdown-content");
+            dropdownContent.style.display = dropdownContent.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Voeg event listener toe aan de knop om de dropdown te tonen of verbergen
+        document.getElementById("dropdown-btn").addEventListener('click', toggleDropdown);
+
+        // Event listener voor de status dropdowns
+        document.querySelectorAll('.status-dropdown').forEach(dropdown => {
             dropdown.addEventListener('change', function () {
                 const hoursId = this.getAttribute('data-hours-id');
                 const status = this.value;
 
-                fetch('', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `hours_id=${encodeURIComponent(hoursId)}&status=${encodeURIComponent(status)}`,
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        showSuccessMessage(data.message);
-                        // Update de kleur van de dropdown
-                        updateDropdownColor(dropdown, status);
-                    } else {
-                        showFailMessage(data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Fout bij het bijwerken van de status:', error);
-                    showFailMessage('Fout bij het bijwerken van de status.');
-                });
+                updateStatus(hoursId, status, dropdown);
             });
+
             // Initialiseer de kleur van de dropdown bij het laden
             updateDropdownColor(dropdown, dropdown.value);
         });
 
+        // Functie om de kleur van de dropdown aan te passen op basis van de status
         function updateDropdownColor(dropdown, status) {
-            // Verwijder alle bestaande kleurklassen
             dropdown.classList.remove('approved', 'rejected', 'pending');
-
-            // Voeg de juiste klasse toe op basis van de status
             if (status === 'Approved') {
                 dropdown.classList.add('approved');
             } else if (status === 'Rejected') {
@@ -212,29 +234,99 @@ try {
             }
         }
 
-        function showSuccessMessage(message) {
-            const successMessage = document.createElement('div');
-            successMessage.classList.add('klant-success-mess');
-            successMessage.textContent = message;
-            document.querySelector('.container').prepend(successMessage);
-            setTimeout(() => successMessage.remove(), 3000);
+        // Functie voor het bijwerken van de status van uren
+        function updateStatus(hoursId, status, dropdown) {
+            fetch('', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `hours_id=${encodeURIComponent(hoursId)}&status=${encodeURIComponent(status)}`
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showSuccessMessage(data.message);
+                        updateDropdownColor(dropdown, status);
+                    } else {
+                        showFailMessage(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Fout bij het bijwerken van de status:', error);
+                    showFailMessage('Fout bij het bijwerken van de status.');
+                });
         }
 
+        // Functie voor het tonen van succesbericht
+        function showSuccessMessage(message) {
+            showMessage('klant-success-mess', message);
+        }
+
+        // Functie voor het tonen van foutbericht
         function showFailMessage(message) {
-            const failMessage = document.createElement('div');
-            failMessage.classList.add('klant-fail-mess');
-            failMessage.textContent = message;
-            document.querySelector('.container').prepend(failMessage);
-            setTimeout(() => failMessage.remove(), 3000);
+            showMessage('klant-fail-mess', message);
+        }
+
+        // Algemene functie voor het tonen van berichten
+        function showMessage(className, message) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add(className);  // Voegt de juiste klasse toe (bijv. 'klant-fail-mess' voor foutmeldingen)
+            messageElement.textContent = message;
+            document.querySelector('.container').prepend(messageElement);
+
+            setTimeout(function() {
+                messageElement.remove();
+            }, 5000);
+        }
+
+        // Event listener voor de goedkeurknop van de maand
+        document.querySelector('.approve-month').addEventListener('click', function () {
+            const selectedMonth = monthSelect.value;
+
+            if (selectedMonth) {
+                approveMonth(selectedMonth);
+            } else {
+                showFailMessage('Selecteer een maand om te accorderen.');
+            }
+        });
+
+        // Functie voor het goedkeuren van de geselecteerde maand
+        function approveMonth(month) {
+            fetch('update-status.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: 'month=' + encodeURIComponent(month)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // Controleer of de status 'error' is om te bepalen of het een fout is
+                    if (data.status === 'success') {
+                        showSuccessMessage(data.message);
+                        setTimeout(function (){
+                            location.reload();
+                        }, 4000);
+                    } else {
+                        showFailMessage(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Er is een fout opgetreden:', error);
+                    showFailMessage('Er is een fout opgetreden bij het verzenden van de aanvraag.');
+                });
         }
     });
 
+    // Functie voor het bijwerken van het bedrijfsfilter
     function updateBedrijfFilter() {
         let bedrijfsnaam = document.getElementById("bedrijfFilter").value;
         let urlParams = new URLSearchParams(window.location.search);
         urlParams.set("bedrijfsnaam", bedrijfsnaam);
         window.location.search = urlParams.toString();
     }
+
 </script>
 </body>
 </html>
