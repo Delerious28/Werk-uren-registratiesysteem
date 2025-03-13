@@ -83,8 +83,8 @@ async function saveField(fieldName) {
 function editField(fieldName, currentValue) {
     const fieldElement = document.getElementById(fieldName);
     fieldElement.innerHTML = `
-        <input type="text" id="edit${fieldName}" value="${currentValue}">
-        <button onclick="saveField('${fieldName}')">Opslaan</button>
+        <input class="input-profiel" type="text" id="edit${fieldName}" value="${currentValue}">
+        <button id="opslaan-btn-profiel" onclick="saveField('${fieldName}')">Opslaan</button>
     `;
     console.log("Field made editable:", fieldName);
 }

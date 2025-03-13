@@ -29,19 +29,17 @@ $role = $_SESSION['role'];
     <a href="index.php">Home</a>
 
     <?php if ($role === 'admin'): ?>
-        <a href="404.php">Downloads</a>
-        <a href="404.php">Klanten toewijzen</a>
+        <a href="admin-dashboard.php">Dashboard</a>
         <a href="profiel.php">Profiel</a>
-        <a href="admin-dashboard.php">Admin Dashboard</a>
 
     <?php elseif ($role === 'klant'): ?>
+        <a href="klant-dashboard.php">Dashboard</a>
         <a href="profiel.php">Profiel</a>
-        <a href="klant-dashboard.php">Klanten Dashboard</a>
 
     <?php elseif ($role === 'user'): ?>
-        <a href="uren-registreren.php">Uren invoeren</a>
+        <a href="uren-registreren.php">Uren registreren</a>
+        <a href="gebruiker_uren.php">Dashboard</a>
         <a href="profiel.php">Profiel</a>
-        <a href="gebruiker_uren.php">Gebruiker Uren</a>
     <?php endif; ?>
 
     <a href="uitloggen.php" class="logout-btn">Uitloggen</a>
