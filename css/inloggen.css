@@ -1,3 +1,15 @@
+body {
+    background-image: url("../img/achtergrond(nieuw).png");
+    background-size: 100% 100%;
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
 html{
     display: flex;
     align-items: center;
@@ -14,7 +26,6 @@ main{
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 50px;
 }
 
 h1{
