@@ -198,57 +198,56 @@ try {
         <?php foreach ($chiefs_rows as $chief): ?>
             <div class="columns">
                 <div class="column">
-                    <h3>Bedrijfsnaam</h3>
+                    <h3>Bedrijf gegevens</h3>
+                    <div class="profiel-titels">Bedrijfsnaam</div>
                     <p>
+                        <span id="Bedrijfnaam" data-id="<?php echo $chief['chief_id']; ?>"><?php echo htmlspecialchars($chief['Bedrijfnaam']); ?></span>
                         <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
                              data-field="Bedrijfnaam" data-value="<?php echo htmlspecialchars($chief['Bedrijfnaam']); ?>"
                              class="edit-button">
-                        <span id="Bedrijfnaam" data-id="<?php echo $chief['chief_id']; ?>"><?php echo htmlspecialchars($chief['Bedrijfnaam']); ?></span>
                     </p>
-                    <h3>Telefoon</h3>
+                    <div class="profiel-titels">Telefoon</div>
                     <p>
+                        <span id="telefoon" data-id="<?php echo $chief['chief_id']; ?>"><?php echo htmlspecialchars($chief['telefoon']); ?></span>
                         <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
                              data-field="telefoon"data-value="<?php echo htmlspecialchars($chief['telefoon']); ?>"
                              class="edit-button">
-                        <span id="telefoon" data-id="<?php echo $chief['chief_id']; ?>"><?php echo htmlspecialchars($chief['telefoon']); ?></span>
                     </p>
-                    <h3>Adres</h3>
+                    <div class="profiel-titels">Adres</div>
                     <p>
+                        <span id="adres" data-id="<?php echo $chief['chief_id']; ?>"><?php echo htmlspecialchars($chief['adres']); ?></span>
                         <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
                              data-field="adres" data-value="<?php echo htmlspecialchars($chief['adres']); ?>"
                              class="edit-button">
-                        <span id="adres" data-id="<?php echo $chief['chief_id']; ?>"><?php echo htmlspecialchars($chief['adres']); ?></span>
                     </p>
-                    <h3>Stad</h3>
+                    <div class="profiel-titels">Stad</div>
                     <p>
+                        <span id="stad" data-id="<?php echo $chief['chief_id']; ?>"><?php echo htmlspecialchars($chief['stad']); ?></span>
                         <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
                              data-field="stad" data-value="<?php echo htmlspecialchars($chief['stad']); ?>"
                              class="edit-button">
-                        <span id="stad" data-id="<?php echo $chief['chief_id']; ?>"><?php echo htmlspecialchars($chief['stad']); ?></span>
                     </p>
-                </div>
 
-                <div class="column">
-                    <h3>Postcode</h3>
+                    <div class="profiel-titels">Postcode</div>
                     <p>
+                        <span id="postcode" data-id="<?php echo $chief['chief_id']; ?>"><?php echo htmlspecialchars($chief['postcode']); ?></span>
                         <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
                              data-field="postcode" data-value="<?php echo htmlspecialchars($chief['postcode']); ?>"
                              class="edit-button">
-                        <span id="postcode" data-id="<?php echo $chief['chief_id']; ?>"><?php echo htmlspecialchars($chief['postcode']); ?></span>
                     </p>
-                    <h3>Provincie</h3>
+                    <div class="profiel-titels">Provincie</div>
                     <p>
+                        <span id="provincie" data-id="<?php echo $chief['chief_id']; ?>"><?php echo htmlspecialchars($chief['provincie']); ?></span>
                         <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
                              data-field="provincie" data-value="<?php echo htmlspecialchars($chief['provincie']); ?>"
                              class="edit-button">
-                        <span id="provincie" data-id="<?php echo $chief['chief_id']; ?>"><?php echo htmlspecialchars($chief['provincie']); ?></span>
                     </p>
-                    <h3>Land</h3>
+                    <div class="profiel-titels">Land</div>
                     <p>
+                        <span id="land" data-id="<?php echo $chief['chief_id']; ?>"><?php echo htmlspecialchars($chief['land']); ?></span>
                         <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
                              data-field="land" data-value="<?php echo htmlspecialchars($chief['land']); ?>"
                              class="edit-button">
-                        <span id="land" data-id="<?php echo $chief['chief_id']; ?>"><?php echo htmlspecialchars($chief['land']); ?></span>
                     </p>
                 </div>
 
@@ -260,37 +259,37 @@ try {
                         if ($contact['contact_id'] == $chief['chief_id']) {
                             $contact_found = true;
                             ?>
-                            <h3>Voornaam</h3>
+                            <div class="profiel-titels">Voornaam</div>
                             <p>
+                                <span id="contact_voornaam" data-id="<?php echo $contact['contact_id']; ?>"><?php echo htmlspecialchars($contact['voornaam']); ?></span>
                                 <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
                                      data-field="contact_voornaam"
                                      data-value="<?php echo htmlspecialchars($contact['voornaam']); ?>"
                                      class="edit-button">
-                                <span id="contact_voornaam" data-id="<?php echo $contact['contact_id']; ?>"><?php echo htmlspecialchars($contact['voornaam']); ?></span>
                             </p>
-                            <h3>Achternaam</h3>
+                            <div class="profiel-titels">Achternaam</div>
                             <p>
+                                <span id="contact_achternaam" data-id="<?php echo $contact['contact_id']; ?>"><?php echo htmlspecialchars($contact['achternaam']); ?></span>
                                 <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
                                      data-field="contact_achternaam"
                                      data-value="<?php echo htmlspecialchars($contact['achternaam']); ?>"
                                      class="edit-button">
-                                <span id="contact_achternaam" data-id="<?php echo $contact['contact_id']; ?>"><?php echo htmlspecialchars($contact['achternaam']); ?></span>
                             </p>
-                            <h3>Email</h3>
+                            <div class="profiel-titels">Email</div>
                             <p>
+                                <span id="contact_email" data-id="<?php echo $contact['contact_id']; ?>"><?php echo htmlspecialchars($contact['email']); ?></span>
                                 <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
                                      data-field="contact_email"
                                      data-value="<?php echo htmlspecialchars($contact['email']); ?>"
                                      class="edit-button">
-                                <span id="contact_email" data-id="<?php echo $contact['contact_id']; ?>"><?php echo htmlspecialchars($contact['email']); ?></span>
                             </p>
-                            <h3>Telefoon</h3>
+                            <div class="profiel-titels">Telefoon</div>
                             <p>
+                                <span id="contact_telefoon" data-id="<?php echo $contact['contact_id']; ?>"><?php echo htmlspecialchars($contact['telefoon']); ?></span>
                                 <img src="img/pen-svgrepo-com.svg" alt="edit" width="16" height="16"
                                      data-field="contact_telefoon"
                                      data-value="<?php echo htmlspecialchars($contact['telefoon']); ?>"
                                      class="edit-button">
-                                <span id="contact_telefoon" data-id="<?php echo $contact['contact_id']; ?>"><?php echo htmlspecialchars($contact['telefoon']); ?></span>
                             </p>
                             <?php
                             break;
