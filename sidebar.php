@@ -32,6 +32,7 @@ $role = $_SESSION['role'];
         <a href="404.php">Downloads</a>
         <a href="404.php">Klanten toewijzen</a>
         <a href="profiel.php">Profiel</a>
+        <a href="admin-dashboard.php">Admin Dashboard</a>
 
     <?php elseif ($role === 'klant'): ?>
         <a href="profiel.php">Profiel</a>
