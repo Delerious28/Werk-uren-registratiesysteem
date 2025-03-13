@@ -169,7 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
     }
 
-   // Verwerk gebruiker toevoegen aan project
+ // Verwerk gebruiker toevoegen aan project
 if (isset($_POST['assign_user'])) {
     try {
         $project_id = $_POST['project_id'];
@@ -189,13 +189,34 @@ if (isset($_POST['assign_user'])) {
             $stmt->execute([$project_id, $user_id]);
 
             if ($stmt->rowCount() > 0) {
-                echo "<div class='alert alert-success mt-3'>Gebruiker succesvol gekoppeld!</div>";
+                echo "<script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            showNotification('Gebruiker succesvol gekoppeld!', 'success');
+                        });
+                      </script>";
             }
         } else {
-            echo "<div class='alert alert-danger mt-3'>Project of gebruiker bestaat niet</div>";
+            echo "<script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        showNotification('Project of gebruiker bestaat niet!', 'danger');
+                    });
+                  </script>";
         }
     } catch (PDOException $e) {
-        echo "<div class='alert alert-danger mt-3'>Fout bij koppelen: " . $e->getMessage() . "</div>";
+        // Controleer op duplicate entry fout
+        if ($e->errorInfo[1] == 1062) {
+            echo "<script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        showNotification('Deze gebruiker is al gekoppeld aan het project', 'danger');
+                    });
+                  </script>";
+        } else {
+            echo "<script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        showNotification('Fout bij koppelen: " . addslashes($e->getMessage()) . "', 'danger');
+                    });
+                  </script>";
+        }
     }
 }
 }
@@ -215,16 +236,18 @@ if (isset($_POST['assign_user'])) {
         <div class="row">
             <!-- Sidebar -->
             <nav class="col-md-2 sidebar">
-                <div class="p-3">
-                    <h4>Admin Dashboard</h4>
-                    <div class="list-group">
-                        <a href="#dashboard" class="list-group-item active">Dashboard</a>
-                        <a href="#users" class="list-group-item">Gebruikers</a>
-                        <a href="#projects" class="list-group-item">Projecten</a>
-                        <a href="#clients" class="list-group-item">Klanten</a>
-                    </div>
-                </div>
-            </nav>
+    <div class="p-3">
+        <h4>Admin Dashboard</h4>
+        <div class="list-group">
+            <a href="#dashboard" class="list-group-item active">Dashboard</a>
+            <a href="#users" class="list-group-item">Gebruikers</a>
+            <a href="#projects" class="list-group-item">Projecten</a>
+            <a href="#clients" class="list-group-item">Klanten</a>
+            <a href="uitloggen.php" class="list-group-item list-group-item-danger">Uitloggen</a>
+        </div>
+    </div>
+</nav>
+
 
             <main class="col-md-10 p-4">
                 <section id="dashboard" class="active-section d-none">                    
@@ -656,24 +679,32 @@ document.querySelectorAll('#editKlantModal').forEach(button => {
             bedrijfField.style.display = this.value === 'klant' ? 'block' : 'none';
             bedrijfField.querySelector('input').toggleAttribute('required', this.value === 'klant');
         });
+// Tab navigation
+document.querySelectorAll('.list-group-item').forEach(link => {
+    link.addEventListener('click', function(e) {
+        const target = this.getAttribute('href');
 
-        // Tab navigation
-        document.querySelectorAll('.list-group-item').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                const target = this.getAttribute('href');
+        // Controleer of de link NIET naar uitloggen.php verwijst
+        if (target !== "uitloggen.php") {
+            e.preventDefault();
 
-                document.querySelectorAll('.list-group-item').forEach(item => {
-                    item.classList.remove('active');
-                });
-                this.classList.add('active');
-
-                document.querySelectorAll('section').forEach(section => {
-                    section.classList.remove('active-section');
-                });
-                document.querySelector(target).classList.add('active-section');
+            document.querySelectorAll('.list-group-item').forEach(item => {
+                item.classList.remove('active');
             });
-        });
+            this.classList.add('active');
+
+            document.querySelectorAll('section').forEach(section => {
+                section.classList.remove('active-section');
+            });
+
+            // Zorg ervoor dat target geen null is voordat we proberen het te selecteren
+            const targetSection = document.querySelector(target);
+            if (targetSection) {
+                targetSection.classList.add('active-section');
+            }
+        }
+    });
+});
 
         // Hours chart
         const ctx = document.getElementById('hoursChart').getContext('2d');
