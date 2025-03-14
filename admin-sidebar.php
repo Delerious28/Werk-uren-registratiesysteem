@@ -1,5 +1,11 @@
 <?php
 $currentPage = basename($_SERVER['PHP_SELF']);
+
+if (!isset($_SESSION['user_id'])) {
+    header("Location: inloggen.php");
+    exit();
+}
+
 ?>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="css/admin-dashboard.css" rel="stylesheet">

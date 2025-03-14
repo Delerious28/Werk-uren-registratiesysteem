@@ -2,6 +2,11 @@
 include 'db/conn.php';
 include 'fpdf/fpdf.php';
 
+if (!isset($_SESSION['user_id'])) {
+    header("Location: inloggen.php");
+    exit();
+}
+
 // Database query voor gebruikers met de rol 'user'
 $sql = "SELECT user_id, name, achternaam FROM users WHERE role = 'user'"; 
 $result = $pdo->query($sql);
