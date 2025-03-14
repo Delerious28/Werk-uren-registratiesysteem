@@ -92,7 +92,7 @@ if (isset($_GET['user_id']) && isset($_GET['month']) && isset($_GET['year'])) {
         <?php foreach($gebruikers as $gebruiker): ?>
             <li class="user-item">
                 <?= htmlspecialchars($gebruiker['name'].' '.$gebruiker['achternaam']) ?>
-                <button onclick="openModal(<?= $gebruiker['user_id'] ?>, '<?= htmlspecialchars($gebruiker['name']) ?>')">
+                <button onclick="openModal(<?= $gebruiker['user_id'] ?>, '<?= htmlspecialchars($gebruiker['name'].' '.$gebruiker['achternaam']) ?>')">
                     Selecteer periode
                 </button>
             </li>
@@ -143,6 +143,13 @@ if (isset($_GET['user_id']) && isset($_GET['month']) && isset($_GET['year'])) {
     document.getElementById('downloadModal').classList.add('active');
 }
 
+function closeModal() {
+    document.getElementById('downloadModal').classList.remove('active');
+}
+
+function closeModal() {
+    document.getElementById('downloadModal').classList.remove('active');
+}
 function closeModal() {
     document.getElementById('downloadModal').classList.remove('active');
 }
