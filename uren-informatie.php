@@ -7,7 +7,7 @@ include('db/conn.php');
 
 // Controleer of de gebruiker is ingelogd
 if (!isset($_SESSION['user_id'])) {
-    echo "Je moet ingelogd zijn om deze informatie te bekijken.";
+    header('Location: inloggen.php');
     exit();
 }
 

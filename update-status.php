@@ -2,6 +2,12 @@
 session_start();
 require 'db/conn.php';
 
+// Controleer of de gebruiker is ingelogd
+if (!isset($_SESSION['user_id'])) {
+    header('Location: inloggen.php');
+    exit();
+}
+
 $accordMessage = '';
 $status = 'success'; // Standaardstatus is success
 
