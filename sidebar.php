@@ -9,6 +9,10 @@ if (!isset($_SESSION['role'])) {
 }
 
 $role = $_SESSION['role'];
+
+// Controleer of de huidige pagina de downloadpagina is
+$currentPage = basename($_SERVER['PHP_SELF']);
+$isDownloadPage = ($currentPage === 'admin-download.php');
 ?>
 
 <!DOCTYPE html>
@@ -22,21 +26,19 @@ $role = $_SESSION['role'];
 
 <button class="toggle-btn" id="toggleBtn" onclick="toggleSidebar()">☰</button>
 
-<div id="mySidebar" class="sidebar">
+<div id="mySidebar" class="sidebar" style="<?= $isDownloadPage ? 'left: 0;' : 'left: -250px;' ?>">
     <button class="close-btn" onclick="toggleSidebar()">❌</button>
     <img src="img/logo.png" alt="Profile Image">
-
-    <a href="index.php">Home</a>
 
     <?php if ($role === 'admin'): ?>
         <a href="admin-dashboard.php">Dashboard</a>
         <a href="profiel.php">Profiel</a>
-
+        <a href="admin-download.php">Download</a>
     <?php elseif ($role === 'klant'): ?>
         <a href="klant-dashboard.php">Dashboard</a>
         <a href="profiel.php">Profiel</a>
-
     <?php elseif ($role === 'user'): ?>
+        <a href="index.php">Home</a>
         <a href="uren-registreren.php">Uren registreren</a>
         <a href="gebruiker_uren.php">Dashboard</a>
         <a href="profiel.php">Profiel</a>
@@ -47,44 +49,54 @@ $role = $_SESSION['role'];
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-    var sidebar = document.getElementById("mySidebar");
-    var toggleBtn = document.getElementById("toggleBtn");
+        var sidebar = document.getElementById("mySidebar");
+        var toggleBtn = document.getElementById("toggleBtn");
 
-    // Check of de sidebar open was
-    if (localStorage.getItem("sidebarOpen") === "true") {
-        sidebar.style.transition = "none"; // Geen animatie bij laden
-        sidebar.style.left = "0";
-        toggleBtn.style.display = "none";
+        // Als de huidige pagina de downloadpagina is, open de sidebar standaard
+        var isDownloadPage = <?= $isDownloadPage ? 'true' : 'false'; ?>;
 
-        setTimeout(() => {
-            sidebar.style.transition = "0.5s ease"; // Zet animatie terug na laden
-        }, 100);
-    }
-
-    // Toggle Sidebar open/close
-    window.toggleSidebar = function () {
-        if (sidebar.style.left === "0px") {
-            sidebar.style.left = "-250px";
-            localStorage.setItem("sidebarOpen", "false");
-            toggleBtn.style.display = "block";
-        } else {
-            sidebar.style.transition = "0.5s ease"; // Alleen animatie bij klikken
+        if (isDownloadPage) {
             sidebar.style.left = "0";
-            localStorage.setItem("sidebarOpen", "true");
             toggleBtn.style.display = "none";
-        }
-    };
+            localStorage.setItem("sidebarOpen", "true");
+        } else {
+            // Check of de sidebar open was
+            if (localStorage.getItem("sidebarOpen") === "true") {
+                sidebar.style.transition = "none"; // Geen animatie bij laden
+                sidebar.style.left = "0";
+                toggleBtn.style.display = "none";
 
-    // Sluit de sidebar als er buiten de sidebar wordt geklikt
-    document.addEventListener("click", function (event) {
-        if (sidebar.style.left === "0px" && !sidebar.contains(event.target) && !toggleBtn.contains(event.target)) {
-            sidebar.style.left = "-250px";
-            localStorage.setItem("sidebarOpen", "false");
-            toggleBtn.style.display = "block";
+                setTimeout(() => {
+                    sidebar.style.transition = "0.5s ease"; // Zet animatie terug na laden
+                }, 100);
+            }
+        }
+
+        // Toggle Sidebar open/close
+        window.toggleSidebar = function () {
+            if (sidebar.style.left === "0px") {
+                sidebar.style.left = "-250px";
+                localStorage.setItem("sidebarOpen", "false");
+                toggleBtn.style.display = "block";
+            } else {
+                sidebar.style.transition = "0.5s ease"; // Alleen animatie bij klikken
+                sidebar.style.left = "0";
+                localStorage.setItem("sidebarOpen", "true");
+                toggleBtn.style.display = "none";
+            }
+        };
+
+        // Voeg de event listener alleen toe als het NIET de downloadpagina is
+        if (!isDownloadPage) {
+            document.addEventListener("click", function (event) {
+                if (sidebar.style.left === "0px" && !sidebar.contains(event.target) && !toggleBtn.contains(event.target)) {
+                    sidebar.style.left = "-250px";
+                    localStorage.setItem("sidebarOpen", "false");
+                    toggleBtn.style.display = "block";
+                }
+            });
         }
     });
-});
-
 </script>
 
 </body>
