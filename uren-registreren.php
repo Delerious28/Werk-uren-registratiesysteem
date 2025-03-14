@@ -144,19 +144,6 @@ foreach ($hoursRecords as $record) {
 
 ?>
 
-<?php //foreach ($groupedHours as $day => $records): ?>
-<!--    <div class="entry">-->
-<!--        <h3>--><?php //= $day ?><!--:</h3>-->
-<!--        --><?php //foreach ($records as $record): ?>
-<!--            <p>Datum: --><?php //= $record['date'] ?><!--</p>-->
-<!--            <p>Uren: --><?php //= $record['hours'] ?><!--</p>-->
-<!--            <p>Status: --><?php //= $record['accord'] ?><!--</p>-->
-<!--            <a href="uren-informatie.php?date=--><?php //= urlencode($record['date']) ?><!--"><img src="img/infoicon.png" alt="Info"></a>-->
-<!--        --><?php //endforeach; ?>
-<!--    </div>-->
-<?php //endforeach; ?>
-
-
 <!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -289,7 +276,7 @@ foreach ($hoursRecords as $record) {
                       <div class="info-png-div">
                           <!-- Link naar de uren-informatie-pagina met de geselecteerde datum als queryparameter -->
                           <a href="javascript:void(0);" data-date="<?= urlencode($dagDatum); ?>" class="info-icon">
-                              <img src="<?= $isSelected ? '../img/info-icon-white.png' : '../img/info-icon.png'; ?>" alt="Info Icon" class="info-icon" title="Meer info">
+                              <img src="<?= $isSelected ? 'img/info-icon-white.png' : 'img/info-icon.png'; ?>" alt="Info Icon" class="info-icon" title="Meer info">
                           </a>
                       </div>
                   </form>
