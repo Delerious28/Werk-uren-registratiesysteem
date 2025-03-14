@@ -220,6 +220,54 @@ if (isset($_POST['assign_user'])) {
     }
 }
 }
+// Verwerk projectverwijdering
+if (isset($_POST['delete_project'])) {
+    $projectId = $_POST['delete_project'];
+    try {
+        $stmt = $pdo->prepare("DELETE FROM project_users WHERE project_id = ?");
+        $stmt->execute([$projectId]);
+        
+        // Verwijder het project
+        $stmt = $pdo->prepare("DELETE FROM project WHERE project_id = ?");
+        $stmt->execute([$projectId]);
+        
+        header("Location: admin-dashboard.php#projects");
+        exit();
+    } catch (PDOException $e) {
+        die("Fout bij verwijderen project: " . $e->getMessage());
+    }
+}
+// VERWERK PROJECT-UPDATE
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_project'])) {
+    $project_id = $_POST['project_id'];
+    $project_naam = $_POST['project_naam'];
+    $klant_id = $_POST['klant_id'];
+    $contract_uren = $_POST['contract_uren'];
+    $beschrijving = $_POST['beschrijving'];
+
+    try {
+        $stmt = $pdo->prepare("UPDATE project SET 
+            project_naam = ?, 
+            klant_id = ?, 
+            contract_uren = ?, 
+            beschrijving = ? 
+            WHERE project_id = ?");
+
+        $stmt->execute([
+            $project_naam,
+            $klant_id,
+            $contract_uren,
+            $beschrijving,
+            $project_id
+        ]);
+
+        header("Location: admin-dashboard.php?success_project=1#projects");
+        exit();
+
+    } catch (PDOException $e) {
+        die("Fout bij projectupdate: " . $e->getMessage());
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="nl">
@@ -243,6 +291,8 @@ if (isset($_POST['assign_user'])) {
             <a href="#users" class="list-group-item">Gebruikers</a>
             <a href="#projects" class="list-group-item">Projecten</a>
             <a href="#clients" class="list-group-item">Klanten</a>
+            <a href="admin-download.php" class="list-group-item">Download</a>
+            <a href="profiel.php" class="list-group-item">Profiel</a>
             <a href="uitloggen.php" class="list-group-item list-group-item-danger">Uitloggen</a>
         </div>
     </div>
@@ -661,6 +711,16 @@ if (isset($_POST['assign_user'])) {
 </div>
                             
     <script>
+        // Project bewerken: Vul de modal met data
+document.querySelectorAll('.edit-project-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        document.getElementById('editProjectId').value = this.dataset.projectid;
+        document.getElementById('editProjectNaam').value = this.dataset.projectnaam;
+        document.getElementById('editKlantId').value = this.dataset.klantid;
+        document.getElementById('editContracturen').value = this.dataset.contracturen;
+        document.getElementById('editBeschrijving').value = this.dataset.beschrijving;
+    });
+});
         // JavaScript voor klant bewerken
 document.querySelectorAll('#editKlantModal').forEach(button => {
     button.addEventListener('click', function() {
@@ -684,8 +744,8 @@ document.querySelectorAll('.list-group-item').forEach(link => {
     link.addEventListener('click', function(e) {
         const target = this.getAttribute('href');
 
-        // Controleer of de link NIET naar uitloggen.php verwijst
-        if (target !== "uitloggen.php") {
+        // Controleer of de link NIET naar uitloggen.php of download.php verwijst
+        if (target !== "uitloggen.php" && target !== "admin-download.php" && target !== "profiel.php") {
             e.preventDefault();
 
             document.querySelectorAll('.list-group-item').forEach(item => {
@@ -705,6 +765,7 @@ document.querySelectorAll('.list-group-item').forEach(link => {
         }
     });
 });
+
 
         // Hours chart
         const ctx = document.getElementById('hoursChart').getContext('2d');

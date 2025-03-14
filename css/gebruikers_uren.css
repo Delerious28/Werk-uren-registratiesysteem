@@ -361,3 +361,16 @@ select.status-dropdown::after {
 
 
 
+#downloads table {
+    width: 100%;
+    border-collapse: collapse;
+}
+#downloads th {
+    background-color: #f8f9fa;
+    padding: 12px;
+    text-align: left;
+}
+#downloads td {
+    padding: 12px;
+    border-bottom: 1px solid #dee2e6;
+}
