@@ -129,7 +129,7 @@ $hoursQuery = "SELECT h.*, p.project_naam,
                ORDER BY h.date ASC, h.start_hours ASC";
 $hoursStmt = $pdo->prepare($hoursQuery);
 $hoursStmt->execute([
-    'weekStart' => $currentWeekStart, 
+    'weekStart' => $currentWeekStart,
     'weekEnd'   => $currentWeekEnd,
     'user_id'   => $_SESSION['user_id'] // Voeg de user_id van de ingelogde gebruiker toe
 ]);
@@ -141,7 +141,22 @@ foreach ($hoursRecords as $record) {
     $dayOfWeek = date('l', strtotime($record['date'])); // Bijv. "Monday"
     $groupedHours[$dayOfWeek][] = $record;
 }
+
 ?>
+
+<?php //foreach ($groupedHours as $day => $records): ?>
+<!--    <div class="entry">-->
+<!--        <h3>--><?php //= $day ?><!--:</h3>-->
+<!--        --><?php //foreach ($records as $record): ?>
+<!--            <p>Datum: --><?php //= $record['date'] ?><!--</p>-->
+<!--            <p>Uren: --><?php //= $record['hours'] ?><!--</p>-->
+<!--            <p>Status: --><?php //= $record['accord'] ?><!--</p>-->
+<!--            <a href="uren-informatie.php?date=--><?php //= urlencode($record['date']) ?><!--"><img src="img/infoicon.png" alt="Info"></a>-->
+<!--        --><?php //endforeach; ?>
+<!--    </div>-->
+<?php //endforeach; ?>
+
+
 <!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -149,23 +164,6 @@ foreach ($hoursRecords as $record) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Uren Registreren</title>
   <link rel="stylesheet" href="css/uren-registreren.css">
-  <style>
-    .dag {
-      cursor: pointer; /* Maak de dag-div klikbaar */
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin-bottom: 10px;
-    }
-    .dag.selected {
-      background-color: #8b0000; /* Highlight de geselecteerde dag */
-      color: white;
-    }
-
-    .datum_klein [selected]{
-      color: white;
-
-    }
-  </style>
 </head>
 <body>
 <div class="bigbox">
@@ -194,127 +192,125 @@ foreach ($hoursRecords as $record) {
   <div class="wrapper">
     <!-- Linker container: invoerformulier -->
     <div class="blok-1">
-      <form method="POST" action="" class="form-div">
-        <!-- Verborgen veld om de geselecteerde dag door te geven -->
-        <input type="hidden" name="selected_day" value="<?= $selectedDay; ?>">
 
-        <li>Klant:</li>
-        <select name="klant" class="small-input" onchange="this.form.submit()">
-          <option value="">-- Kies Klant --</option>
-          <?php foreach ($klanten as $klant): ?>
-            <option value="<?= $klant['klant_id']; ?>" <?= ($klant['klant_id'] == $selectedKlant) ? 'selected' : ''; ?>>
-              <?= $klant['voornaam'] . ' ' . $klant['achternaam']; ?>
-            </option>
-          <?php endforeach; ?>
-        </select>
+        <form id="urenForm" method="POST" action="" class="form-div">
+            <input type="hidden" name="selected_day" value="<?= $selectedDay; ?>">
 
-          <?php if ($message): ?>
-              <p class="vereisten-bericht"><?php echo $message; ?></p>
-          <?php endif; ?>
+            <li>Klant:</li>
+            <select name="klant" class="small-input" onchange="this.form.submit()">
+                <option value="">-- Kies Klant --</option>
+                <?php foreach ($klanten as $klant): ?>
+                    <option value="<?= $klant['klant_id']; ?>" <?= ($klant['klant_id'] == $selectedKlant) ? 'selected' : ''; ?>>
+                        <?= $klant['voornaam'] . ' ' . $klant['achternaam']; ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <p class="vereisten-bericht" id="error-klant"></p>
 
-        <li>Project naam:</li>
-        <select name="project" class="small-input">
-          <option value="">-- Kies Project --</option>
-          <?php foreach ($projecten as $project): ?>
-            <option value="<?= $project['project_id']; ?>" <?= (isset($_POST['project']) && $_POST['project'] == $project['project_id']) ? 'selected' : ''; ?>>
-              <?= $project['project_naam']; ?>
-            </option>
-          <?php endforeach; ?>
-        </select>
+            <li>Project naam:</li>
+            <select name="project" class="small-input">
+                <option value="">-- Kies Project --</option>
+                <?php foreach ($projecten as $project): ?>
+                    <option value="<?= $project['project_id']; ?>" <?= (isset($_POST['project']) && $_POST['project'] == $project['project_id']) ? 'selected' : ''; ?>>
+                        <?= $project['project_naam']; ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <p class="vereisten-bericht" id="error-project"></p>
 
-          <?php if ($message): ?>
-              <p class="vereisten-bericht"><?php echo $message; ?></p>
-          <?php endif; ?>
+            <li>Beschrijving:</li>
+            <input type="text" name="beschrijving" class="small-input" placeholder="Projectbeschrijving (optioneel)">
 
-        <li>Beschrijving:</li>
-        <input type="text" name="beschrijving" class="small-input" placeholder="Projectbeschrijving (optioneel)">
+            <li>Starttijd:</li>
+            <select name="begin">
+                <option value="">-- Kies --</option>
+                <option value="08:00" <?= (isset($_POST['begin']) && $_POST['begin'] == '08:00') ? 'selected' : ''; ?>>08:00</option>
+                <option value="09:00" <?= (isset($_POST['begin']) && $_POST['begin'] == '09:00') ? 'selected' : ''; ?>>09:00</option>
+                <option value="10:00" <?= (isset($_POST['begin']) && $_POST['begin'] == '10:00') ? 'selected' : ''; ?>>10:00</option>
+                <option value="11:00" <?= (isset($_POST['begin']) && $_POST['begin'] == '11:00') ? 'selected' : ''; ?>>11:00</option>
+                <option value="12:00" <?= (isset($_POST['begin']) && $_POST['begin'] == '12:00') ? 'selected' : ''; ?>>12:00</option>
+            </select>
+            <p class="vereisten-bericht" id="error-begin"></p>
 
-        <li>Starttijd:</li>
-        <select name="begin">
-          <option value="">-- Kies --</option>
-          <option value="08:00" <?= (isset($_POST['begin']) && $_POST['begin'] == '08:00') ? 'selected' : ''; ?>>08:00</option>
-          <option value="09:00" <?= (isset($_POST['begin']) && $_POST['begin'] == '09:00') ? 'selected' : ''; ?>>09:00</option>
-          <option value="10:00" <?= (isset($_POST['begin']) && $_POST['begin'] == '10:00') ? 'selected' : ''; ?>>10:00</option>
-          <option value="11:00" <?= (isset($_POST['begin']) && $_POST['begin'] == '11:00') ? 'selected' : ''; ?>>11:00</option>
-          <option value="12:00" <?= (isset($_POST['begin']) && $_POST['begin'] == '12:00') ? 'selected' : ''; ?>>12:00</option>
-        </select>
+            <li>Eindtijd:</li>
+            <select name="eind">
+                <option value="">-- Kies --</option>
+                <option value="12:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '12:00') ? 'selected' : ''; ?>>12:00</option>
+                <option value="13:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '13:00') ? 'selected' : ''; ?>>13:00</option>
+                <option value="14:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '14:00') ? 'selected' : ''; ?>>14:00</option>
+                <option value="15:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '15:00') ? 'selected' : ''; ?>>15:00</option>
+                <option value="16:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '16:00') ? 'selected' : ''; ?>>16:00</option>
+                <option value="17:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '17:00') ? 'selected' : ''; ?>>17:00</option>
+                <option value="18:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '18:00') ? 'selected' : ''; ?>>18:00</option>
+                <option value="19:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '19:00') ? 'selected' : ''; ?>>19:00</option>
+            </select>
+            <p class="vereisten-bericht" id="error-eind"></p>
 
-          <?php if ($message): ?>
-              <p class="vereisten-bericht"><?php echo $message; ?></p>
-          <?php endif; ?>
+            <button type="submit">+ Voeg toe</button>
+        </form>
 
-        <li>Eindtijd:</li>
-        <select name="eind">
-          <option value="">-- Kies --</option>
-          <option value="12:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '12:00') ? 'selected' : ''; ?>>12:00</option>
-          <option value="13:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '13:00') ? 'selected' : ''; ?>>13:00</option>
-          <option value="14:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '14:00') ? 'selected' : ''; ?>>14:00</option>
-          <option value="15:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '15:00') ? 'selected' : ''; ?>>15:00</option>
-          <option value="16:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '16:00') ? 'selected' : ''; ?>>16:00</option>
-          <option value="17:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '17:00') ? 'selected' : ''; ?>>17:00</option>
-          <option value="18:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '18:00') ? 'selected' : ''; ?>>18:00</option>
-          <option value="19:00" <?= (isset($_POST['eind']) && $_POST['eind'] == '19:00') ? 'selected' : ''; ?>>19:00</option>
-        </select>
-
-          <?php if ($message): ?>
-              <p class="vereisten-bericht"><?php echo $message; ?></p>
-          <?php endif; ?>
-
-        <button type="submit">+ Voeg toe</button>
-      </form>
     </div>
 
     <!-- Rechter container: overzicht van ingevoerde uren voor de huidige week -->
-    <div class="block-b">
-      <div class="overzicht">
-        <?php
-        // Definieer de dagen van de week
-        $dagenVanDeWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-        foreach ($dagenVanDeWeek as $dag): 
-            $dagNaam = strtolower($dag); // Bijv. "monday"
-            $dagDatum = date('Y-m-d', strtotime($dag . ' this week') + ($weekOffset * 7 * 86400)); // Datum van de dag
-            $dagRecords = $groupedHours[$dag] ?? []; // Haal de uren op voor deze dag
-            $isSelected = ($selectedDay === $dagDatum); // Controleer of deze dag geselecteerd is
-        ?>
-          <form method="POST" action="" style="display: inline;">
-            <input type="hidden" name="selected_day" value="<?= $dagDatum; ?>">
-            <div class="dag <?= $isSelected ? 'selected' : ''; ?>" onclick="this.parentNode.submit();">
-              <div class="dag-info">
-                <span class="dagnaam"><?php echo ucfirst($dagNaam); ?></span>
-                <span class="datum-klein"><?php echo date('d-m', strtotime($dagDatum)); ?></span>
-              </div>
-              <?php if (!empty($dagRecords)): ?>
-                <?php foreach ($dagRecords as $record): ?>
-                  <div class="info">
-                    Klant: <?php echo $record['klant_voornaam'] . ' ' . $record['klant_achternaam']; ?><br>
-                    Project: <?php echo $record['project_naam']; ?><br>
-                    Beschrijving: <?php echo $record['beschrijving']; ?>
-                  </div>
-                  <div class="tijd">
-                    <span class="uren-dik"><?php echo $record['hours']; ?> uur</span><br>
-                    <?php echo date('H:i', strtotime($record['start_hours'])); ?> - <?php echo date('H:i', strtotime($record['eind_hours'])); ?>
-                  </div>
-                <?php endforeach; ?>
-              <?php else: ?>
-                <p>Geen uren ingevoerd voor <?php echo ucfirst($dagNaam); ?>.</p>
-              <?php endif; ?>
-            </div>
-          </form>
-        <?php endforeach; ?>
+      <div class="block-b">
+          <div class="overzicht">
+              <?php
+              // Definieer de dagen van de week
+              $dagenVanDeWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+              foreach ($dagenVanDeWeek as $dag):
+                  $dagNaam = strtolower($dag); // Bijv. "monday"
+                  $dagDatum = date('Y-m-d', strtotime($dag . ' this week') + ($weekOffset * 7 * 86400)); // Datum van de dag
+                  $dagRecords = $groupedHours[$dag] ?? []; // Haal de uren op voor deze dag
+                  $isSelected = ($selectedDay === $dagDatum); // Controleer of deze dag geselecteerd is
+                  ?>
+                  <form method="POST" action="" class="dag-uren-form">
+                      <input type="hidden" name="selected_day" value="<?= $dagDatum; ?>">
+                      <div class="dag <?= $isSelected ? 'selected' : ''; ?>" onclick="this.parentNode.submit();">
+                          <div class="dag-info">
+                              <span class="dagnaam"><?php echo ucfirst($dagNaam); ?></span>
+                              <span class="datum-klein"><?php echo date('d-m', strtotime($dagDatum)); ?></span>
+                          </div>
+                          <?php if (!empty($dagRecords)): ?>
+                              <?php foreach ($dagRecords as $record): ?>
+                                  <div class="info">
+                                      Klant: <?php echo $record['klant_voornaam'] . ' ' . $record['klant_achternaam']; ?><br>
+                                      Project: <?php echo $record['project_naam']; ?><br>
+                                      Beschrijving: ...
+                                  </div>
+                                  <div class="tijd">
+                                      <span class="uren-dik"><?php echo $record['hours']; ?> uur</span><br>
+                                      <?php echo date('H:i', strtotime($record['start_hours'])); ?> - <?php echo date('H:i', strtotime($record['eind_hours'])); ?>
+                                  </div>
+                              <?php endforeach; ?>
+                          <?php else: ?>
+                              <p>Geen uren ingevoerd voor <?php echo ucfirst($dagNaam); ?>.</p>
+                          <?php endif; ?>
+                      </div>
+                      <div class="info-png-div">
+                          <!-- Link naar de uren-informatie-pagina met de geselecteerde datum als queryparameter -->
+                          <a href="javascript:void(0);" data-date="<?= urlencode($dagDatum); ?>" class="info-icon">
+                              <img src="<?= $isSelected ? '../img/info-icon-white.png' : '../img/info-icon.png'; ?>" alt="Info Icon" class="info-icon" title="Meer info">
+                          </a>
+                      </div>
+                  </form>
+              <?php endforeach; ?>
+          </div>
       </div>
-    </div>
+
+      <!-- Pop-up / Modaal venster -->
+      <div id="urenInformatieModal" class="modal">
+          <div class="modal-content">
+              <span class="close">&times;</span>
+              <div id="modalContent">
+                  <!-- De gegevens van de geselecteerde datum komen hier te staan -->
+              </div>
+          </div>
+      </div>
+
   </div>
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const duplicateMessage = document.querySelector('.dupliceer-bericht');
-        if (duplicateMessage) {
-            setTimeout(() => {
-                duplicateMessage.remove();
-            }, 3000);
-        }
-    });
+<script src="js/uren-registreren.js">
 </script>
 </body>
 </html>

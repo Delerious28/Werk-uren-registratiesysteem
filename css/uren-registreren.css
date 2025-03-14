@@ -11,8 +11,8 @@ body {
 }
 
 .bigbox {
-    width: 75%;
-    max-width: 1300px;
+    width: 100%;
+    max-width: 1024px;
 }
 
 .topheader {
@@ -28,7 +28,7 @@ body {
 }
 
 .week-nav button {
-    background: #8b0000;
+    background: #6D0F10;
     color: white;
     padding: 8px 16px;
     border: none;
@@ -39,14 +39,14 @@ body {
 }
 
 .week-nav button:hover {
-    background: #8b0000;
+    background: red;
 }
 
 .wrapper {
     display: flex;
     justify-content: space-between;
     align-items: stretch; /* Zorgt ervoor dat beide containers dezelfde hoogte hebben */
-    gap: 50px;
+    gap: 25px;
     margin-top: 20px;
 }
 
@@ -87,7 +87,7 @@ body {
 
 .blok-1 input:focus,
 .blok-1 select:focus {
-    border-color: #8b0000;
+    border-color: #6D0F10;
     outline: none;
 }
 
@@ -145,6 +145,21 @@ body {
 
 .datum-klein {
     font-size: 0.9em;
+}
+
+.dag {
+    cursor: pointer; /* Maak de dag-div klikbaar */
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+.dag.selected {
+    background-color: #6D0F10; /* Highlight de geselecteerde dag */
+    color: white;
+}
+
+.dag.selected:hover{
+    background-color: red;
 }
 
 .datum-klein
@@ -205,17 +220,17 @@ li{
     padding-right: 10px;
     color: darkred;
     font-weight: bold;
-    font-size: 14px;
+    font-size: 13px;
 }
 
 .dupliceer-bericht{
     font-weight: bold;
     margin: 0;
-    padding: 10px;
+    padding: 8px;
     background-color: red;
-    line-height: 25px;
+    line-height: 20px;
     color: white;
-    border-radius: 5px;
+    border-radius: 4px;
 }
 
 .error-bericht{
@@ -223,3 +238,69 @@ li{
     align-items: center;
     justify-content: center;
 }
+
+.fout {
+    border: 3px solid #6D0F10 !important;
+    background-color: #ffe6e6; /* Lichtrode achtergrond voor extra zichtbaarheid */
+}
+
+.dag-uren-form{
+    display: grid;
+    grid-template-columns: 100% 20px;
+    align-items: center;
+    position: relative;
+}
+
+.info-png-div{
+    position: absolute;
+    right: -5px;
+    top: 5px;
+}
+
+.info-png-div img{
+    height: 22px;
+    padding-right: 10px;
+}
+
+/*Pop-up*/
+
+/* De modal overlay */
+.modal {
+    display: none; /* Standaard niet zichtbaar */
+    position: fixed; /* Fixeren ten opzichte van het scherm */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Transparante donkere achtergrond */
+    z-index: 9999; /* Zorg ervoor dat het boven de andere inhoud komt */
+    justify-content: center; /* Verticaal en horizontaal centreren */
+    align-items: center; /* Verticaal en horizontaal centreren */
+    padding: 20px;
+}
+
+/* De inhoud van de modal */
+.modal-content {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    width: 80%; /* Breedte aanpassen naar wens */
+    max-width: 600px; /* Maximaal een bepaalde breedte */
+    position: relative;
+}
+
+/* De sluitknop van de modal */
+.close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 30px;
+    cursor: pointer;
+}
+
+/* Zorg dat de inhoud van de modal zichtbaar is */
+.modal-content h2 {
+    margin-top: 0;
+}
+
+
