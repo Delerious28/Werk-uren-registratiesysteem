@@ -1,9 +1,9 @@
 <?php
+session_start();
 if (!isset($_SESSION['user_id'])) {
     header("Location: inloggen.php");
     exit();
 }
-session_start(); // Start de sessie om de geselecteerde dag, week_offset en user_id op te slaan
 require 'db/conn.php';
 require 'sidebar.php';
 
