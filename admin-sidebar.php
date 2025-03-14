@@ -52,35 +52,4 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 
-<style>
-/* Mobile Sidebar */
-@media (max-width: 768px) {
-    #sidebar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 250px;
-        height: 100%;
-        background: #fff;
-        box-shadow: 2px 0 5px rgba(0,0,0,0.2);
-        transform: translateX(-100%);
-        transition: transform 0.3s ease-in-out;
-        z-index: 1000;
-    }
 
-    #sidebar.open {
-        transform: translateX(0);
-    }
-
-    #toggle-sidebar {
-        border-radius: 10px !important;
-        border: none !important;
-        background-color: #6d0f10 !important;
-        position: fixed;
-        top: 10px;
-        left: 10px;
-        z-index: 1100;
-        
-    }
-}
-</style>
