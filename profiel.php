@@ -53,7 +53,6 @@ $contactData = $stmtContact->fetch(PDO::FETCH_ASSOC);
   <img src="img/logo.png" alt="Logo" class="logo">
   <h1>Bedrijfsinformatie Portal</h1>
 </header>
-
 <?php include 'sidebar.php'; ?>
 
 <!-- Bedrijfsinformatie-container met toggle -->
@@ -116,15 +115,6 @@ $contactData = $stmtContact->fetch(PDO::FETCH_ASSOC);
         <p>Geen gegevens beschikbaar.</p>
     <?php endif; ?>
 </div>
-
-<script>
-  // Toggle de zichtbaarheid van de contactinformatie met een slide-in animatie
-  const toggleIcon = document.querySelector('.toggle-contact-icon');
-  const contactInfo = document.querySelector('.contact-info');
-
-  toggleIcon.addEventListener('click', () => {
-      contactInfo.classList.toggle('active');
-  }); 
-</script>
 </body>
+<script src="js/profiel.js"></script>
 </html>
