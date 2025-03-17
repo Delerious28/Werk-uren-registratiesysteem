@@ -7,46 +7,56 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-$user_id = $_SESSION['user_id']; 
+$user_id = $_SESSION['user_id'];
 
 // Haal gebruikersgegevens op
-$query = "SELECT name, achternaam FROM users WHERE user_id = :user_id"; 
+$query = "SELECT name, achternaam FROM users WHERE user_id = :user_id";
 $stmt = $pdo->prepare($query);
 $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
 $stmt->execute();
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
 $first_name = $user ? $user['name'] : 'Gebruiker';
-$last_name = $user ? $user['achternaam'] : ''; 
+$last_name = $user ? $user['achternaam'] : '';
 $username = $first_name . ' ' . $last_name;
 
-// Haal urengegevens op
-$query_hours = "SELECT SUM(hours) AS total_hours, SUM(contract_hours) AS total_contract_hours 
-                FROM hours 
-                WHERE user_id = :user_id";
+// Haal urengegevens op en de contract_uren van het project
+$query_hours = "
+    SELECT SUM(h.hours) AS total_hours, p.contract_uren 
+    FROM hours h
+    JOIN project p ON h.project_id = p.project_id
+    WHERE h.user_id = :user_id
+";
 $stmt_hours = $pdo->prepare($query_hours);
 $stmt_hours->bindParam(':user_id', $user_id, PDO::PARAM_INT);
 $stmt_hours->execute();
 $hours_data = $stmt_hours->fetch(PDO::FETCH_ASSOC);
 
 $total_hours = $hours_data['total_hours'] ?? 0;
-$total_contract_hours = $hours_data['total_contract_hours'] ?? 1; 
+$total_contract_hours = $hours_data['contract_uren'] ?? 1; // Zet op 1 als het niet bestaat
+
+// Zorg ervoor dat $total_contract_hours niet nul is voor de berekening
+if ($total_contract_hours == 0) {
+    $total_contract_hours = 1; // Zet het op 1 als het 0 is om deling door nul te voorkomen
+}
 
 $percentage = ($total_hours / $total_contract_hours) * 100;
-$percentage = min($percentage, 100); 
+$percentage = min($percentage, 100);
 $remaining_hours = $total_contract_hours - $total_hours;
 
 // Haal projectgegevens op via project_users
-$query_project = "SELECT p.project_naam, k.bedrijfnaam 
+$query_project = "SELECT p.project_id, p.project_naam, k.bedrijfnaam 
                   FROM project_users pu
                   JOIN project p ON pu.project_id = p.project_id
                   JOIN klant k ON p.klant_id = k.klant_id
                   WHERE pu.user_id = :user_id
                   LIMIT 1";
+
 $stmt_project = $pdo->prepare($query_project);
 $stmt_project->bindParam(':user_id', $user_id, PDO::PARAM_INT);
 $stmt_project->execute();
 $project_data = $stmt_project->fetch(PDO::FETCH_ASSOC);
+$project_id = $project_data ? $project_data['project_id'] : 0; // Zorg ervoor dat project_id beschikbaar is
 
 $project_name = $project_data ? $project_data['project_naam'] : 'Onbekend project';
 $company_name = $project_data ? $project_data['bedrijfnaam'] : 'Onbekend bedrijf';
@@ -68,46 +78,36 @@ $company_name = $project_data ? $project_data['bedrijfnaam'] : 'Onbekend bedrijf
         <div class="progress-bar-container">
             <div class="progress-bar" id="progress" style="width: <?php echo round($percentage, 2); ?>%;"></div>
         </div>
-        <h3>Te werken uren: <?php echo $remaining_hours; ?> uur</h3>
+        <h3>Project uren: <?php echo $remaining_hours; ?> uur</h3>
     </div>
     <div class="container boven-container-rechts">
-        <!-- Toon nu zowel de projectnaam als de klantnaam -->
-        <h4 id="workText"><?php echo htmlspecialchars($project_name . " bij " . $company_name); ?></h4>
+        <button class="project-info-popup" data-project-id="<?php echo $project_id; ?>">
+            <h4 id="workText">
+                U werkt voor:<br>
+                <?php echo htmlspecialchars($project_name) . "<br> bij " . htmlspecialchars($company_name); ?>
+            </h4>
+        </button>
     </div>
     <div class="foto-container">
         <img src="img/logoindex-modified.png" alt="Foto" class="midden-foto">
     </div>
     <div class="container onder-container">
         <div class="welkom-container" id="welkomContainer">
-            <h2>Welkom, <span id="username"><?php echo htmlspecialchars($username); ?></span></h2>
+            <h2>Welkom, <span id="username"><?php echo htmlspecialchars($username); ?>!</span></h2>
         </div>
     </div>
 </div>
 
-<script>
-    const bovenContainerLinks = document.querySelector('.boven-container-links');
-    const percentageText = document.getElementById('percentageText');
-    const h3Text = document.querySelector('.boven-container-links h3');
+<!-- Pop-up -->
+<div id="popup" class="pop-up">
+    <span class="close">&times;</span>
+    <h2 id="popup-title"></h2>
+    <p id="popup-klant-naam"></p>
+    <p id="popup-contract-uren"></p>
+    <p id="popup-description"></p>
+</div>
 
-    bovenContainerLinks.addEventListener('animationend', () => {
-        percentageText.classList.add('visible');
-        h3Text.classList.add('visible');
-    });
-
-    const bovenContainerRechts = document.querySelector('.boven-container-rechts');
-    const workText = document.getElementById('workText');
-
-    bovenContainerRechts.addEventListener('animationend', () => {
-        workText.classList.add('visible');
-    });
-
-    const onderContainer = document.querySelector('.onder-container');
-    const welkomContainer = document.getElementById('welkomContainer');
-
-    onderContainer.addEventListener('animationend', () => {
-        welkomContainer.classList.add('visible');
-    });
-</script>
+<script src="js/index.js"></script>
 
 </body>
 </html>
