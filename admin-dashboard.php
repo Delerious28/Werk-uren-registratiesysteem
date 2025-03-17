@@ -1,5 +1,22 @@
 <?php
 require __DIR__ . '/db/conn.php';
+// Nieuwe toevoeging: Controleer of het een AJAX-request is voor e-mailvalidatie
+if (isset($_GET['action']) && $_GET['action'] === 'check_email' && isset($_GET['email'])) {
+    $email = $_GET['email'];
+    // Controleer in de tabel users
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
+    $stmt->execute([$email]);
+    $countUser = $stmt->fetchColumn();
+    // Controleer in de tabel klant (voor klanten)
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM klant WHERE email = ?");
+    $stmt->execute([$email]);
+    $countKlant = $stmt->fetchColumn();
+    $exists = ($countUser + $countKlant) > 0;
+    
+    header('Content-Type: application/json');
+    echo json_encode(['exists' => $exists]);
+    exit();
+}
 session_start();
 
 // Controleer admin rechten
@@ -323,6 +340,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_project'])) {
                     <div class="chart-container">
                         <canvas id="hoursChart"></canvas>
                     </div>
+                    
+                    
                 </section>
                  <!-- Clients Section -->
                  <section id="clients" class="d-none">
@@ -360,8 +379,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_project'])) {
                             <div class="col-md-3">
                                 <input type="text" name="achternaam" class="form-control" placeholder="Achternaam" required>
                             </div>
-                            <div class="col-md-3">
-                                <input type="email" name="email" class="form-control" placeholder="Email" required>
+                            <div class="col-md-3 position-relative">
+    <!-- De 'alert' staat nu boven het inputveld, is standaard verborgen en position:absolute -->
+    <div id="emailFeedback" 
+         class="alert alert-danger d-none py-1 px-2 position-absolute" 
+         style="top: -35px; left: 5px; margin-bottom: 0; z-index: 999;">
+        Deze email is al in gebruik.
+    </div>
+    <input type="email" id="email" name="email" class="form-control" placeholder="Email" required>
+</div>
+              <div class="col-md-3">
+                            <input type="email" id="email" name="email" class="form-control" placeholder="Email" required>
                             </div>
                             <div class="col-md-3">
                                 <input type="text" name="telefoon" class="form-control" placeholder="Telefoon" required>
@@ -762,6 +790,39 @@ function showNotification(message, type) {
         notificationContainer.classList.remove('hide');
     }, 3300);
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const emailInput = document.getElementById('email');
+    const emailFeedback = document.getElementById('emailFeedback');
+    
+    emailInput.addEventListener('input', function() {
+        const email = emailInput.value;
+        
+        if (email.length > 5) {
+            fetch('admin-dashboard.php?action=check_email&email=' + encodeURIComponent(email))
+            .then(response => response.json())
+            .then(data => {
+                if (data.exists) {
+                    // E-mail bestaat al -> maak veld rood en toon melding
+                    emailInput.classList.add('is-invalid');
+                    emailFeedback.classList.remove('d-none');
+                } else {
+                    // E-mail bestaat niet -> haal rood weg en verberg melding
+                    emailInput.classList.remove('is-invalid');
+                    emailFeedback.classList.add('d-none');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        } else {
+            // Als er nog weinig karakters zijn, verberg de foutmelding
+            emailInput.classList.remove('is-invalid');
+            emailFeedback.classList.add('d-none');
+        }
+    });
+});
+
+
+
 
 document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
