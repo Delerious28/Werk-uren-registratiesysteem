@@ -9,6 +9,7 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id']; 
 
+// Haal gebruikersgegevens op
 $query = "SELECT name, achternaam FROM users WHERE user_id = :user_id"; 
 $stmt = $pdo->prepare($query);
 $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
@@ -17,9 +18,9 @@ $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
 $first_name = $user ? $user['name'] : 'Gebruiker';
 $last_name = $user ? $user['achternaam'] : ''; 
-
 $username = $first_name . ' ' . $last_name;
 
+// Haal urengegevens op
 $query_hours = "SELECT SUM(hours) AS total_hours, SUM(contract_hours) AS total_contract_hours 
                 FROM hours 
                 WHERE user_id = :user_id";
@@ -33,18 +34,21 @@ $total_contract_hours = $hours_data['total_contract_hours'] ?? 1;
 
 $percentage = ($total_hours / $total_contract_hours) * 100;
 $percentage = min($percentage, 100); 
-
 $remaining_hours = $total_contract_hours - $total_hours;
 
+// Haal projectgegevens op via project_users
 $query_project = "SELECT p.project_naam, k.bedrijfnaam 
-                  FROM project p
+                  FROM project_users pu
+                  JOIN project p ON pu.project_id = p.project_id
                   JOIN klant k ON p.klant_id = k.klant_id
-                  WHERE p.user_id = :user_id LIMIT 1";
+                  WHERE pu.user_id = :user_id
+                  LIMIT 1";
 $stmt_project = $pdo->prepare($query_project);
 $stmt_project->bindParam(':user_id', $user_id, PDO::PARAM_INT);
 $stmt_project->execute();
 $project_data = $stmt_project->fetch(PDO::FETCH_ASSOC);
 
+$project_name = $project_data ? $project_data['project_naam'] : 'Onbekend project';
 $company_name = $project_data ? $project_data['bedrijfnaam'] : 'Onbekend bedrijf';
 ?>
 <!DOCTYPE html>
@@ -60,14 +64,15 @@ $company_name = $project_data ? $project_data['bedrijfnaam'] : 'Onbekend bedrijf
 <?php include 'sidebar.php'; ?>
 <div class="start">
     <div class="container boven-container-links">
-        <h1 id="percentageText"><!--Text--><?php echo (100 - round($percentage, 2)); ?>%<!--Text--></h1>
+        <h1 id="percentageText"><?php echo (100 - round($percentage, 2)); ?>%</h1>
         <div class="progress-bar-container">
             <div class="progress-bar" id="progress" style="width: <?php echo round($percentage, 2); ?>%;"></div>
         </div>
         <h3>Te werken uren: <?php echo $remaining_hours; ?> uur</h3>
     </div>
     <div class="container boven-container-rechts">
-        <h4 id="workText"><?php echo htmlspecialchars($company_name); ?></h4>
+        <!-- Toon nu zowel de projectnaam als de klantnaam -->
+        <h4 id="workText"><?php echo htmlspecialchars($project_name . " bij " . $company_name); ?></h4>
     </div>
     <div class="foto-container">
         <img src="img/logoindex-modified.png" alt="Foto" class="midden-foto">
@@ -80,28 +85,28 @@ $company_name = $project_data ? $project_data['bedrijfnaam'] : 'Onbekend bedrijf
 </div>
 
 <script>
-        const bovenContainerLinks = document.querySelector('.boven-container-links');
-        const percentageText = document.getElementById('percentageText');
-        const h3Text = document.querySelector('.boven-container-links h3');
+    const bovenContainerLinks = document.querySelector('.boven-container-links');
+    const percentageText = document.getElementById('percentageText');
+    const h3Text = document.querySelector('.boven-container-links h3');
 
-        bovenContainerLinks.addEventListener('animationend', () => {
-            percentageText.classList.add('visible');
-            h3Text.classList.add('visible');
-        });
+    bovenContainerLinks.addEventListener('animationend', () => {
+        percentageText.classList.add('visible');
+        h3Text.classList.add('visible');
+    });
 
-        const bovenContainerRechts = document.querySelector('.boven-container-rechts');
-        const workText = document.getElementById('workText');
+    const bovenContainerRechts = document.querySelector('.boven-container-rechts');
+    const workText = document.getElementById('workText');
 
-        bovenContainerRechts.addEventListener('animationend', () => {
-            workText.classList.add('visible');
-        });
+    bovenContainerRechts.addEventListener('animationend', () => {
+        workText.classList.add('visible');
+    });
 
-        const onderContainer = document.querySelector('.onder-container');
-        const welkomContainer = document.getElementById('welkomContainer');
+    const onderContainer = document.querySelector('.onder-container');
+    const welkomContainer = document.getElementById('welkomContainer');
 
-        onderContainer.addEventListener('animationend', () => {
-            welkomContainer.classList.add('visible');
-        });
+    onderContainer.addEventListener('animationend', () => {
+        welkomContainer.classList.add('visible');
+    });
 </script>
 
 </body>
