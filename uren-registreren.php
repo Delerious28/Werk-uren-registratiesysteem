@@ -133,12 +133,23 @@ $hoursStmt->execute([
 ]);
 $hoursRecords = $hoursStmt->fetchAll(PDO::FETCH_ASSOC);
 
+$dutchDays = [
+    'Monday' => 'Maandag',
+    'Tuesday' => 'Dinsdag',
+    'Wednesday' => 'Woensdag',
+    'Thursday' => 'Donderdag',
+    'Friday' => 'Vrijdag',
+    'Saturday' => 'Zaterdag',
+    'Sunday' => 'Zondag'
+];
+
 // Groepeer de uren per dag
 $groupedHours = [];
 foreach ($hoursRecords as $record) {
     $todayDate = date('Y-m-d');
     $dayOfWeek = date('l', strtotime($record['date'])); // Bijv. "Monday"
-    $groupedHours[$dayOfWeek][] = $record;
+    $dayOfWeekDUtch = $dutchDays[$dayOfWeek] ?? $dayOfWeek;
+    $groupedHours[$dayOfWeekDUtch][] = $record;
 }
 
 ?>
@@ -160,11 +171,11 @@ foreach ($hoursRecords as $record) {
     <div class="week-nav">
       <form method="POST" action="" style="display: inline;">
         <input type="hidden" name="week_offset" value="<?= $weekOffset - 1; ?>">
-        <button type="submit" id="prev">&larr;</button>
+        <button type="submit" id="prev" title="Vorige week">&larr;</button>
       </form>
       <form method="POST" action="" style="display: inline;">
         <input type="hidden" name="week_offset" value="<?= $weekOffset + 1; ?>">
-        <button type="submit" id="next">&rarr;</button>
+        <button type="submit" id="next" title="Volgende week">&rarr;</button>
       </form>
     </div>
   </div>
@@ -241,19 +252,19 @@ foreach ($hoursRecords as $record) {
       <div class="block-b">
           <div class="overzicht">
               <?php
-              // Definieer de dagen van de week
-              $dagenVanDeWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-              foreach ($dagenVanDeWeek as $dag):
+              // Definieer de dagen van de week in het Nederlands
+              $dayOfWeekDUtch = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+              foreach ($dayOfWeekDUtch as $dag):
                   $dagNaam = strtolower($dag); // Bijv. "monday"
                   $dagDatum = date('Y-m-d', strtotime($dag . ' this week') + ($weekOffset * 7 * 86400)); // Datum van de dag
-                  $dagRecords = $groupedHours[$dag] ?? []; // Haal de uren op voor deze dag
+                  $dagRecords = $groupedHours[$dutchDays[$dag]] ?? []; // Haal de uren op voor deze dag in het Nederlands
                   $isSelected = ($selectedDay === $dagDatum); // Controleer of deze dag geselecteerd is
                   ?>
                   <form method="POST" action="" class="dag-uren-form">
                       <input type="hidden" name="selected_day" value="<?= $dagDatum; ?>">
                       <div class="dag <?= $isSelected ? 'selected' : ''; ?> <?= ($dagDatum === $todayDate) ? 'today-highlight' : ''; ?>" onclick="this.parentNode.submit();">
-                      <div class="dag-info">
-                              <span class="dagnaam"><?php echo ucfirst($dagNaam); ?></span>
+                          <div class="dag-info">
+                              <span class="dagnaam"><?php echo $dutchDays[$dag]; // Vertaalde dagnaam ?></span>
                               <span class="datum-klein"><?php echo date('d-m', strtotime($dagDatum)); ?></span>
                           </div>
                           <?php if (!empty($dagRecords)): ?>
@@ -269,7 +280,7 @@ foreach ($hoursRecords as $record) {
                                   </div>
                               <?php endforeach; ?>
                           <?php else: ?>
-                              <p>Geen uren ingevoerd voor <?php echo ucfirst($dagNaam); ?>.</p>
+                              <p class="geen-uren-bericht">Geen uren ingevoerd voor <?php echo $dutchDays[$dag]; // Vertaalde dagnaam ?>.</p>
                           <?php endif; ?>
                       </div>
                       <div class="info-png-div">
@@ -296,7 +307,6 @@ foreach ($hoursRecords as $record) {
   </div>
 </div>
 
-<script src="js/uren-registreren.js">
-</script>
+<script src="js/uren-registreren.js"></script>
 </body>
 </html>

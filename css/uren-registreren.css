@@ -40,11 +40,11 @@ body {
     cursor: pointer;
     border-radius: 5px;
     font-size: 1em;
-    transition: background 0.3s;
+    transition:  0.3s, transform 0.2s;
 }
 
 .week-nav button:hover {
-    background: red;
+    transform: scale(1.08);
 }
 
 .wrapper {
@@ -158,13 +158,15 @@ body {
     padding: 10px;
     margin-bottom: 10px;
 }
+
 .dag.selected {
     background-color: #6D0F10; /* Highlight de geselecteerde dag */
     color: white;
+    transition:  0.3s, transform 0.2s;
 }
 
 .dag.selected:hover{
-    background-color: red;
+    transform: scale(1.01);
 }
 
 .info {
@@ -305,6 +307,11 @@ li{
 
 .today-highlight {
     border: 2px solid #630101 !important;
+}
+
+.geen-uren-bericht{
+    width: 100%;
+    padding-left: 95px;
 }
 
 
