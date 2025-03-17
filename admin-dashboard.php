@@ -4,7 +4,7 @@ session_start();
 
 // Controleer admin rechten
 if (!isset($_SESSION['role'])) {
-    header("Location: inloggen.php");
+    header("Location: login.php");
     exit();
 } elseif ($_SESSION['role'] !== 'admin') {
     die("Geen toegang!");
@@ -289,7 +289,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_project'])) {
         <div class="list-group">
             <a href="#dashboard" class="list-group-item active">Dashboard</a>
             <a href="#users" class="list-group-item">Gebruikers</a>
-                        <a href="#clients" class="list-group-item">Klanten</a>
+                        <a href="klant.php" class="list-group-item">Klanten</a>
 
             <a href="#projects" class="list-group-item">Projecten</a>
             <a href="admin-download.php" class="list-group-item">Download</a>
@@ -663,53 +663,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_project'])) {
     </div>
 </div>
 
-<!-- Edit Klant Modal -->
-<div class="modal fade" id="editKlantModal" tabindex="-1" aria-labelledby="editKlantModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editKlantModalLabel">Klant Bewerken</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form method="POST" id="editKlantForm">
-                    <input type="hidden" name="update_klant" value="1">
-                    <input type="hidden" name="klant_id" id="editKlantId">
-                    
-                    <div class="mb-3">
-                        <label for="editVoornaam" class="form-label">Voornaam</label>
-                        <input type="text" class="form-control" id="editVoornaam" name="voornaam" required>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="editAchternaam" class="form-label">Achternaam</label>
-                        <input type="text" class="form-control" id="editAchternaam" name="achternaam" required>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="editEmail" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="editEmail" name="email" required>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="editTelefoon" class="form-label">Telefoon</label>
-                        <input type="text" class="form-control" id="editTelefoon" name="telefoon" required>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="editBedrijfnaam" class="form-label">Bedrijfsnaam</label>
-                        <input type="text" class="form-control" id="editBedrijfnaam" name="bedrijfnaam" required>
-                    </div>
-                    
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Sluiten</button>
-                        <button type="submit" class="btn btn-primary">Opslaan</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+
                             
     <script>
         // Project bewerken: Vul de modal met data
@@ -722,17 +676,7 @@ document.querySelectorAll('.edit-project-btn').forEach(button => {
         document.getElementById('editBeschrijving').value = this.dataset.beschrijving;
     });
 });
-        // JavaScript voor klant bewerken
-document.querySelectorAll('#editKlantModal').forEach(button => {
-    button.addEventListener('click', function() {
-        document.getElementById('editKlantId').value = this.dataset.klantid;
-        document.getElementById('editVoornaam').value = this.dataset.voornaam;
-        document.getElementById('editAchternaam').value = this.dataset.achternaam;
-        document.getElementById('editEmail').value = this.dataset.email;
-        document.getElementById('editTelefoon').value = this.dataset.telefoon;
-        document.getElementById('editBedrijfnaam').value = this.dataset.bedrijfnaam;
-    });
-});
+
         
         // Role selection handler
         document.getElementById('roleSelect').addEventListener('change', function() {
@@ -746,7 +690,7 @@ document.querySelectorAll('.list-group-item').forEach(link => {
         const target = this.getAttribute('href');
 
         // Controleer of de link NIET naar uitloggen.php of download.php verwijst
-        if (target !== "uitloggen.php" && target !== "admin-download.php" && target !== "profiel.php") {
+        if (target !== "uitloggen.php" && target !== "admin-download.php" && target !== "profiel.php" && target !== 'klant.php') {
             e.preventDefault();
 
             document.querySelectorAll('.list-group-item').forEach(item => {
