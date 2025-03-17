@@ -136,6 +136,7 @@ $hoursRecords = $hoursStmt->fetchAll(PDO::FETCH_ASSOC);
 // Groepeer de uren per dag
 $groupedHours = [];
 foreach ($hoursRecords as $record) {
+    $todayDate = date('Y-m-d');
     $dayOfWeek = date('l', strtotime($record['date'])); // Bijv. "Monday"
     $groupedHours[$dayOfWeek][] = $record;
 }
@@ -154,7 +155,7 @@ foreach ($hoursRecords as $record) {
 <div class="bigbox">
   <div class="topheader">
     <div class="datum">
-      <h3 id="date-today"><?php echo date('d M'); ?> (Today)</h3>
+      <h3 id="date-today"><?php echo date('d M Y'); ?> (Today)</h3>
     </div>
     <div class="week-nav">
       <form method="POST" action="" style="display: inline;">
@@ -250,15 +251,15 @@ foreach ($hoursRecords as $record) {
                   ?>
                   <form method="POST" action="" class="dag-uren-form">
                       <input type="hidden" name="selected_day" value="<?= $dagDatum; ?>">
-                      <div class="dag <?= $isSelected ? 'selected' : ''; ?>" onclick="this.parentNode.submit();">
-                          <div class="dag-info">
+                      <div class="dag <?= $isSelected ? 'selected' : ''; ?> <?= ($dagDatum === $todayDate) ? 'today-highlight' : ''; ?>" onclick="this.parentNode.submit();">
+                      <div class="dag-info">
                               <span class="dagnaam"><?php echo ucfirst($dagNaam); ?></span>
                               <span class="datum-klein"><?php echo date('d-m', strtotime($dagDatum)); ?></span>
                           </div>
                           <?php if (!empty($dagRecords)): ?>
                               <?php foreach ($dagRecords as $record): ?>
                                   <div class="info">
-                                      Klant: <?php echo $record['klant_voornaam'] . ' ' . $record['klant_achternaam']; ?><br>
+                                      Klant: <?php echo $record['klant_voornaam'] ?><br>
                                       Project: <?php echo $record['project_naam']; ?><br>
                                       Beschrijving: ...
                                   </div>
