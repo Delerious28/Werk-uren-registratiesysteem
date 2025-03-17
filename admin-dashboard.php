@@ -289,11 +289,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_project'])) {
         <div class="list-group">
             <a href="#dashboard" class="list-group-item active">Dashboard</a>
             <a href="#users" class="list-group-item">Gebruikers</a>
-                        <a href="klant.php" class="list-group-item">Klanten</a>
+                        <a href="admin-klant.php" class="list-group-item">Klanten</a>
 
             <a href="#projects" class="list-group-item">Projecten</a>
             <a href="admin-download.php" class="list-group-item">Download</a>
-            <a href="profiel.php" class="list-group-item">Profiel</a>
+            <a href="admin-profiel.php" class="list-group-item">Profiel</a>
             <a href="uitloggen.php" class="list-group-item list-group-item-danger">Uitloggen</a>
         </div>
     </div>
@@ -690,7 +690,7 @@ document.querySelectorAll('.list-group-item').forEach(link => {
         const target = this.getAttribute('href');
 
         // Controleer of de link NIET naar uitloggen.php of download.php verwijst
-        if (target !== "uitloggen.php" && target !== "admin-download.php" && target !== "profiel.php" && target !== 'klant.php') {
+        if (target !== "uitloggen.php" && target !== "admin-download.php" && target !== "admin-profiel.php" && target !== 'klant.php') {
             e.preventDefault();
 
             document.querySelectorAll('.list-group-item').forEach(item => {
