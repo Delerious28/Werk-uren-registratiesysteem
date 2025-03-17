@@ -98,6 +98,6 @@ $isDownloadPage = ($currentPage === 'admin-download.php');
         }
     });
 </script>
-
+ 
 </body>
 </html>

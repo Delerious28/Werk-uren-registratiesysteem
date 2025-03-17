@@ -116,7 +116,7 @@ try {
 
 <div class="container">
     <h1>Klant Dashboard</h1>
-
+ 
     <div class="filter-links">
         <a href="?filter=day&user_id=<?php echo urlencode($selectedUserId); ?>" class="<?php echo $filter === 'day' ? 'active' : ''; ?>">Per Dag</a>
         <a href="?filter=week&user_id=<?php echo urlencode($selectedUserId); ?>" class="<?php echo $filter === 'week' ? 'active' : ''; ?>">Per Week</a>

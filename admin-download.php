@@ -86,7 +86,7 @@ if (isset($_GET['user_id']) && isset($_GET['month']) && isset($_GET['year'])) {
     <title>Urenoverzicht Downloaden</title>
     <link rel="stylesheet" href="css/download.css">
 </head>
-<body>
+<body> 
     <h1>Download Urenoverzicht</h1>
     <?php include 'admin-sidebar.php'?>
 

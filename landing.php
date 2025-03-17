@@ -31,7 +31,7 @@
             align-items: center;
             justify-content: center;
         }
-
+ 
         .container {
             position: absolute;
             border-radius: 10px;

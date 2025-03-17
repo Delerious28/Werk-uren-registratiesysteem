@@ -1,231 +1,136 @@
-/* General Styles */
+/* Algemene body-styling */
 body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: white;
-    overflow: hidden;
-    background-image: url('../img/achtergrond(nieuw).png');
-    background-size: 100% 100%;
-    background-position: center;
-    background-repeat: no-repeat;
-    height: 100vh;
     font-family: 'Arial', sans-serif;
-    font-size: 18px;
+    background-color: #f8f9fa;
     margin: 0;
-    padding: 0;
-}
-
-.container {
-    background-color: rgba(255, 255, 255, 0.9);
-    padding: 30px;
-    border-radius: 12px;
-    border: 1px solid #ddd;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    text-align: start;    
-    position: relative;
-    width: 900px;
-    backdrop-filter: blur(5px);
-    overflow-y: auto;
-}
-
-.buttons {
-    margin-bottom: 20px;
-    gap: 20px;
-}
-
-.buttons button {
-    padding: 12px 30px;
-    border: none;
-    border-radius: 5px;
-    background-color: #5f0101;
-    color: white;
-    cursor: pointer;
-    font-size: 18px;
-    transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.buttons button:hover {
-    transform: scale(1.05);
-    background-color: #d00b0b;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-.container-section {
-    display: none;
-    transition: opacity 0.5s ease-in-out;
-    width: 100%;
-}
-
-.fade-in {
-    opacity: 1;
-}
-
-.columns {
-    display: flex;
-    width: 100%;
-    text-align: left;
-}
-
-.column {
     padding: 20px;
-    background-color: rgba(245, 245, 245, 0.8); 
-    border-radius: 8px;
-}
-
-.column h3 {
-    margin-bottom: 25px;
     color: #333;
-    font-size: 20px;
-    font-weight: 600;
+    background-image: url('../img/achtergrond(nieuw).png');   
+    background-size: cover; 
+    background-repeat: no-repeat;
 }
 
-.column p {
+/* Sidebar-styling */
+.sidebar {
+    background-color: #ffffff;
+    border-right: 2px solid #6d0f10;
+}
+
+/* Algemene styling voor info-secties */
+.info-section {
+    background-color: #ffffff;
+    border: 1px solid #6d0f10;
+    padding: 20px;
+    margin: 20px auto;
+    border-radius: 8px;
+    max-width: 800px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: relative; /* Zorgt dat absolute elementen hierbinnen gepositioneerd worden */
+}
+
+/* Titels in info-secties */
+.info-section h2 {
+    color: #6d0f10;
+    margin-top: 0;
+    border-bottom: 2px solid #6d0f10;
+    padding-bottom: 5px;
+}
+
+/* Afzonderlijke info-items */
+.info-item {
     margin: 10px 0;
-    font-size: 18px;
-    color: #555;
+}
+
+/* Label-styling in info-items */
+.info-label {
+    font-weight: bold;
+    color: #6d0f10;
+}
+
+/* Responsive aanpassingen */
+@media (max-width: 600px) {
+    .info-section {
+        margin: 10px;
+        padding: 15px;
+    }
+}
+
+/* Header-styling */
+header {
+    position: relative;
+    top: 20px;
+    left: 0;
+    width: 30%;
+    background-color: transparent;
+    padding: 20px;
     display: flex;
     align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    z-index: 2000;
+    margin: auto;
 }
 
-.column p img {
-    cursor: pointer;
-    transition: transform 0.2s ease;
-    margin-left: 10px;
+/* Logo in de header */
+header .logo {
+    max-width: 200px;
+    margin-bottom: 10px;
 }
 
-.column p img:hover {
-    transform: scale(1.1);
+/* Titel in de header */
+header h1 {
+    font-size: 2em;
+    color: #6d0f10;
 }
 
-#klantContainer {
-    position: relative;
-    left: 0;
-    width: 100%;
-}
-
-/* Notification Styles */
-.notification {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    padding: 15px 20px;
-    border-radius: 5px;
-    color: white;
-    display: none;
-    z-index: 1000;
-    font-size: 16px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-}
-
-.notification.success {
-    background-color: #4CAF50; 
-}
-
-.notification.error {
-    background-color: #F44336;
-}
-
-@keyframes scaleUp {
-    0% {
-        transform: scale(0);
-    }
-    100% {
-        transform: scale(1);
-    }
-}
-
-@keyframes scaleDown {
-    0% {
-        transform: scale(1);
-    }
-    100% {
-        transform: scale(0);
-    }
-}
-
-.notification {
-    animation: scaleUp 0.3s ease-out forwards;
-}
-
-.notification.hide {
-    animation: scaleDown 0.3s ease-in forwards;
-}
-
-
-#klantContainer > div {
+/* Container voor de toggle (tekst en icoon) */
+.toggle-contact {
+    position: absolute;
+    top: 10px;
+    right: 10px;
     display: flex;
-    flex-direction: row;
-    color: black;
-  font-size: 20px;
-  text-decoration: none;
-  border: 1px solid #ddd;
-  background-color: rgba(245, 245, 245, 0.8);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-
+    align-items: center;
+    gap: 5px; /* ruimte tussen tekst en icoon */
 }
 
-#klantenLijst {
-    width: 340px;
-        text-decoration: none;
-    height: 490px;
-    overflow: scroll;
-    background-color: rgba(245, 245, 245, 0.8);
-  border-radius: 8px;
-
-}
-
-#klantDetails {
-    flex-grow: 1;
-    min-height: 200px; 
-}
-
-.klant-link {
-    background-color: transparent;
-    padding: 10px;
-    gap: 20px;
-    font-weight: bold;
-    color: black;
-    text-decoration: none;
-    text-align: end;
-}
-#klantenLijst ul li {
-    margin-bottom: 20px;
-}
-
-h6{
-    font-size: 25px;
-  font-weight: normal;
-  color: black;
-  padding: 20px;
-  margin-top: 0px;
-  background-color: transparent;
-  height: 30px;
-}
-
-.profiel-titels{
+/* De tekst "Contact" links van de knop */
+.contact-text {
+    font-size: 16px;
+    color: #6d0f10;
     font-weight: bold;
 }
 
-#opslaan-btn-profiel{
-    height: 30px;
-    background-color: #630101;
-    color: white;
-    font-weight: bold;
-    border-radius: 5px;
+/* Het toggle-icoontje */
+.toggle-contact-icon {
+    width: 24px;
+    height: 24px;
     cursor: pointer;
-    transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-#opslaan-btn-profiel:hover{
-    transform: scale(1.05);
-    background-color: #d00b0b;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+.contact-info {
+    position: absolute;
+    top: 0px;
+    left: 850px;
+    width: 300px;
+    background-color: #ffffff;
+    border: 1px solid #6d0f10;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    height: 26 0px;
+    
+    /* Begin-toestand: verborgen en naar rechts verschoven */
+    opacity: 0;
+    transform: translateX(100%);
+    visibility: hidden;
+    
+    /* Overgangseffecten */
+    transition: transform 0.5s ease, opacity 0.5s ease;
 }
 
-.input-profiel{
-    height: 25px;
-    border-radius: 5px;
-    padding-left: 10px;
+/* Wanneer de contact-info actief is, komt hij in beeld */
+.contact-info.active {
+    opacity: 1;
+    transform: translateX(0);
+    visibility: visible;
 }

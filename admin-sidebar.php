@@ -30,11 +30,16 @@ if (!isset($_SESSION['user_id'])) {
             <a href="admin-download.php" 
                class="list-group-item <?= ($currentPage === 'admin-download.php') ? 'active' : '' ?>">
                 Download
-            </a>
-            <a href="profiel.php" 
-               class="list-group-item <?= ($currentPage === 'profiel.php') ? 'active' : '' ?>">
+            </a> 
+            <a href="admin-profiel.php" 
+               class="list-group-item <?= ($currentPage === 'admin-profiel.php') ? 'active' : '' ?>">
                 Profiel
             </a>
+            <a href="admin-klant.php" 
+               class="list-group-item <?= ($currentPage === 'admin-klant.php') ? 'active' : '' ?>">
+                klanten
+            </a>
+            
             <a href="uitloggen.php" 
                class="list-group-item list-group-item-danger <?= ($currentPage === 'uitloggen.php') ? 'active' : '' ?>">
                 Uitloggen
