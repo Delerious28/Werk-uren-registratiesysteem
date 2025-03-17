@@ -4,7 +4,7 @@ session_start();
 
 // Controleer admin rechten
 if (!isset($_SESSION['role'])) {
-    header("Location: login.php");
+    header("Location: inloggen.php");
     exit();
 } elseif ($_SESSION['role'] !== 'admin') {
     die("Geen toegang!");

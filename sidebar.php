@@ -2,60 +2,102 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+require_once 'db/conn.php';
+
+if (!isset($_SESSION['role'])) {
+    die("Geen toegang. Log in om verder te gaan.");
+}
+
+$role = $_SESSION['role'];
+
+// Controleer of de huidige pagina de downloadpagina is
+$currentPage = basename($_SERVER['PHP_SELF']);
+$isDownloadPage = ($currentPage === 'admin-download.php');
 ?>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="css/admin-dashboard.css" rel="stylesheet">
-<link href="css/admin-sidebar.css" rel="stylesheet">
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="css/sidebar.css" rel="stylesheet">
+</head>
+<body>
 
-<!-- Toggle Button for Mobile -->
-<button id="toggle-sidebar" class="btn btn-primary d-md-none">
-    ☰
-</button>
+<button class="toggle-btn" id="toggleBtn" onclick="toggleSidebar()">☰</button>
 
-<!-- Sidebar -->
-<nav id="sidebar" class="col-md-2 sidebar">
-    <div class="p-3">
-        <h4>Admin Dashboard</h4>
-        <div class="list-group">
-            <a href="admin-dashboard.php" 
-               class="list-group-item <?= ($currentPage === 'admin-dashboard.php') ? 'active' : '' ?>">
-                Dashboard
-            </a>
-            <a href="admin-download.php" 
-               class="list-group-item <?= ($currentPage === 'admin-download.php') ? 'active' : '' ?>">
-                Download
-            </a>
-            <a href="klant.php" 
-               class="list-group-item <?= ($currentPage === 'klant.php') ? 'active' : '' ?>">
-                klanten
-            </a>
-            <a href="profiel.php" 
-               class="list-group-item <?= ($currentPage === 'profiel.php') ? 'active' : '' ?>">
-                Profiel
-            </a>
-            <a href="uitloggen.php" 
-               class="list-group-item list-group-item-danger <?= ($currentPage === 'uitloggen.php') ? 'active' : '' ?>">
-                Uitloggen
-            </a>
-        </div>
-    </div>
-</nav>
+<div id="mySidebar" class="sidebar" style="<?= $isDownloadPage ? 'left: 0;' : 'left: -250px;' ?>">
+    <button class="close-btn" onclick="toggleSidebar()">❌</button>
+    <img src="img/logo.png" alt="Profile Image">
+
+    <?php if ($role === 'admin'): ?>
+        <a href="admin-dashboard.php">Dashboard</a>
+        <a href="profiel.php">Profiel</a>
+        <a href="admin-download.php">Download</a>
+    <?php elseif ($role === 'klant'): ?>
+        <a href="klant-dashboard.php">Dashboard</a>
+        <a href="profiel.php">Profiel</a>
+    <?php elseif ($role === 'user'): ?>
+        <a href="index.php">Home</a>
+        <a href="uren-registreren.php">Uren registreren</a>
+        <a href="gebruiker_uren.php">Dashboard</a>
+        <a href="profiel.php">Profiel</a>
+    <?php endif; ?>
+
+    <a href="uitloggen.php" class="logout-btn">Uitloggen</a>
+</div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    const sidebar = document.getElementById("sidebar");
-    const toggleButton = document.getElementById("toggle-sidebar");
+    document.addEventListener("DOMContentLoaded", function () {
+        var sidebar = document.getElementById("mySidebar");
+        var toggleBtn = document.getElementById("toggleBtn");
 
-    toggleButton.addEventListener("click", function () {
-        if (sidebar.classList.contains("open")) {
-            sidebar.classList.remove("open"); // Sluit de sidebar
+        // Als de huidige pagina de downloadpagina is, open de sidebar standaard
+        var isDownloadPage = <?= $isDownloadPage ? 'true' : 'false'; ?>;
+
+        if (isDownloadPage) {
+            sidebar.style.left = "0";
+            toggleBtn.style.display = "none";
+            localStorage.setItem("sidebarOpen", "true");
         } else {
-            sidebar.classList.add("open"); // Open de sidebar
+            // Check of de sidebar open was
+            if (localStorage.getItem("sidebarOpen") === "true") {
+                sidebar.style.transition = "none"; // Geen animatie bij laden
+                sidebar.style.left = "0";
+                toggleBtn.style.display = "none";
+
+                setTimeout(() => {
+                    sidebar.style.transition = "0.5s ease"; // Zet animatie terug na laden
+                }, 100);
+            }
+        }
+
+        // Toggle Sidebar open/close
+        window.toggleSidebar = function () {
+            if (sidebar.style.left === "0px") {
+                sidebar.style.left = "-250px";
+                localStorage.setItem("sidebarOpen", "false");
+                toggleBtn.style.display = "block";
+            } else {
+                sidebar.style.transition = "0.5s ease"; // Alleen animatie bij klikken
+                sidebar.style.left = "0";
+                localStorage.setItem("sidebarOpen", "true");
+                toggleBtn.style.display = "none";
+            }
+        };
+
+        // Voeg de event listener alleen toe als het NIET de downloadpagina is
+        if (!isDownloadPage) {
+            document.addEventListener("click", function (event) {
+                if (sidebar.style.left === "0px" && !sidebar.contains(event.target) && !toggleBtn.contains(event.target)) {
+                    sidebar.style.left = "-250px";
+                    localStorage.setItem("sidebarOpen", "false");
+                    toggleBtn.style.display = "block";
+                }
+            });
         }
     });
-});
 </script>
 
-
+</body>
+</html>
