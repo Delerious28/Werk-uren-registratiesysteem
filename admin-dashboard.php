@@ -278,11 +278,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_project'])) {
     <link href="css/admin-dashboard.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body>
+<body> 
+
 <div id="notification-container" class="notification" style="display: none;"></div>
     <div class="container-fluid">
         <div class="row">
-            <!-- Sidebar -->
             <nav class="col-md-2 sidebar">
     <div class="p-3">
         <h4>Admin Dashboard</h4>

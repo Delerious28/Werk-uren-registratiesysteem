@@ -30,7 +30,7 @@ if (!isset($_SESSION['user_id'])) {
             <a href="admin-download.php" 
                class="list-group-item <?= ($currentPage === 'admin-download.php') ? 'active' : '' ?>">
                 Download
-            </a>
+            </a> 
             <a href="admin-profiel.php" 
                class="list-group-item <?= ($currentPage === 'admin-profiel.php') ? 'active' : '' ?>">
                 Profiel

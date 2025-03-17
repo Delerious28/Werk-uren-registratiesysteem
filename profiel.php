@@ -124,7 +124,7 @@ $contactData = $stmtContact->fetch(PDO::FETCH_ASSOC);
 
   toggleIcon.addEventListener('click', () => {
       contactInfo.classList.toggle('active');
-  });
+  }); 
 </script>
 </body>
 </html>
