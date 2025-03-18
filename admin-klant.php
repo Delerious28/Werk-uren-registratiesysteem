@@ -43,13 +43,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
 try {
     // Ophalen van de data
-    $usersCount       = $pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
-    $klantenCount     = $pdo->query("SELECT COUNT(*) FROM klant")->fetchColumn();
+    $usersCount        = $pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
+    $klantenCount      = $pdo->query("SELECT COUNT(*) FROM klant")->fetchColumn();
     $pendingHoursCount = $pdo->query("SELECT COUNT(*) FROM hours WHERE accord = 'Pending'")->fetchColumn();
-    $projects         = $pdo->query("SELECT project_id, project_naam, klant_id, beschrijving, contract_uren FROM project")->fetchAll(PDO::FETCH_ASSOC);
-    $hours            = $pdo->query("SELECT * FROM hours")->fetchAll(PDO::FETCH_ASSOC);
-    $klanten          = $pdo->query("SELECT * FROM klant")->fetchAll(PDO::FETCH_ASSOC);
-    $users            = $pdo->query("SELECT * FROM users")->fetchAll(PDO::FETCH_ASSOC);
+    $projects          = $pdo->query("SELECT project_id, project_naam, klant_id, beschrijving, contract_uren FROM project")->fetchAll(PDO::FETCH_ASSOC);
+    $hours             = $pdo->query("SELECT * FROM hours")->fetchAll(PDO::FETCH_ASSOC);
+    $klanten           = $pdo->query("SELECT * FROM klant")->fetchAll(PDO::FETCH_ASSOC);
+    $users             = $pdo->query("SELECT * FROM users")->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     die("Database fout: " . $e->getMessage());
 }
@@ -84,26 +84,31 @@ try {
           transform: translateX(-50%);
           z-index: 1055;
           display: none;
-          width: 40% !important; 
-          max-width: 500px; 
+          width: 40%;
+          max-width: 500px;
           overflow-x: hidden;
           overflow-y: auto;
           outline: 0;
-          border-color: none;
+          
       }
+      
       .modal-content {
-          border: none !important;
+          border: none;
           padding: 20px;
-          height: auto !important;
+          height: auto;
+          position: relative;
       }
+      
       .modal-content form {
           max-width: 320px;
           margin: 0 auto;
           text-align: left;
       }
+      
       h2 {
-          margin: auto !important;
+          margin: auto;
       }
+      
       .overlay {
           position: fixed;
           top: 0;
@@ -114,18 +119,34 @@ try {
           z-index: 1050;
           display: none;
       }
+      
       .btn-success {
           background-color: #6d0f10 !important;
           border-color: transparent !important;
-          left: 50%;
           position: relative;
-          translate: -50%;
+          left: 50%;
+          transform: translateX(-50%);
           padding: 8px;
-          margin-top: 0px;
+          margin-top: 0;
       }
+      
+      /* Zorg dat de sluit-knop zichtbaar is */
       .close-btn {
-          display: none !important;
+          display: block;
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          font-size: 24px;
+          cursor: pointer;
+          background: #f0f0f0;
+          border: 1px solid #ccc;
+          border-radius: 50%;
+          width: 30px;
+          height: 30px;
+          text-align: center;
+          line-height: 30px;
       }
+      
       .modal-content .form-control {
           max-width: 300px;
       }
@@ -135,8 +156,6 @@ try {
   <?php include 'admin-sidebar.php'; ?>
 
   <main>
-    
-
     <section id="clients">
       <h2>Klantenbeheer</h2>
       <table class="table table-striped">
@@ -158,7 +177,6 @@ try {
               <td><?= htmlspecialchars($klant['email']) ?></td>
               <td><?= htmlspecialchars($klant['telefoon']) ?></td>
               <td>
-                <!-- Bewerkknop met data-attributen -->
                 <button class="edit-btn btn btn-info"
                         data-klant_id="<?= $klant['klant_id'] ?>"
                         data-bedrijfnaam="<?= htmlspecialchars($klant['bedrijfnaam']) ?>"
@@ -170,7 +188,6 @@ try {
                 </button>
               </td>
               <td>
-                <!-- Verwijderformulier -->
                 <form method="post" onsubmit="return confirm('Weet je zeker dat je deze klant wilt verwijderen?');">
                   <input type="hidden" name="action" value="delete">
                   <input type="hidden" name="klant_id" value="<?= $klant['klant_id'] ?>">
@@ -189,6 +206,7 @@ try {
     <!-- Modal Container voor bewerken -->
     <div id="editModal" class="modal">
       <div class="modal-content">
+        <!-- Zichtbare sluit-knop -->
         <span id="closeModal" class="close-btn">&times;</span>
         <h2>Bewerk Klant</h2>
         <form method="post">
@@ -222,8 +240,6 @@ try {
   </main>
 
   <script>
- 
-
     // Elementen ophalen
     var modal = document.getElementById('editModal');
     var closeModal = document.getElementById('closeModal');
@@ -235,21 +251,21 @@ try {
       overlay.style.display = 'none';
     }
 
-    // Sluit de modal bij klikken op het kruisje
+    // Sluit modal bij klikken op de sluit-knop
     closeModal.addEventListener('click', closeModalAndOverlay);
 
-    // Sluit de modal als er buiten de modal wordt geklikt
+    // Sluit modal als er buiten de modal wordt geklikt
     window.addEventListener('click', function(event) {
       if (event.target === overlay) {
         closeModalAndOverlay();
       }
     });
 
-    // Voeg click eventlisteners toe aan alle bewerkknoppen
+    // Voeg eventlisteners toe aan alle bewerkknoppen
     var editButtons = document.getElementsByClassName('edit-btn');
     for (var i = 0; i < editButtons.length; i++) {
       editButtons[i].addEventListener('click', function() {
-        // Haal de data-attributen op
+        // Haal data-attributen op
         var klant_id    = this.getAttribute('data-klant_id');
         var bedrijfnaam = this.getAttribute('data-bedrijfnaam');
         var voornaam    = this.getAttribute('data-voornaam');
@@ -257,7 +273,7 @@ try {
         var email       = this.getAttribute('data-email');
         var telefoon    = this.getAttribute('data-telefoon');
 
-        // Vul de formuliervelden
+        // Vul de formuliervelden in
         document.getElementById('edit-klant_id').value = klant_id;
         document.getElementById('edit-bedrijfnaam').value = bedrijfnaam;
         document.getElementById('edit-voornaam').value = voornaam;
@@ -265,7 +281,7 @@ try {
         document.getElementById('edit-email').value = email;
         document.getElementById('edit-telefoon').value = telefoon;
 
-        // Toon de modal en de overlay
+        // Toon de modal en overlay
         modal.style.display = 'block';
         overlay.style.display = 'block';
       });

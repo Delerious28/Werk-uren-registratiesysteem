@@ -66,12 +66,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_project'])) {
             VALUES (?, ?, ?, ?)");
         $stmt->execute([$project_naam, $klant_id, $beschrijving, $contract_uren]);
         
-        header("Location: admin-dashboard.php#projects");
-        exit();
+        // Controleer of het een AJAX-request betreft
+        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => true, 'message' => 'Project succesvol toegevoegd']);
+            exit();
+        } else {
+            header("Location: admin-dashboard.php#projects");
+            exit();
+        }
     } catch (PDOException $e) {
-        die("Fout bij toevoegen project: " . $e->getMessage());
+        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => "Fout bij toevoegen project: " . $e->getMessage()]);
+            exit();
+        } else {
+            die("Fout bij toevoegen project: " . $e->getMessage());
+        }
     }
 }
+
 // Haal gegevens op
 try {
     $usersCount = $pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
@@ -93,6 +107,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_user'])) {
     $email = $_POST['email'];
     $telefoon = $_POST['telefoon'];
     $role = $_POST['role'];
+
+    // Voorkom dat een gebruiker via de bewerking de rol 'klant' krijgt
+    if ($role === 'klant') {
+        die("Fout: Een gebruiker mag niet als klant worden bewerkt.");
+    }
 
     try {
         $stmt = $pdo->prepare("UPDATE users SET name = ?, achternaam = ?, email = ?, telefoon = ?, role = ? WHERE user_id = ?");
@@ -117,6 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_user'])) {
         }
     }
 }
+
 
 
 // Bereken de uren per project
@@ -220,7 +240,7 @@ if (isset($_POST['assign_user'])) {
                   </script>";
         }
     } catch (PDOException $e) {
-        // Controleer op duplicate entry fout
+        // Controleer op duplicate entry fout als je een email invoert die al bestaat
         if ($e->errorInfo[1] == 1062) {
             echo "<script>
                     document.addEventListener('DOMContentLoaded', function() {
@@ -254,6 +274,20 @@ if (isset($_POST['delete_project'])) {
         die("Fout bij verwijderen project: " . $e->getMessage());
     }
 }
+// Verwerk het verwijderen van een gebruiker uit een project
+if (isset($_POST['remove_project_user'])) {
+    $project_id = $_POST['project_id'];
+    $user_id = $_POST['user_id'];
+    try {
+        $stmt = $pdo->prepare("DELETE FROM project_users WHERE project_id = ? AND user_id = ?");
+        $stmt->execute([$project_id, $user_id]);
+        header("Location: admin-dashboard.php#projects");
+        exit();
+    } catch (PDOException $e) {
+        die("Fout bij verwijderen van projectgebruiker: " . $e->getMessage());
+    }
+}
+
 // VERWERK PROJECT-UPDATE
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_project'])) {
     $project_id = $_POST['project_id'];
@@ -269,7 +303,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_project'])) {
             contract_uren = ?, 
             beschrijving = ? 
             WHERE project_id = ?");
-
         $stmt->execute([
             $project_naam,
             $klant_id,
@@ -278,13 +311,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_project'])) {
             $project_id
         ]);
 
-        header("Location: admin-dashboard.php?success_project=1#projects");
-        exit();
-
+        // Als het een AJAX-request is, geef JSON terug
+        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => true, 'message' => 'Project succesvol bijgewerkt']);
+            exit();
+        } else {
+            header("Location: admin-dashboard.php?success_project=1#projects");
+            exit();
+        }
     } catch (PDOException $e) {
-        die("Fout bij projectupdate: " . $e->getMessage());
+        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => "Fout bij projectupdate: " . $e->getMessage()]);
+            exit();
+        } else {
+            die("Fout bij projectupdate: " . $e->getMessage());
+        }
     }
 }
+// Haal de koppelingen tussen projecten en gebruikers op
+$projectUsers = $pdo->query("SELECT * FROM project_users")->fetchAll(PDO::FETCH_ASSOC);
+
+// Maak een mapping van user_id naar gebruikersgegevens
+$userMap = [];
+foreach ($users as $user) {
+    $userMap[$user['user_id']] = $user;
+}
+
+// Groepeer de gekoppelde gebruikers per project
+$projectAssignments = [];
+foreach ($projectUsers as $pu) {
+    $projectAssignments[$pu['project_id']][] = $pu['user_id'];
+}
+
+// Bereken per project per gebruiker de totaal gewerkte uren (uit de tabel hours)
+$hoursByUserProject = [];
+foreach ($hours as $h) {
+    // Tel alleen op als er een koppeling bestaat (optioneel: controleer of de gebruiker aan het project gekoppeld is)
+    $hoursByUserProject[$h['project_id']][$h['user_id']] = 
+         ($hoursByUserProject[$h['project_id']][$h['user_id']] ?? 0) + $h['hours'];
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="nl">
@@ -300,20 +368,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_project'])) {
 <div id="notification-container" class="notification" style="display: none;"></div>
     <div class="container-fluid">
         <div class="row">
-            <nav class="col-md-2 sidebar">
-    <div class="p-3">
-        <h4>Admin Dashboard</h4>
-        <div class="list-group">
-            <a href="#dashboard" class="list-group-item active">Dashboard</a>
-            <a href="#users" class="list-group-item">Gebruikers</a>
-            <a href="#projects" class="list-group-item">Projecten</a>
-            <a href="admin-klant.php" class="list-group-item">Klanten</a>
-            <a href="admin-download.php" class="list-group-item">Download</a>
-            <a href="admin-profiel.php" class="list-group-item">Profiel</a>
-            <a href="uitloggen.php" class="list-group-item list-group-item-danger">Uitloggen</a>
-        </div>
+        <nav class="col-md-2 sidebar">
+  <div class="p-3">
+    <h4>Admin Dashboard</h4>
+    <div class="list-group">
+      <a href="#dashboard" class="list-group-item active">Dashboard</a>
+      <a href="#users" class="list-group-item">Gebruikers</a>
+      <a href="#projects" class="list-group-item" id="projectsLink">Projecten</a>
+      <button id="showOverlayButton" class="btn btn-secondary mt-2" style="display:none;">
+        gebruiker link
+      </button>
+      <a href="admin-klant.php" class="list-group-item">Klanten</a>
+      <a href="admin-download.php" class="list-group-item">Download</a>
+      <a href="admin-profiel.php" class="list-group-item">Profiel</a>
+      <a href="uitloggen.php" class="list-group-item list-group-item-danger">Uitloggen</a>
     </div>
+  </div>
 </nav>
+
+
+
 
 
             <main class="col-md-10 p-4">
@@ -356,7 +430,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_project'])) {
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($klanten as $klant): ?>
+                            <?php foreach ($klanten as $klant): ?>f
                             <tr>
                                 <td><?= htmlspecialchars($klant['bedrijfnaam']) ?></td>
                                 <td><?= htmlspecialchars($klant['voornaam']) ?> <?= htmlspecialchars($klant['achternaam']) ?></td>
@@ -370,94 +444,90 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_project'])) {
 
                 <!-- Users Section -->
                 <section id="users" class="d-none">
-                    <h2>Gebruikersbeheer</h2>
-                    <form method="POST" class="mb-4">
-                        <div class="row g-3">
-                            <div class="col-md-3">
-                                <input type="text" name="name" class="form-control" placeholder="Voornaam" required>
-                            </div>
-                            <div class="col-md-3">
-                                <input type="text" name="achternaam" class="form-control" placeholder="Achternaam" required>
-                            </div>
-                            <div class="col-md-3 position-relative">
-    <!-- De 'alert' staat nu boven het inputveld, is standaard verborgen en position:absolute -->
-    <div id="emailFeedback" 
-         class="alert alert-danger d-none py-1 px-2 position-absolute" 
-         style="top: -35px; left: 5px; margin-bottom: 0; z-index: 999;">
-        Deze email is al in gebruik.
-    </div>
-    <input type="email" id="email" name="email" class="form-control" placeholder="Email" required>
-</div>
-              <div class="col-md-3">
-                            <input type="email" id="email" name="email" class="form-control" placeholder="Email" required>
-                            </div>
-                            <div class="col-md-3">
-                                <input type="text" name="telefoon" class="form-control" placeholder="Telefoon" required>
-                            </div>
-                            <div class="col-md-3">
-                                <input type="password" name="password" class="form-control" placeholder="Wachtwoord" required>
-                            </div>
-                            <div class="col-md-3">
-                                <select name="role" class="form-select" id="roleSelect">
-                                    <option value="user">Gebruiker</option>
-                                    <option value="admin">Admin</option>
-                                    <option value="klant">Klant</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3" id="bedrijfnaamField" style="display: none;">
-                                <input type="text" name="bedrijfnaam" class="form-control" placeholder="Bedrijfsnaam">
-                            </div>
-                            <div class="col-md-3">
-                                <button type="submit" name="add_user" class="btn btn-success">
-                                    <i class="bi bi-person-plus"></i> Toevoegen
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-
-                    <table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Naam</th>
-            <th>Email</th>
-            <th>Rol</th>
-            <th>Acties</th>
-        </tr>
-    </thead>
-    <tbody>
-        <?php foreach ($users as $user): ?>
-        <tr>
-            <td><?= htmlspecialchars($user['name']) ?> <?= htmlspecialchars($user['achternaam']) ?></td>
-            <td><?= htmlspecialchars($user['email']) ?></td>
-            <td><?= htmlspecialchars($user['role']) ?></td>
-            <td>
-                <!-- Bewerkingsknop met data attributes voor de overlay -->
-                <button type="button" class="btn btn-sm btn-primary edit-btn" 
-                        data-bs-toggle="modal" data-bs-target="#editUserModal"
-                        data-id="<?= $user['user_id'] ?>"
-                        data-name="<?= htmlspecialchars($user['name']) ?>"
-                        data-achternaam="<?= htmlspecialchars($user['achternaam']) ?>"
-                        data-email="<?= htmlspecialchars($user['email']) ?>"
-                        data-telefoon="<?= htmlspecialchars($user['telefoon']) ?>"
-                        data-role="<?= htmlspecialchars($user['role']) ?>">
-                    Bewerken
+    <h2>Gebruikersbeheer</h2>
+    <form method="POST" class="mb-4">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <input type="text" name="name" class="form-control" placeholder="Voornaam" required>
+            </div>
+            <div class="col-md-3">
+                <input type="text" name="achternaam" class="form-control" placeholder="Achternaam" required>
+            </div>
+            <div class="col-md-3 position-relative">
+                <!-- De 'alert' staat boven het inputveld; standaard verborgen -->
+                <div id="emailFeedback" 
+                     class="alert alert-danger d-none py-1 px-2 position-absolute" 
+                     style="top: -35px; left: 5px; margin-bottom: 0; z-index: 999;">
+                    Deze email is al in gebruik.
+                </div>
+                <input type="email" id="email" name="email" class="form-control" placeholder="Email" required>
+            </div>
+            <div class="col-md-3">
+                <input type="text" name="telefoon" class="form-control" placeholder="Telefoon" required>
+            </div>
+            <div class="col-md-3">
+                <input type="password" name="password" class="form-control" placeholder="Wachtwoord" required>
+            </div>
+            <div class="col-md-3">
+                <select name="role" class="form-select" id="roleSelect">
+                    <option value="user">Gebruiker</option>
+                    <option value="admin">Admin</option>
+                    <!-- De optie 'klant' is verwijderd -->
+                </select>
+            </div>
+            <!-- Het bedrijfnaam-veld is verwijderd, omdat dit alleen voor klanten nodig was -->
+            <div class="col-md-3">
+                <button type="submit" name="add_user" class="btn btn-success">
+                    <i class="bi bi-person-plus"></i> Toevoegen
                 </button>
+            </div>
+        </div>
+    </form>
 
-                <!-- Verwijderknop -->
-                <form method="POST" style="display: inline;">
-                    <input type="hidden" name="delete_user" value="<?= $user['user_id'] ?>">
-                    <button type="submit" class="btn btn-sm btn-danger" 
-                            onclick="return confirm('Weet je zeker dat je deze gebruiker wilt verwijderen?')">
-                        Verwijderen
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Naam</th>
+                <th>Email</th>
+                <th>Rol</th>
+                <th>Acties</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($users as $user): ?>
+            <tr>
+                <td><?= htmlspecialchars($user['name']) ?> <?= htmlspecialchars($user['achternaam']) ?></td>
+                <td><?= htmlspecialchars($user['email']) ?></td>
+                <td><?= htmlspecialchars($user['role']) ?></td>
+                <td>
+                    <!-- Bewerken knop -->
+                    <button type="button" class="btn btn-sm btn-primary edit-btn" 
+                            data-bs-toggle="modal" data-bs-target="#editUserModal"
+                            data-id="<?= $user['user_id'] ?>"
+                            data-name="<?= htmlspecialchars($user['name']) ?>"
+                            data-achternaam="<?= htmlspecialchars($user['achternaam']) ?>"
+                            data-email="<?= htmlspecialchars($user['email']) ?>"
+                            data-telefoon="<?= htmlspecialchars($user['telefoon']) ?>"
+                            data-role="<?= htmlspecialchars($user['role']) ?>">
+                        Bewerken
                     </button>
-                </form>
-            </td>
-        </tr>
-        <?php endforeach; ?>
-    </tbody>
-</table>
-                </section>
-                <!-- Edit User Modal -->
+
+                    <!-- Verwijderen knop -->
+                    <form method="POST" style="display: inline;">
+                        <input type="hidden" name="delete_user" value="<?= $user['user_id'] ?>">
+                        <button type="submit" class="btn btn-sm btn-danger" 
+                                onclick="return confirm('Weet je zeker dat je deze gebruiker wilt verwijderen?')">
+                            Verwijderen
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+</section>
+
+              <!-- Edit User Modal -->
 <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -467,7 +537,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_project'])) {
             </div>
             <div class="modal-body">
                 <form method="POST" id="editUserForm">
-                <input type="hidden" name="update_user" value="1">
+                    <input type="hidden" name="update_user" value="1">
                     <input type="hidden" name="user_id" id="editUserId">
                     <div class="mb-3">
                         <label for="editName" class="form-label">Voornaam</label>
@@ -490,22 +560,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_project'])) {
                         <select class="form-select" id="editRole" name="role" required>
                             <option value="user">Gebruiker</option>
                             <option value="admin">Admin</option>
-                            <option value="klant">Klant</option>
                         </select>
                     </div>
                     <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Sluiten</button>
-        <button type="submit" class="btn btn-primary">Opslaan</button>
-    </div>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Sluiten</button>
+                        <button type="submit" class="btn btn-primary">Opslaan</button>
+                    </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
                 </section>
 
                 <!-- Projects Section -->
                 <section id="projects" class="d-none">
+                
                     <h2>Projectbeheer</h2>
                     <div class="row">
                         <div class="col-md-6 mb-4">
@@ -640,6 +711,72 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_project'])) {
     </tbody>
 </table>
 
+
+<!-- Overlay container (standaard verborgen) -->
+<div id="overlay" class="overlay">
+  <div class="overlay-content card">
+    <!-- Header met sluitknop -->
+    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">Gekoppelde gebruikers en gewerkte uren per project</h5>
+      <button id="closeOverlay" class="btn btn-danger2">X</button>
+    </div>
+    <div class="card-body" style="max-height: 80vh; overflow-y: auto;">
+      <!-- Hier loop je over de projecten en gekoppelde gebruikers, zoals eerder -->
+      <?php foreach ($projects as $project): ?>
+        <div class="card mt-3 mb-3">
+          <div class="card-header bg-light">
+            <h6 class="mb-0"><?= htmlspecialchars($project['project_naam']) ?></h6>
+          </div>
+          <div class="card-body p-0">
+            <table class="table table-striped table-hover mb-0 align-middle" 
+                   style="table-layout: fixed; width: 100%;">
+              <thead class="table-secondary">
+                <tr>
+                  <th style="width: 50%">Naam</th>
+                  <th class="text-center" style="width: 15%">Gewerkte uren</th>
+                  <th class="text-end" style="width: 35%">Actie</th>
+                </tr>
+              </thead>
+              <tbody>
+                <?php 
+                  $hasUsers = isset($projectAssignments[$project['project_id']]) 
+                              && !empty($projectAssignments[$project['project_id']]);
+                ?>
+                <?php if ($hasUsers): ?>
+                  <?php foreach ($projectAssignments[$project['project_id']] as $user_id): 
+                    $user   = $userMap[$user_id];
+                    $worked = $hoursByUserProject[$project['project_id']][$user_id] ?? 0;
+                  ?>
+                    <tr>
+                      <td><?= htmlspecialchars($user['name'] . ' ' . $user['achternaam']) ?></td>
+                      <td class="text-center"><?= htmlspecialchars($worked) ?></td>
+                      <td class="text-end">
+                        <form method="POST" style="display:inline;">
+                          <input type="hidden" name="project_id" value="<?= $project['project_id'] ?>">
+                          <input type="hidden" name="user_id" value="<?= $user_id ?>">
+                          <button type="submit" name="remove_project_user" class="btn btn-sm btn-outline-danger" 
+                                  onclick="return confirm('Weet je zeker dat je deze gebruiker van dit project wilt verwijderen?');">
+                            Verwijderen
+                          </button>
+                        </form>
+                      </td>
+                    </tr>
+                  <?php endforeach; ?>
+                <?php else: ?>
+                  <tr>
+                    <td colspan="3" class="text-center">Geen gebruikers gekoppeld.</td>
+                  </tr>
+                <?php endif; ?>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      <?php endforeach; ?>
+    </div>
+  </div>
+</div>
+
+
 <!-- Edit Project Modal -->
 <div class="modal fade" id="editProjectModal" tabindex="-1" aria-labelledby="editProjectModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -693,6 +830,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_project'])) {
 
                             
     <script>
+        
+
+document.getElementById('editProjectForm').addEventListener('submit', function(e) {
+    e.preventDefault(); // Voorkom de standaard submit actie
+    const formData = new FormData(this);
+
+    fetch('admin-dashboard.php', {
+         method: 'POST',
+         body: formData,
+         headers: {
+             'X-Requested-With': 'XMLHttpRequest'
+         }
+    })
+    .then(response => response.json())
+    .then(data => {
+         if (data.success) {
+             showNotification(data.message, 'success');
+             // Sluit de modal
+             let editProjectModal = new bootstrap.Modal(document.getElementById('editProjectModal'));
+             editProjectModal.hide();
+             // Laad de pagina opnieuw na 1.5 seconden zodat de update zichtbaar is
+             setTimeout(() => {
+                 window.location.reload();
+             }, 1500);
+         } else {
+             showNotification(data.message, 'danger');
+         }
+    })
+    .catch(error => {
+         console.error('Error:', error);
+         showNotification('Er is een fout opgetreden', 'danger');
+    });
+});
+
         // Project bewerken: Vul de modal met data
 document.querySelectorAll('.edit-project-btn').forEach(button => {
     button.addEventListener('click', function() {
@@ -778,6 +949,7 @@ document.querySelectorAll('.edit-btn').forEach(button => {
         editUserModalInstance.show();
     });
 });
+
 function showNotification(message, type) {
     const notificationContainer = document.getElementById('notification-container');
     notificationContainer.textContent = message;
@@ -848,9 +1020,10 @@ document.getElementById('editUserForm').addEventListener('submit', function(e) {
              showNotification(data.message, 'success');
              // Sluit de modal
              editUserModalInstance.hide();
-
-             // (Optioneel) Werk de tabelrij bij met de nieuwe gegevens
-             // Bijvoorbeeld: document.querySelector(`[data-id="${formData.get('user_id')}"]`).closest('tr').querySelector('td').textContent = formData.get('name');
+             // Laad de pagina opnieuw na 1.5 seconden zodat de update zichtbaar is
+             setTimeout(() => {
+                 window.location.reload();
+             }, 1500);
          } else {
              showNotification(data.message, 'danger');
          }
@@ -860,7 +1033,54 @@ document.getElementById('editUserForm').addEventListener('submit', function(e) {
          showNotification('Er is een fout opgetreden', 'danger');
     });
 });
+  // Functie om te controleren of de projecten-link actief is
+  function updateSidebarButton() {
+    const projectsLink = document.getElementById('projectsLink');
+    const overlayBtn = document.getElementById('showOverlayButton');
+    
+    if (projectsLink && projectsLink.classList.contains('active')) {
+      // Als knop nog niet zichtbaar is, maak hem dan zichtbaar met fade in
+      if (overlayBtn.style.display !== 'block') {
+        overlayBtn.style.display = 'block';
+        overlayBtn.classList.add('fade-in');
+        // Verwijder de fade-in klasse na de animatie (0.5s)
+        setTimeout(() => {
+          overlayBtn.classList.remove('fade-in');
+        }, 500);
+      }
+    } else {
+      overlayBtn.style.display = 'none';
+    }
+  }
 
+  // Roep de functie direct op en bij hash change (wanneer de sectie verandert)
+  document.addEventListener('DOMContentLoaded', updateSidebarButton);
+  window.addEventListener('hashchange', updateSidebarButton);
+
+  // Update de knop ook bij klikken op een sidebar-item
+  document.querySelectorAll('.list-group-item').forEach(item => {
+    item.addEventListener('click', function() {
+      setTimeout(updateSidebarButton, 100);
+    });
+  });
+
+  // Open overlay wanneer er op de knop wordt geklikt
+  document.getElementById('showOverlayButton').addEventListener('click', function(){
+    document.getElementById('overlay').style.display = 'flex';
+  });
+
+  const closeOverlayBtn = document.getElementById('closeOverlay');
+  const overlay         = document.getElementById('overlay');
+
+  closeOverlayBtn.addEventListener('click', function(){
+      overlay.style.display = 'none';
+  });
+  
+  overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) {
+          overlay.style.display = 'none';
+      }
+  });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
