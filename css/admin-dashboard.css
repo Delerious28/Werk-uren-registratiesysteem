@@ -90,17 +90,15 @@
     transform: translateY(-5px);
   }
   
-  /* Grafiek Aanpassingen */
   .chart-container {
       overflow-x: auto;
   }
   .chart-container canvas {
-      min-width: 1500px; /* Pas deze waarde aan op basis van je behoeften */
-      height: 500px;     /* Verander de hoogte indien gewenst */
+      min-width: 1500px; 
+      height: 500px;     
   }
 
   
-  /* Responsive Aanpassingen */
   @media (max-width: 1200px) {
     .sidebar {
       width: 200px;
@@ -286,7 +284,6 @@
   display: flex;
   flex-direction: column;
 }
-  /* Fade in animatie */
   .fade-in {
     animation: fadeIn 0.5s ease-out;
   }
@@ -311,3 +308,61 @@
     background-color: transparent !important;
     color: white !important;
   }
+  .status-dropdown-btn {
+    width: 110px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.btn-group > .status-dropdown-btn {
+  flex: 0 0 auto;
+  width: 94px !important;
+  height: 31px !important;
+  text-align: center !important;
+  color: white !important;
+  padding: 0px !important;
+  position: relative !important;
+  top: 0 !important;
+}
+
+.btn-group > .status-dropdown-btn.status-active {
+  background-color: green !important;
+}
+
+.btn-group > .status-dropdown-btn.status-active:hover {
+  background-color: darkgreen !important;
+}
+
+.btn-group > .status-dropdown-btn.status-inactive {
+  background-color: rgb(255, 0, 0) !important;
+}
+
+.btn-group > .status-dropdown-btn.status-inactive:hover {
+  background-color: rgb(153, 4, 4) !important;
+}
+
+@media (max-width: 1600px) {
+  .chart-container canvas {
+      min-width: unset;
+      width: 100%;
+  }
+  .chart-container {
+    overflow-x: auto;
+    scale: 0.7;
+    bottom: 0px;
+    position: relative;
+  }
+}
+
+@media (max-width: 1200px) {
+  .chart-container canvas {
+      min-width: unset;
+      width: 100%;
+  }
+  .chart-container {
+    overflow-x: auto;
+    scale: 0.7;
+    bottom: 0px;
+    position: relative;
+  }
+}

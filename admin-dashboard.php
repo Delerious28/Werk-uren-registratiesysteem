@@ -56,14 +56,13 @@ try {
 // Project toevoegen met contract_uren
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_project'])) {
     $project_naam = $_POST['project_naam'];
-    $klant_id = $_POST['klant_id'];
+    $klant_id     = $_POST['klant_id'];
     $beschrijving = $_POST['beschrijving'];
-    $contract_uren = $_POST['contract_uren'];
+    $contract_uren= $_POST['contract_uren'];
 
     try {
-        $stmt = $pdo->prepare("INSERT INTO project 
-            (project_naam, klant_id, beschrijving, contract_uren) 
-            VALUES (?, ?, ?, ?)");
+        // Voeg status 'actief' toe tijdens het invoegen
+        $stmt = $pdo->prepare("INSERT INTO project (project_naam, klant_id, beschrijving, contract_uren, status) VALUES (?, ?, ?, ?, 'actief')");
         $stmt->execute([$project_naam, $klant_id, $beschrijving, $contract_uren]);
         
         // Controleer of het een AJAX-request betreft
@@ -86,12 +85,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_project'])) {
     }
 }
 
+
 // Haal gegevens op
 try {
     $usersCount = $pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
     $klantenCount = $pdo->query("SELECT COUNT(*) FROM klant")->fetchColumn();
     $pendingHoursCount = $pdo->query("SELECT COUNT(*) FROM hours WHERE accord = 'Pending'")->fetchColumn();
     $projects = $pdo->query("SELECT * FROM project")->fetchAll(PDO::FETCH_ASSOC);
+    $activeProjects = $pdo->query("SELECT * FROM project WHERE status = 'actief'")->fetchAll(PDO::FETCH_ASSOC);
     $hours = $pdo->query("SELECT * FROM hours")->fetchAll(PDO::FETCH_ASSOC);
     $klanten = $pdo->query("SELECT * FROM klant")->fetchAll(PDO::FETCH_ASSOC);
     $users = $pdo->query("SELECT * FROM users")->fetchAll(PDO::FETCH_ASSOC);
@@ -139,9 +140,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_user'])) {
 
 
 
-// Bereken de uren per project
+// Bereken de uren per actief project
 $projectHours = [];
-foreach ($projects as $project) {
+foreach ($activeProjects as $project) {
     $projectId = $project['project_id'];
     $projectHours[$project['project_naam']] = 0;
     foreach ($hours as $hour) {
@@ -150,6 +151,7 @@ foreach ($projects as $project) {
         }
     }
 }
+
 
 // Verwerk gebruikersformulier
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -352,6 +354,41 @@ foreach ($hours as $h) {
     $hoursByUserProject[$h['project_id']][$h['user_id']] = 
          ($hoursByUserProject[$h['project_id']][$h['user_id']] ?? 0) + $h['hours'];
 }
+if (isset($_POST['update_status'])) {
+    $project_id = $_POST['project_id'];
+    try {
+        // Haal huidige status op
+        $stmt = $pdo->prepare("SELECT status FROM project WHERE project_id = ?");
+        $stmt->execute([$project_id]);
+        $currentStatus = $stmt->fetchColumn();
+
+        // Toggle de status: als 'actief' dan 'niet actief', anders omgekeerd
+        $newStatus = ($currentStatus === 'actief') ? 'niet actief' : 'actief';
+
+        // Update de status
+        $stmt = $pdo->prepare("UPDATE project SET status = ? WHERE project_id = ?");
+        $stmt->execute([$newStatus, $project_id]);
+
+        header("Location: admin-dashboard.php#projects");
+        exit();
+    } catch (PDOException $e) {
+        die("Fout bij status update: " . $e->getMessage());
+    }
+}
+if (isset($_POST['set_status'])) {
+    $project_id = $_POST['project_id'];
+    $newStatus = $_POST['set_status']; // Verwacht "actief" of "niet actief"
+    try {
+        $stmt = $pdo->prepare("UPDATE project SET status = ? WHERE project_id = ?");
+        $stmt->execute([$newStatus, $project_id]);
+
+        header("Location: admin-dashboard.php#projects");
+        exit();
+    } catch (PDOException $e) {
+        die("Fout bij status update: " . $e->getMessage());
+    }
+}
+
 
 ?>
 <!DOCTYPE html>
@@ -578,152 +615,167 @@ foreach ($hours as $h) {
 
                 <!-- Projects Section -->
                 <section id="projects" class="d-none">
-                
-                    <h2>Projectbeheer</h2>
-                    <div class="row">
-                        <div class="col-md-6 mb-4">
-                            <div class="card">
-                                <div class="card-header bg-primary text-white">
-                                    <h5 class="mb-0">Project aanmaken</h5>
-                                </div>
-                                <div class="card-body">
-                                    <form method="POST">
-                                    <div class="mb-3">
-        <input type="text" name="project_naam" class="form-control" placeholder="Projectnaam" required>
-    </div>
-    <div class="mb-3">
-        <input type="number" step="0.01" name="contract_uren" class="form-control" placeholder="Contracturen" required>
-    </div>
-                                        <div class="mb-3">
-                                            <select name="klant_id" class="form-select" required>
-                                                <?php foreach ($klanten as $klant): ?>
-                                                <option value="<?= $klant['klant_id'] ?>">
-                                                    <?= htmlspecialchars($klant['bedrijfnaam']) ?>
-                                                </option>
-                                                <?php endforeach; ?>
-                                            </select>
-                                        </div>
-                                        <div class="mb-3">
-                                            <textarea name="beschrijving" class="form-control" 
-                                                      placeholder="Projectbeschrijving" required></textarea>
-                                        </div>
-                                        
-                                        <button type="submit" name="add_project" class="btn btn-success">
-                                            <i class="bi bi-folder-plus"></i> Project aanmaken
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
+    <h2>Projectbeheer</h2>
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Project aanmaken</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <input type="text" name="project_naam" class="form-control" placeholder="Projectnaam" required>
                         </div>
-
-                        <div class="col-md-6 mb-4">
-                            <div class="card">
-                                <div class="card-header bg-info text-white">
-                                    <h5 class="mb-0">Gebruikers toevoegen aan project</h5>
-                                </div>
-                                <div class="card-body">
-                                    <form method="POST">
-                                        <div class="mb-3">
-                                            <select name="project_id" class="form-select" required>
-                                                <option value="">Selecteer project</option>
-                                                <?php foreach ($projects as $project): ?>
-                                                <option value="<?= $project['project_id'] ?>">
-                                                    <?= htmlspecialchars($project['project_naam']) ?>
-                                                </option>
-                                                <?php endforeach; ?>
-                                            </select>
-                                        </div>
-                                        <div class="mb-3">
-                                            <select name="user_id" class="form-select" required>
-                                                <option value="">Selecteer gebruiker</option>
-                                                <?php foreach ($users as $user): ?>
-                                                <option value="<?= $user['user_id'] ?>">
-                                                    <?= htmlspecialchars($user['name']) ?>
-                                                </option>
-                                                <?php endforeach; ?>
-                                            </select>
-                                        </div>
-                                        <button type="submit" name="assign_user" class="btn btn-info">
-                                            <i class="bi bi-person-plus"></i> Gebruiker toevoegen
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
+                        <div class="mb-3">
+                            <input type="number" step="0.01" name="contract_uren" class="form-control" placeholder="Contracturen" required>
                         </div>
-                    </div>
+                        <div class="mb-3">
+                            <select name="klant_id" class="form-select" required>
+                                <?php foreach ($klanten as $klant): ?>
+                                <option value="<?= $klant['klant_id'] ?>">
+                                    <?= htmlspecialchars($klant['bedrijfnaam']) ?>
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <textarea name="beschrijving" class="form-control" placeholder="Projectbeschrijving" required></textarea>
+                        </div>
+                        <button type="submit" name="add_project" class="btn btn-success">
+                            <i class="bi bi-folder-plus"></i> Project aanmaken
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
 
-                   <!-- Binnen de projects section -->
-<div class="card mt-4">
-    <div class="card-header">
-        <h5 class="mb-0">Alle projecten</h5>
+        <!-- Formulier om een gebruiker aan een project te koppelen -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Gebruikers toevoegen aan project</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <select name="project_id" class="form-select" required>
+                                <option value="">Selecteer project</option>
+                                <?php foreach ($projects as $project): ?>
+                                <option value="<?= $project['project_id'] ?>">
+                                    <?= htmlspecialchars($project['project_naam']) ?>
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <select name="user_id" class="form-select" required>
+                                <option value="">Selecteer gebruiker</option>
+                                <?php foreach ($users as $user): ?>
+                                <option value="<?= $user['user_id'] ?>">
+                                    <?= htmlspecialchars($user['name']) ?>
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <button type="submit" name="assign_user" class="btn btn-info">
+                            <i class="bi bi-person-plus"></i> Gebruiker toevoegen
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="card-body">
-        <table class="table table-striped">
-        <thead>
-        <tr>
-            <th>Projectnaam</th>
-            <th>Klant</th>
-            <th>Contracturen</th>
-            <th>Beschrijving</th>
-            <th>Acties</th> <!-- Nieuwe kolom -->
-        </tr>
-    </thead>
-    <tbody>
-        <?php foreach ($projects as $project): 
-            $klantInfo = current(array_filter($klanten, function($k) use ($project) {
-                return $k['klant_id'] == $project['klant_id'];
-            }));
-        ?>
-        <tr>
-            <td><?= htmlspecialchars($project['project_naam']) ?></td>
-            <td>
-                <?= htmlspecialchars($klantInfo['bedrijfnaam'] ?? 'Onbekend') ?><br>
-                <small class="text-muted">
-                    <?= htmlspecialchars($klantInfo['voornaam'] ?? '') ?> 
-                    <?= htmlspecialchars($klantInfo['achternaam'] ?? '') ?>
-                </small>
-            </td>
-            <td>
-                <?= number_format($project['contract_uren'] ?? 0, 2, ',', '.') ?> uur
-            </td>
-            <td><?= htmlspecialchars($project['beschrijving']) ?></td>
-            <td>
-                <!-- Bewerkknop -->
-                <button type="button" class="btn btn-sm btn-primary edit-project-btn" 
-                        data-bs-toggle="modal" data-bs-target="#editProjectModal"
-                        data-projectid="<?= $project['project_id'] ?>"
-                        data-projectnaam="<?= htmlspecialchars($project['project_naam']) ?>"
-                        data-klantid="<?= $project['klant_id'] ?>"
-                        data-contracturen="<?= $project['contract_uren'] ?>"
-                        data-beschrijving="<?= htmlspecialchars($project['beschrijving']) ?>">
-                    Bewerken
-                </button>
 
-                <!-- Verwijderknop -->
-                <form method="POST" style="display: inline;" 
-                      onsubmit="return confirm('Weet u zeker dat u dit project wilt verwijderen?');">
-                    <input type="hidden" name="delete_project" value="<?= $project['project_id'] ?>">
-                    <button type="submit" class="btn btn-sm btn-danger">
-                        Verwijderen
+    <!-- Tabel met alle projecten -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0">Alle projecten</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Projectnaam</th>
+                        <th>Klant</th>
+                        <th>Contracturen</th>
+                        <th>Beschrijving</th>
+                        <th>Acties</th>
+                    </tr>
+                </thead>
+                <tbody>
+    <?php foreach ($projects as $project): 
+        // Haal de klantgegevens op voor dit project
+        $klantInfo = current(array_filter($klanten, function($k) use ($project) {
+            return $k['klant_id'] == $project['klant_id'];
+        }));
+        // Stel de statusklasse in op basis van de projectstatus
+        $statusClass = ($project['status'] === 'actief') ? 'status-active' : 'status-inactive';
+    ?>
+    <tr>
+        <td><?= htmlspecialchars($project['project_naam']) ?></td>
+        <td>
+            <?= htmlspecialchars($klantInfo['bedrijfnaam'] ?? 'Onbekend') ?><br>
+            <small class="text-muted">
+                <?= htmlspecialchars($klantInfo['voornaam'] ?? '') ?> <?= htmlspecialchars($klantInfo['achternaam'] ?? '') ?>
+            </small>
+        </td>
+        <td><?= number_format($project['contract_uren'], 2, ',', '.') ?> uur</td>
+        <td><?= htmlspecialchars($project['beschrijving']) ?></td>
+        <td>
+            <!-- Bewerken knop -->
+            <button type="button" class="btn btn-sm btn-primary edit-project-btn" 
+                    data-bs-toggle="modal" data-bs-target="#editProjectModal"
+                    data-projectid="<?= $project['project_id'] ?>"
+                    data-projectnaam="<?= htmlspecialchars($project['project_naam']) ?>"
+                    data-klantid="<?= $project['klant_id'] ?>"
+                    data-contracturen="<?= $project['contract_uren'] ?>"
+                    data-beschrijving="<?= htmlspecialchars($project['beschrijving']) ?>">
+                Bewerken
+            </button>
+
+            <!-- Status aanpassen dropdown -->
+            <form method="POST" style="display: inline;">
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-secondary dropdown-toggle status-dropdown-btn <?= $statusClass ?>" data-bs-toggle="dropdown" aria-expanded="false">
+                        <?= htmlspecialchars($project['status']) ?>
                     </button>
-                </form>
-            </td>
-        </tr>
-        <?php endforeach; ?>
-    </tbody>
-</table>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <button class="dropdown-item" type="submit" name="set_status" value="actief">Actief</button>
+                        </li>
+                        <li>
+                            <button class="dropdown-item" type="submit" name="set_status" value="niet actief">Niet Actief</button>
+                        </li>
+                    </ul>
+                    <input type="hidden" name="project_id" value="<?= $project['project_id'] ?>">
+                </div>
+            </form>
+
+            <!-- Verwijderen knop -->
+            <form method="POST" style="display: inline;" onsubmit="return confirm('Weet u zeker dat u dit project wilt verwijderen?');">
+                <input type="hidden" name="delete_project" value="<?= $project['project_id'] ?>">
+                <button type="submit" class="btn btn-sm btn-danger">Verwijderen</button>
+            </form>
+        </td>
+    </tr>
+    <?php endforeach; ?>
+</tbody>
+
+            </table>
+        </div>
+    </div>
+</section>
 
 
 <!-- Overlay container (standaard verborgen) -->
 <div id="overlay" class="overlay">
   <div class="overlay-content card">
-    <!-- Header met sluitknop -->
     <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
       <h5 class="mb-0">Gekoppelde gebruikers en gewerkte uren per project</h5>
       <button id="closeOverlay" class="btn btn-danger2">X</button>
     </div>
     <div class="card-body" style="max-height: 80vh; overflow-y: auto;">
-      <!-- Hier loop je over de projecten en gekoppelde gebruikers, zoals eerder -->
       <?php foreach ($projects as $project): ?>
         <div class="card mt-3 mb-3">
           <div class="card-header bg-light">
@@ -927,7 +979,8 @@ const hoursChart = new Chart(ctx, {
         }]
     },
     options: {
-        responsive: false, // Zorgt voor een vaste grootte
+        responsive: false,              // Schakelt automatisch schalen uit
+        maintainAspectRatio: false,     // Schakelt het aspect ratio behoud uit
         scales: {
             y: {
                 beginAtZero: true
@@ -935,6 +988,8 @@ const hoursChart = new Chart(ctx, {
         }
     }
 });
+
+
 
                 // Edit modal handler
 let editUserModalInstance;
