@@ -1,45 +1,34 @@
 <?php
 
-/////////////////////////////////////////////////////
-//DEZE BESTAND IS VOOR INDEX (POPUP VIA AJAX AANROEP)
-/////////////////////////////////////////////////////
-
 session_start();
 include 'db/conn.php';
 
+// Controleer of de gebruiker is ingelogd
 if (!isset($_SESSION['user_id'])) {
-    echo json_encode(['status' => 'error', 'message' => 'Je moet ingelogd zijn om deze informatie te zien.']);
+    header("Location: inloggen.php");
     exit();
 }
 
-if (isset($_GET['project_id'])) {
-    $project_id = $_GET['project_id'];
+$user_id = $_SESSION['user_id']; // Haal user_id uit sessie
 
-    // Haal de projectinformatie en klantvoornaam op uit de database
-    $query = "SELECT p.project_naam, p.beschrijving, p.contract_uren, k.voornaam AS klant_voornaam, k.achternaam AS klant_achternaam
-              FROM project p
-              JOIN klant k ON p.klant_id = k.klant_id
-              WHERE p.project_id = :project_id";
-    $stmt = $pdo->prepare($query);
-    $stmt->bindParam(':project_id', $project_id, PDO::PARAM_INT);
-    $stmt->execute();
+// Haal alle projecten op die aan de gebruiker zijn gekoppeld
+$query = "SELECT p.project_id, p.project_naam, p.beschrijving, p.contract_uren, 
+                 k.voornaam AS klant_voornaam, k.achternaam AS klant_achternaam
+          FROM project p
+          JOIN klant k ON p.klant_id = k.klant_id
+          JOIN project_users pu ON p.project_id = pu.project_id
+          WHERE pu.user_id = :user_id"; // Haal projecten voor deze specifieke gebruiker op
 
-    $project = $stmt->fetch(PDO::FETCH_ASSOC);
+$stmt = $pdo->prepare($query);
+$stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+$stmt->execute();
 
-    if ($project) {
-        // Stuur JSON terug naar AJAX
-        echo json_encode([
-            'status' => 'success',
-            'project_naam' => htmlspecialchars($project['project_naam']),
-            'beschrijving' => htmlspecialchars($project['beschrijving']),
-            'contract_uren' => htmlspecialchars($project['contract_uren']),
-            'klant_voornaam' => htmlspecialchars($project['klant_voornaam']),
-            'klant_achternaam' => htmlspecialchars($project['klant_achternaam'])
-        ]);
-    } else {
-        echo json_encode(['status' => 'error', 'message' => 'Geen project gevonden.']);
-    }
+$projects = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+if ($projects) {
+    echo json_encode(['status' => 'success', 'projects' => $projects]);
 } else {
-    echo json_encode(['status' => 'error', 'message' => 'Project ID ontbreekt.']);
+    echo json_encode(['status' => 'error', 'message' => 'Geen gekoppelde projecten gevonden.']);
 }
+
 ?>
