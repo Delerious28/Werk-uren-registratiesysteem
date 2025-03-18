@@ -98,13 +98,15 @@ $company_name = $project_data ? $project_data['bedrijfnaam'] : 'Onbekend bedrijf
     </div>
 </div>
 
-<!-- Pop-up -->
-<div id="popup" class="pop-up">
-    <span class="close">&times;</span>
-    <h2 id="popup-title"></h2>
-    <p id="popup-klant-naam"></p>
-    <p id="popup-contract-uren"></p>
-    <p id="popup-description"></p>
+<!-- Pop-up overlay -->
+<div id="popup-overlay" class="popup-overlay">
+    <div id="popup" class="pop-up">
+        <span class="close">&times;</span>
+        <h2 id="popup-title"></h2>
+        <p id="popup-klant-naam"></p>
+        <p id="popup-contract-uren"></p>
+        <p id="popup-description"></p>
+    </div>
 </div>
 
 <script src="js/index.js"></script>
