@@ -301,6 +301,8 @@
     color: black !important;
     border: none !important;
     text-align: left !important;
+    bottom: 5px;
+  position: relative;
   }
   .btn-secondary:hover{
     background-color: #eca9a7 !important;
