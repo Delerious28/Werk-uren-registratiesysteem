@@ -386,37 +386,39 @@ foreach ($hours as $h) {
   </div>
 </nav>
 
-
-
-
-
             <main class="col-md-10 p-4">
                 <section id="dashboard" class="active-section d-none">                    
-                    <div class="row mb-4">
-                        <div class="col-md-3">
-                            <div class="card text-white bg-primary">
-                                <div class="card-body">
-                                    <h5 class="card-title">Gebruikers</h5>
-                                    <p class="card-text display-4"><?= $usersCount + $klantenCount ?></p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card text-white bg-warning">
-                                <div class="card-body">
-                                    <h5 class="card-title">Openstaande uren</h5>
-                                    <p class="card-text display-4"><?= $pendingHoursCount ?></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">Gebruikers</h5>
+                <p class="card-text display-4"><?= $usersCount ?></p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <h5 class="card-title">Klanten</h5>
+                <p class="card-text display-4"><?= $klantenCount ?></p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h5 class="card-title">Openstaande uren</h5>
+                <p class="card-text display-4"><?= $pendingHoursCount ?></p>
+            </div>
+        </div>
+    </div>
+</div>
+        <div class="chart-container">
+            <canvas id="hoursChart"></canvas>
+        </div>        
+</section>
 
-                    <div class="chart-container">
-                        <canvas id="hoursChart"></canvas>
-                    </div>
-                    
-                    
-                </section>
                  <!-- Clients Section -->
                  <section id="clients" class="d-none">
                     <h2>Klantenbeheer</h2>
@@ -912,26 +914,28 @@ document.querySelectorAll('.list-group-item').forEach(link => {
 
         // Hours chart
         const ctx = document.getElementById('hoursChart').getContext('2d');
-        const hoursChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: <?= json_encode(array_keys($projectHours)) ?>,
-                datasets: [{
-                    label: 'Totaal gewerkte uren',
-                    data: <?= json_encode(array_values($projectHours)) ?>,
-                    backgroundColor: 'rgba(217, 83, 79, 0.5)',
-                    borderColor: 'rgba(217, 83, 79, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
+const hoursChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: <?= json_encode(array_keys($projectHours)) ?>,
+        datasets: [{
+            label: 'Totaal gewerkte uren',
+            data: <?= json_encode(array_values($projectHours)) ?>,
+            backgroundColor: 'rgba(217, 83, 79, 0.5)',
+            borderColor: 'rgba(217, 83, 79, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: false, // Zorgt voor een vaste grootte
+        scales: {
+            y: {
+                beginAtZero: true
             }
-        });
+        }
+    }
+});
+
                 // Edit modal handler
 let editUserModalInstance;
 
