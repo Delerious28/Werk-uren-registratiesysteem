@@ -73,10 +73,19 @@ $stmtTotal->execute($params);
 $totalRecords = $stmtTotal->fetchColumn();
 $totalPages = ceil($totalRecords / $limit);
 
-$sqlBedrijven = "SELECT DISTINCT bedrijfnaam FROM klant ORDER BY bedrijfnaam ASC";  // Haal alle unieke bedrijfsnamen
+$sqlBedrijven = "
+    SELECT DISTINCT k.bedrijfnaam 
+    FROM klant k
+    JOIN project p ON k.klant_id = p.klant_id
+    JOIN hours h ON p.project_id = h.project_id
+    WHERE h.user_id = :user_id
+    ORDER BY k.bedrijfnaam ASC
+";
+
 $stmtBedrijven = $pdo->prepare($sqlBedrijven);
-$stmtBedrijven->execute();
+$stmtBedrijven->execute(['user_id' => $user_id]);
 $bedrijven = $stmtBedrijven->fetchAll(PDO::FETCH_COLUMN);
+
 ?>
 
 <!DOCTYPE html>
