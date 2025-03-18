@@ -99,6 +99,7 @@ body {
     padding: 20px;
 }
 
+
 .onder-container {
     background: linear-gradient(to bottom, #6D0F10, #7a0000);
     width: 0;
@@ -193,7 +194,7 @@ h1.visible {
 h4 {
     position: absolute;
     color: white;
-    font-size: 22px;
+    font-size: 20px;
     margin-top: -20px;
     opacity: 0;
     visibility: hidden;
@@ -203,9 +204,6 @@ h4 {
     transition:  0.3s, transform 0.2s;
 }
 
-h4:hover{
-    transform: scale(1.05);
-}
 
 h4.visible {
     opacity: 1;
@@ -244,6 +242,12 @@ h3.visible {
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    transition: 0.3s ease-in-out;
+}
+.project-info-popup:hover{
+    background-color: #780303;
+    transform: scale(1.2);
+    border-radius: 10px;
 }
 
 /* Algemene stijl voor de pop-up */

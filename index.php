@@ -106,6 +106,6 @@ $company_name = $project_data ? $project_data['bedrijfnaam'] : 'Onbekend bedrijf
 </div>
 
 <script src="js/index.js"></script>
-
+<script>
 </body>
 </html>
