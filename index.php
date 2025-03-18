@@ -81,11 +81,8 @@ $company_name = $project_data ? $project_data['bedrijfnaam'] : 'Onbekend bedrijf
         <h3>Project uren: <?php echo $remaining_hours; ?> uur</h3>
     </div>
     <div class="container boven-container-rechts">
-        <button class="project-info-popup" data-project-id="<?php echo $project_id; ?>">
-            <h4 id="workText">
-                U werkt voor:<br>
-                <?php echo htmlspecialchars($project_name) . "<br> bij " . htmlspecialchars($company_name); ?>
-            </h4>
+        <button class="project-info-popup" data-project-id="<?php echo $project_id; ?>" data-user-id="<?php echo $_SESSION['user_id']; ?>">
+            <h4 id="workText">Alle projecten</h4>
         </button>
     </div>
     <div class="foto-container">
@@ -102,10 +99,9 @@ $company_name = $project_data ? $project_data['bedrijfnaam'] : 'Onbekend bedrijf
 <div id="popup-overlay" class="popup-overlay">
     <div id="popup" class="pop-up">
         <span class="close">&times;</span>
-        <h2 id="popup-title"></h2>
-        <p id="popup-klant-naam"></p>
-        <p id="popup-contract-uren"></p>
-        <p id="popup-description"></p>
+        <h6>Gekoppelde projecten</h6>
+        <!-- Nieuw element om de projectinformatie weer te geven -->
+        <div id="popup-content"></div>
     </div>
 </div>
 

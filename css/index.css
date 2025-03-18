@@ -296,4 +296,24 @@ p{
     margin: 0;
 }
 
+h5{
+    font-size: 20px;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+.project-beschrijving{
+    margin-bottom: 10px;
+}
+
+.project-details {
+    display: none; /* Standaard de projectdetails verbergen */
+    padding-left: 24px;
+}
+
+h6{
+    font-size: 30px;
+    margin-bottom: 15px;
+}
+
 /**/
