@@ -1,5 +1,8 @@
-document.addEventListener("DOMContentLoaded", function() {
+// ///////////////////////////////////////////
+//////// DEZE BESTAND IS VOOR INDEX///////////
+// ///////////////////////////////////////////
 
+document.addEventListener("DOMContentLoaded", function() {
     // Animaties voor verschillende containers
     const bovenContainerLinks = document.querySelector('.boven-container-links');
     const percentageText = document.getElementById('percentageText');
@@ -25,6 +28,9 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     // Pop-up functionaliteit
+    const popupOverlay = document.getElementById("popup-overlay");
+    const popup = document.getElementById("popup");
+
     document.querySelectorAll(".project-info-popup").forEach(button => {
         button.addEventListener("click", function() {
             let projectId = this.getAttribute("data-project-id");
@@ -40,11 +46,11 @@ document.addEventListener("DOMContentLoaded", function() {
                 .then(data => {
                     if (data.status === "success") {
                         document.getElementById("popup-title").textContent = data.project_naam;
-                        document.getElementById("popup-description").textContent = `Beschrijving: ${data.beschrijving}`;
-                        document.getElementById("popup-contract-uren").textContent = `Contracturen: ${data.contract_uren} uur`;
-                        document.getElementById("popup-klant-naam").textContent = `Klant: ${data.klant_voornaam} ${data.klant_achternaam}`;
+                        document.getElementById("popup-description").innerHTML = `<strong>Beschrijving: </strong> ${data.beschrijving}`;
+                        document.getElementById("popup-contract-uren").innerHTML = `<strong>Contracturen: </strong> ${data.contract_uren} uur`;
+                        document.getElementById("popup-klant-naam").innerHTML = `<strong>Klant: </strong> ${data.klant_voornaam} ${data.klant_achternaam}`;
 
-                        document.getElementById("popup").style.display = "block";
+                        popupOverlay.style.display = "flex"; // Overlay tonen
                     } else {
                         alert(data.message);
                     }
@@ -55,15 +61,13 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Sluitknop voor de pop-up
     document.querySelector(".close").addEventListener("click", function() {
-        document.getElementById("popup").style.display = "none";
+        popupOverlay.style.display = "none";
     });
 
     // Sluit pop-up als er buiten wordt geklikt
-    window.addEventListener('click', function(event) {
-        const popup = document.getElementById("popup");
-        if (event.target === popup) {
-            popup.style.display = "none";
+    popupOverlay.addEventListener("click", function(event) {
+        if (event.target === popupOverlay) {
+            popupOverlay.style.display = "none";
         }
     });
-
 });
