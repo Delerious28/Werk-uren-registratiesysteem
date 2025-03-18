@@ -32,18 +32,6 @@ $stmt_hours->bindParam(':user_id', $user_id, PDO::PARAM_INT);
 $stmt_hours->execute();
 $hours_data = $stmt_hours->fetch(PDO::FETCH_ASSOC);
 
-$total_hours = $hours_data['total_hours'] ?? 0;
-$total_contract_hours = $hours_data['contract_uren'] ?? 1; // Zet op 1 als het niet bestaat
-
-// Zorg ervoor dat $total_contract_hours niet nul is voor de berekening
-if ($total_contract_hours == 0) {
-    $total_contract_hours = 1; // Zet het op 1 als het 0 is om deling door nul te voorkomen
-}
-
-$percentage = ($total_hours / $total_contract_hours) * 100;
-$percentage = min($percentage, 100);
-$remaining_hours = $total_contract_hours - $total_hours;
-
 // Haal projectgegevens op via project_users
 $query_project = "SELECT p.project_id, p.project_naam, k.bedrijfnaam 
                   FROM project_users pu
@@ -74,15 +62,13 @@ $company_name = $project_data ? $project_data['bedrijfnaam'] : 'Onbekend bedrijf
 <?php include 'sidebar.php'; ?>
 <div class="start">
     <div class="container boven-container-links">
-        <h1 id="percentageText"><?php echo (100 - round($percentage, 2)); ?>%</h1>
-        <div class="progress-bar-container">
-            <div class="progress-bar" id="progress" style="width: <?php echo round($percentage, 2); ?>%;"></div>
-        </div>
-        <h3>Project uren: <?php echo $remaining_hours; ?> uur</h3>
+        <button class="progress-info-popup" data-user-id="<?php echo $_SESSION['user_id']; ?>">
+            <h4 id="workText1">Project voortgang</h4>
+        </button>
     </div>
     <div class="container boven-container-rechts">
         <button class="project-info-popup" data-project-id="<?php echo $project_id; ?>" data-user-id="<?php echo $_SESSION['user_id']; ?>">
-            <h4 id="workText">Alle projecten</h4>
+            <h4 id="workText2">Alle projecten</h4>
         </button>
     </div>
     <div class="foto-container">
@@ -99,11 +85,11 @@ $company_name = $project_data ? $project_data['bedrijfnaam'] : 'Onbekend bedrijf
 <div id="popup-overlay" class="popup-overlay">
     <div id="popup" class="pop-up">
         <span class="close">&times;</span>
-        <h6>Gekoppelde projecten</h6>
         <!-- Nieuw element om de projectinformatie weer te geven -->
         <div id="popup-content"></div>
     </div>
 </div>
+
 
 <script src="js/index.js"></script>
 <script>
