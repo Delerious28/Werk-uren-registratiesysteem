@@ -92,14 +92,13 @@
   
   /* Grafiek Aanpassingen */
   .chart-container {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    max-width: 800px;
-    margin: 40px auto;
-    position: relative;
+      overflow-x: auto;
   }
+  .chart-container canvas {
+      min-width: 1500px; /* Pas deze waarde aan op basis van je behoeften */
+      height: 500px;     /* Verander de hoogte indien gewenst */
+  }
+
   
   /* Responsive Aanpassingen */
   @media (max-width: 1200px) {
