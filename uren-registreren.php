@@ -7,10 +7,16 @@ if (!isset($_SESSION['user_id'])) {
 require 'db/conn.php';
 require 'sidebar.php';
 
-// Klanten ophalen
-$klantenQuery = "SELECT klant_id, voornaam, achternaam FROM klant";
+// Klanten ophalen die gekoppeld zijn aan de projecten van de gebruiker
+$klantenQuery = "
+    SELECT k.klant_id, k.voornaam, k.achternaam
+    FROM klant k
+    JOIN project p ON p.klant_id = k.klant_id
+    JOIN project_users pu ON pu.project_id = p.project_id
+    WHERE pu.user_id = :user_id
+";
 $klantenStmt = $pdo->prepare($klantenQuery);
-$klantenStmt->execute();
+$klantenStmt->execute(['user_id' => $_SESSION['user_id']]);
 $klanten = $klantenStmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Gekozen klant ophalen uit het formulier (voor het filteren van projecten)
@@ -19,9 +25,11 @@ $selectedKlant = isset($_POST['klant']) ? $_POST['klant'] : "";
 // Projecten ophalen op basis van de geselecteerde klant
 $projecten = [];
 if (!empty($selectedKlant)) {
-    $projectenQuery = "SELECT project_id, project_naam FROM project WHERE klant_id = ?";
+    $projectenQuery = "SELECT project_id, project_naam FROM project WHERE klant_id = ? AND project_id IN (
+        SELECT project_id FROM project_users WHERE user_id = ?
+    )";
     $projectenStmt = $pdo->prepare($projectenQuery);
-    $projectenStmt->execute([$selectedKlant]);
+    $projectenStmt->execute([$selectedKlant, $_SESSION['user_id']]);
     $projecten = $projectenStmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
@@ -154,6 +162,7 @@ foreach ($hoursRecords as $record) {
 
 ?>
 
+
 <!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -196,7 +205,15 @@ foreach ($hoursRecords as $record) {
             <li>Klant:</li>
             <select name="klant" class="small-input" onchange="this.form.submit()">
                 <option value="">-- Kies Klant --</option>
-                <?php foreach ($klanten as $klant): ?>
+                <?php
+                // Groepeer de klanten op klant_id om duplicaten te verwijderen
+                $uniqueKlanten = [];
+                foreach ($klanten as $klant) {
+                    $uniqueKlanten[$klant['klant_id']] = $klant;
+                }
+
+                // Toon alleen unieke klanten
+                foreach ($uniqueKlanten as $klant): ?>
                     <option value="<?= $klant['klant_id']; ?>" <?= ($klant['klant_id'] == $selectedKlant) ? 'selected' : ''; ?>>
                         <?= $klant['voornaam'] . ' ' . $klant['achternaam']; ?>
                     </option>
