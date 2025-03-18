@@ -1,7 +1,3 @@
-//////////////////////////////////////////////
-/////////// DEZE BESTAND IS VOOR INDEX////////
-//////////////////////////////////////////////
-
 document.addEventListener("DOMContentLoaded", function() {
     // Animaties voor verschillende containers
     const bovenContainerLinks = document.querySelector('.boven-container-links');
@@ -13,11 +9,17 @@ document.addEventListener("DOMContentLoaded", function() {
         h3Text.classList.add('visible');
     });
 
+    const workText1 = document.getElementById('workText1');
+
+    bovenContainerLinks.addEventListener('animationend', () => {
+        workText1.classList.add('visible');
+    });
+
     const bovenContainerRechts = document.querySelector('.boven-container-rechts');
-    const workText = document.getElementById('workText');
+    const workText2 = document.getElementById('workText2');
 
     bovenContainerRechts.addEventListener('animationend', () => {
-        workText.classList.add('visible');
+        workText2.classList.add('visible');
     });
 
     const onderContainer = document.querySelector('.onder-container');
@@ -29,13 +31,12 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Pop-up functionaliteit
     const popupOverlay = document.getElementById("popup-overlay");
-    const popup = document.getElementById("popup");
+    const popupContent = document.getElementById("popup-content");
 
+    // Knop voor het tonen van de projectinformatie
     document.querySelectorAll(".project-info-popup").forEach(button => {
         button.addEventListener("click", function() {
             let userId = this.getAttribute("data-user-id");
-
-            console.log("Gebruiker ID: " + userId);  // Dit logt de user ID in de console.
 
             if (!userId) {
                 alert("Geen gebruiker ID gevonden!");
@@ -44,22 +45,16 @@ document.addEventListener("DOMContentLoaded", function() {
 
             // AJAX-aanroep naar PHP om alle gekoppelde projecten op te halen
             fetch(`gebruiker-project-info.php?user_id=${userId}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Netwerkprobleem of serverprobleem');
-                    }
-                    return response.json();
-                })
+                .then(response => response.json())
                 .then(data => {
-                    console.log("Projectdata ontvangen:", data);  // Log de volledige data
                     if (data.status === 'success') {
-                        let projectsHtml = ''; // Lege string voor alle projecten
+                        let projectsHtml = '<h6>Gekoppelde projecten</h6>';
                         data.projects.forEach(project => {
-                            console.log("Project naam:", project.project_naam);  // Log projectnaam voor elk project
-
                             projectsHtml += `
                                 <div class='project-item'>
-                                    <h5 class="project-title" onclick="toggleDetails(this)"><span style="font-size: smaller;">▶</span> ${project.project_naam}</h5>
+                                    <h5 class="project-title" onclick="toggleDetails(this)">
+                                        <span style="font-size: smaller;">▶</span> ${project.project_naam}
+                                    </h5>
                                     <div class="project-details">
                                         <p><strong>Klant:</strong> ${project.klant_voornaam} ${project.klant_achternaam}</p>
                                         <p><strong>Contracturen:</strong> ${project.contract_uren} uur</p>
@@ -70,8 +65,8 @@ document.addEventListener("DOMContentLoaded", function() {
                             `;
                         });
 
-                        document.getElementById("popup-content").innerHTML = projectsHtml;
-                        popupOverlay.style.display = "flex"; // Overlay tonen
+                        popupContent.innerHTML = projectsHtml;
+                        popupOverlay.style.display = "flex";
                     } else {
                         alert(data.message);
                     }
@@ -81,6 +76,51 @@ document.addEventListener("DOMContentLoaded", function() {
                     alert('Er is een fout opgetreden bij het ophalen van de projectinformatie.');
                 });
         });
+    });
+
+    // Knop voor het tonen van de voortgangspercentage met projectnamen
+    document.querySelector(".progress-info-popup").addEventListener("click", function() {
+        let userId = this.getAttribute("data-user-id");
+
+        if (!userId) {
+            alert("Geen gebruiker ID gevonden!");
+            return;
+        }
+
+        // AJAX-aanroep om projectvoortgang op te halen
+        fetch(`project-progress-bar.php`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    let progressHtml = '<h6>Projecten Voortgang</h6>';
+                    data.projects.forEach(project => {
+                        progressHtml += `
+                        <div class='project-progress-item'>
+                            <h5 class="project-progress-title" onclick="toggleProgress(this)">
+                                <span style="font-size: smaller;">▶</span> ${project.project_naam}
+                            </h5>
+                            <div class="progress-details">
+                                <div>${project.remainingHours} uur resterend</div>
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar-popup" style="width: ${project.progressPercentage};"></div>
+                                </div>
+                                <div>${project.progressPercentage}</div>
+                            </div>
+                            <hr>
+                        </div>
+                    `;
+                    });
+
+                    popupContent.innerHTML = progressHtml;
+                    popupOverlay.style.display = "flex";
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error("Fout bij ophalen projectvoortgang:", error);
+                alert('Er is een fout opgetreden bij het ophalen van de projectvoortgang.');
+            });
     });
 
     // Sluitknop voor de pop-up
@@ -98,11 +138,22 @@ document.addEventListener("DOMContentLoaded", function() {
 
 // Functie om de projectdetails te tonen of te verbergen
 function toggleDetails(projectTitle) {
-    const details = projectTitle.nextElementSibling; // Haalt het volgende sibling-element op, wat de projectdetails is
+    const details = projectTitle.nextElementSibling;
 
     if (details.style.display === "none" || details.style.display === "") {
-        details.style.display = "block"; // Toon de details
+        details.style.display = "block";
     } else {
-        details.style.display = "none"; // Verberg de details
+        details.style.display = "none";
+    }
+}
+
+// Functie om de projectvoortgang te tonen of te verbergen
+function toggleProgress(projectTitle) {
+    const progressDetails = projectTitle.nextElementSibling;
+
+    if (progressDetails.style.display === "none" || progressDetails.style.display === "") {
+        progressDetails.style.display = "block";
+    } else {
+        progressDetails.style.display = "none";
     }
 }

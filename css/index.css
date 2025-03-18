@@ -231,7 +231,7 @@ h3.visible {
     visibility: visible;
 }
 
-/*Voor project informatie pop-up*/
+/*Voor project en progress informatie pop-up*/
 .project-info-popup{
     text-decoration: none;
     width: 100%;
@@ -318,6 +318,30 @@ h5{
 h6{
     font-size: 30px;
     margin-bottom: 15px;
+}
+
+.progress-info-popup{
+    text-decoration: none;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    background-color: transparent;
+    border: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.3s ease-in-out;
+}
+
+.progress-bar-popup{
+    height: 100%;
+    width: 100%;
+    background: black;
+    transition: width 1s ease-in-out;
+}
+
+.progress-details{
+    display: none;
 }
 
 /**/
