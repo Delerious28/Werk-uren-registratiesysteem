@@ -4,7 +4,7 @@ require_once 'db/conn.php';
 
 // Only allow admin access
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
-    header("Location: login.php");
+    header("Location: inloggen.php");
     exit();
 }
 
