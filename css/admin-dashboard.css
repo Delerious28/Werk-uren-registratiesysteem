@@ -327,6 +327,8 @@
 
 .btn-group > .status-dropdown-btn.status-active {
   background-color: green !important;
+  font-weight: bold !important;
+
 }
 
 .btn-group > .status-dropdown-btn.status-active:hover {
@@ -335,6 +337,8 @@
 
 .btn-group > .status-dropdown-btn.status-inactive {
   background-color: rgb(255, 0, 0) !important;
+  font-weight: bold !important;
+
 }
 
 .btn-group > .status-dropdown-btn.status-inactive:hover {
@@ -365,4 +369,16 @@
     bottom: 0px;
     position: relative;
   }
+}
+
+.btn-primary{
+  background-color: orange !important;
+  border-color: orange !important;
+  color: white !important;
+  font-weight: bold !important;
+}
+
+.btn-danger{
+  font-weight: bold !important;
+
 }
