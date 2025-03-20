@@ -89,7 +89,7 @@ try {
     }
     
     /* Sidebar (oorspronkelijk uiterlijk) */
-      .sidebar {
+    .sidebar {
       background: #f8f9fa;
       height: 100vh;
       width: 250px;
@@ -162,8 +162,14 @@ try {
       cursor: pointer;
       font-size: 1rem;
     }
+    /* Klant Toevoegen: blauw */
     .my-btn-info {
-      background: #0d6efd;
+      background: green;
+      color: #fff;
+    }
+    /* Bewerk: oranje */
+    .my-btn-warning {
+      background: #FFA500;
       color: #fff;
     }
     .my-btn-success {
@@ -322,7 +328,7 @@ try {
               <td><?= htmlspecialchars($klant['email']) ?></td>
               <td><?= htmlspecialchars($klant['telefoon']) ?></td>
               <td class="my-action-btns">
-                <button class="edit-btn my-btn my-btn-info"
+                <button class="edit-btn my-btn my-btn-warning"
                         data-klant_id="<?= $klant['klant_id'] ?>"
                         data-bedrijfnaam="<?= htmlspecialchars($klant['bedrijfnaam']) ?>"
                         data-voornaam="<?= htmlspecialchars($klant['voornaam']) ?>"
