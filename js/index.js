@@ -1,23 +1,19 @@
 document.addEventListener("DOMContentLoaded", function() {
     // Animaties voor verschillende containers
     const bovenContainerLinks = document.querySelector('.boven-container-links');
-
     const workText1 = document.getElementById('workText1');
-
     bovenContainerLinks.addEventListener('animationend', () => {
         workText1.classList.add('visible');
     });
 
     const bovenContainerRechts = document.querySelector('.boven-container-rechts');
     const workText2 = document.getElementById('workText2');
-
     bovenContainerRechts.addEventListener('animationend', () => {
         workText2.classList.add('visible');
     });
 
     const onderContainer = document.querySelector('.onder-container');
     const welkomContainer = document.getElementById('welkomContainer');
-
     onderContainer.addEventListener('animationend', () => {
         welkomContainer.classList.add('visible');
     });
@@ -26,23 +22,38 @@ document.addEventListener("DOMContentLoaded", function() {
     const popupOverlay = document.getElementById("popup-overlay");
     const popupContent = document.getElementById("popup-content");
 
+    // Functie om de overlay te tonen met fade-in
+    function showOverlay() {
+        popupOverlay.style.display = "flex";
+        // Kleine vertraging zodat de display eerst is gezet voordat de class wordt toegevoegd
+        setTimeout(() => {
+            popupOverlay.classList.add("visible");
+        }, 10);
+    }
+
+    // Functie om de overlay te verbergen met fade-out
+    function hideOverlay() {
+        popupOverlay.classList.remove("visible");
+        popupOverlay.addEventListener('transitionend', () => {
+            popupOverlay.style.display = "none";
+        }, { once: true });
+    }
+
     // Knop voor het tonen van de projectinformatie
     document.querySelectorAll(".project-info-popup").forEach(button => {
         button.addEventListener("click", function() {
             let userId = this.getAttribute("data-user-id");
-
             if (!userId) {
                 alert("Geen gebruiker ID gevonden!");
                 return;
             }
 
-            // Verander de tekst van de bestaande <h6> binnen de nieuwe popup-header
             const h6 = document.querySelector("#popup .popup-header h6");
             if (h6) {
-                h6.textContent = "Gekoppelde projecten";  // Verander de tekst hier
+                h6.textContent = "Gekoppelde projecten";
             }
 
-            // AJAX-aanroep naar PHP om alle gekoppelde projecten op te halen
+            // AJAX-aanroep om alle gekoppelde projecten op te halen
             fetch(`gebruiker-project-info.php?user_id=${userId}`)
                 .then(response => response.json())
                 .then(data => {
@@ -63,9 +74,8 @@ document.addEventListener("DOMContentLoaded", function() {
                                 </div>
                             `;
                         });
-
                         popupContent.innerHTML = projectsHtml;
-                        popupOverlay.style.display = "flex";
+                        showOverlay();
                     } else {
                         alert(data.message);
                     }
@@ -77,49 +87,44 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
 
-    // Knop voor het tonen van de voortgangspercentage met projectnamen
+    // Knop voor het tonen van de projectvoortgang
     document.querySelector(".progress-info-popup").addEventListener("click", function() {
         let userId = this.getAttribute("data-user-id");
-
         if (!userId) {
             alert("Geen gebruiker ID gevonden!");
             return;
         }
 
-        // Verander de tekst van de bestaande <h6> binnen de nieuwe popup-header
         const h6 = document.querySelector("#popup .popup-header h6");
         if (h6) {
-            h6.textContent = "Projecten Voortgang";  // Verander de tekst hier
+            h6.textContent = "Projecten Voortgang";
         }
 
-        // AJAX-aanroep om projectvoortgang op te halen
+        // AJAX-aanroep om de projectvoortgang op te halen
         fetch(`project-progress-bar.php?user_id=${userId}`)
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
                     let progressHtml = '';
                     data.projects.forEach(project => {
-                        // Zorg ervoor dat de projectnaam en voortgangsgegevens correct worden weergegeven
                         progressHtml += `
-                    <div class='project-progress-item'>
-                        <div class="verticaal-lijn"> | </div>
-                        <h5 class="project-progress-title">${project.project_naam}</h5>
-                        <div class="progress-details">
-                            <div class="bar-grid-template">
-                                <div class="progress-bar-container">
-                                    <div class="progress-bar-popup" style="width: ${project.progressPercentage};"></div>
+                            <div class='project-progress-item'>
+                                <div class="verticaal-lijn"> | </div>
+                                <h5 class="project-progress-title">${project.project_naam}</h5>
+                                <div class="progress-details">
+                                    <div class="bar-grid-template">
+                                        <div class="progress-bar-container">
+                                            <div class="progress-bar-popup" style="width: ${project.progressPercentage};"></div>
+                                        </div>
+                                        <div class="percentage">${project.progressPercentage}</div>
+                                        <div class="resterende-uren">${project.remainingHours} uur resterend</div>
+                                    </div>
                                 </div>
-                                <div class="percentage">${project.progressPercentage}</div>
-                                <div class="resterende-uren">${project.remainingHours} uur resterend</div>
                             </div>
-                        </div>
-                    </div>
-                    `;
+                        `;
                     });
-
-                    // Zet de gegenereerde HTML in de popup content
                     popupContent.innerHTML = progressHtml;
-                    popupOverlay.style.display = "flex";
+                    showOverlay();
                 } else {
                     alert(data.message);
                 }
@@ -130,15 +135,13 @@ document.addEventListener("DOMContentLoaded", function() {
             });
     });
 
-    // Sluitknop voor de pop-up
-    document.querySelector(".close").addEventListener("click", function() {
-        popupOverlay.style.display = "none";
-    });
+    // Sluit de pop-up wanneer op de sluitknop wordt geklikt
+    document.querySelector(".close").addEventListener("click", hideOverlay);
 
-    // Sluit pop-up als er buiten wordt geklikt
+    // Sluit de pop-up als er buiten de pop-up wordt geklikt
     popupOverlay.addEventListener("click", function(event) {
         if (event.target === popupOverlay) {
-            popupOverlay.style.display = "none";
+            hideOverlay();
         }
     });
 });
@@ -146,11 +149,9 @@ document.addEventListener("DOMContentLoaded", function() {
 // Functie om de projectdetails te tonen of te verbergen
 function toggleDetails(projectTitle) {
     const details = projectTitle.nextElementSibling;
-
     if (details.style.display === "none" || details.style.display === "") {
         details.style.display = "block";
     } else {
         details.style.display = "none";
     }
 }
-
