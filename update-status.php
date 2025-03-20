@@ -29,8 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['month'])) {
     $monthName = $monthNames[$monthNumber];
 
     try {
-        // Bereid een SQL-query voor om alle uren voor de opgegeven maand goed te keuren
-        $stmt = $pdo->prepare("UPDATE hours SET accord = 'Approved' WHERE DATE_FORMAT(date, '%Y-%m') = :month");
+        // Bereid een SQL-query voor om alleen uren met de status 'Pending' voor de opgegeven maand goed te keuren
+        $stmt = $pdo->prepare("UPDATE hours SET accord = 'Approved' WHERE DATE_FORMAT(date, '%Y-%m') = :month AND accord = 'Pending'");
         $stmt->bindParam(':month', $month);
         $stmt->execute();
 
@@ -38,8 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['month'])) {
         if ($stmt->rowCount() > 0) {
             $accordMessage = "Alle uren voor $monthName zijn geaccordeerd!"; // Gebruik maandnaam
         } else {
-            $accordMessage = "Geen uren voor $monthName gevonden!"; // Gebruik maandnaam
-            $status = 'error'; // Foutstatus als er geen uren zijn
+            $accordMessage = "Geen afwachting uren voor $monthName gevonden!"; // Gebruik maandnaam
+            $status = 'error'; // Foutstatus als er geen uren met status 'Pending' zijn
         }
     } catch (PDOException $e) {
         $accordMessage = "Fout bij goedkeuren: " . $e->getMessage();
