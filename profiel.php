@@ -50,11 +50,11 @@ $contactData = $stmtContact->fetch(PDO::FETCH_ASSOC);
 </head>
 <body>
 <header>
-  <img src="img/logo.png" alt="Logo" class="logo">
   <h1>Bedrijfsinformatie Portal</h1>
 </header>
 <?php include 'sidebar.php'; ?>
 
+<div class="profiel-container">
 <!-- Bedrijfsinformatie-container met toggle -->
 <div class="info-section bedrijfs-container">
     <!-- Toggle: Contacttekst + icoon -->
@@ -76,19 +76,6 @@ $contactData = $stmtContact->fetch(PDO::FETCH_ASSOC);
         <p>Geen bedrijfsinformatie beschikbaar.</p>
     <?php endif; ?>
 
-    <!-- Contactinformatie, aanvankelijk verborgen met slide-in effect -->
-    <div class="contact-info" id="contact-info">
-        <h3>Contactinformatie</h3>
-        <?php if ($contactData): ?>
-            <div class="info-item"><span class="info-label">Naam:</span> <?php echo htmlspecialchars($contactData['voornaam'] . " " . $contactData['achternaam']); ?></div>
-            <div class="info-item"><span class="info-label">Email:</span> <?php echo htmlspecialchars($contactData['email']); ?></div>
-            <div class="info-item"><span class="info-label">Telefoon:</span> <?php echo htmlspecialchars($contactData['telefoon']); ?></div>
-            <div class="info-item"><span class="info-label">Bericht:</span> <?php echo htmlspecialchars($contactData['bericht']); ?></div>
-            <div class="info-item"><span class="info-label">Verstuurd op:</span> <?php echo htmlspecialchars($contactData['created_at']); ?></div>
-        <?php else: ?>
-            <p>Geen contactinformatie beschikbaar.</p>
-        <?php endif; ?>
-    </div>
 </div>
 
 <!-- Klantinformatie -->
@@ -115,6 +102,26 @@ $contactData = $stmtContact->fetch(PDO::FETCH_ASSOC);
         <p>Geen gegevens beschikbaar.</p>
     <?php endif; ?>
 </div>
+
+</div>
+
+<!-- Contactinformatie Popup -->
+<div class="contact-popup" id="contact-popup">
+    <div class="contact-popup-content">
+        <span class="close-popup">&times;</span>
+        <h3>Contactinformatie</h3>
+        <?php if ($contactData): ?>
+            <div class="info-item"><span class="info-label">Naam:</span> <?php echo htmlspecialchars($contactData['voornaam'] . " " . $contactData['achternaam']); ?></div>
+            <div class="info-item"><span class="info-label">Email:</span> <?php echo htmlspecialchars($contactData['email']); ?></div>
+            <div class="info-item"><span class="info-label">Telefoon:</span> <?php echo htmlspecialchars($contactData['telefoon']); ?></div>
+            <div class="info-item"><span class="info-label">Bericht:</span> <?php echo htmlspecialchars($contactData['bericht']); ?></div>
+            <div class="info-item"><span class="info-label">Verstuurd op:</span> <?php echo htmlspecialchars($contactData['created_at']); ?></div>
+        <?php else: ?>
+            <p>Geen contactinformatie beschikbaar.</p>
+        <?php endif; ?>
+    </div>
+</div>
+
 </body>
 <script src="js/profiel.js"></script>
 </html>
