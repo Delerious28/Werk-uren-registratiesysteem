@@ -1,13 +1,6 @@
 document.addEventListener("DOMContentLoaded", function() {
     // Animaties voor verschillende containers
     const bovenContainerLinks = document.querySelector('.boven-container-links');
-    const percentageText = document.getElementById('percentageText');
-    const h3Text = document.querySelector('.boven-container-links h3');
-
-    bovenContainerLinks.addEventListener('animationend', () => {
-        percentageText.classList.add('visible');
-        h3Text.classList.add('visible');
-    });
 
     const workText1 = document.getElementById('workText1');
 
@@ -43,14 +36,20 @@ document.addEventListener("DOMContentLoaded", function() {
                 return;
             }
 
+            // Verander de tekst van de bestaande <h6> binnen de nieuwe popup-header
+            const h6 = document.querySelector("#popup .popup-header h6");
+            if (h6) {
+                h6.textContent = "Gekoppelde projecten";  // Verander de tekst hier
+            }
+
             // AJAX-aanroep naar PHP om alle gekoppelde projecten op te halen
             fetch(`gebruiker-project-info.php?user_id=${userId}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
-                        let projectsHtml = '<h6>Gekoppelde projecten</h6>';
+                        let projectsHtml = '';
                         data.projects.forEach(project => {
-                            projectsHtml += `
+                            projectsHtml += ` 
                                 <div class='project-item'>
                                     <h5 class="project-title" onclick="toggleDetails(this)">
                                         <span style="font-size: smaller;">▶</span> ${project.project_naam}
@@ -87,30 +86,38 @@ document.addEventListener("DOMContentLoaded", function() {
             return;
         }
 
+        // Verander de tekst van de bestaande <h6> binnen de nieuwe popup-header
+        const h6 = document.querySelector("#popup .popup-header h6");
+        if (h6) {
+            h6.textContent = "Projecten Voortgang";  // Verander de tekst hier
+        }
+
         // AJAX-aanroep om projectvoortgang op te halen
-        fetch(`project-progress-bar.php`)
+        fetch(`project-progress-bar.php?user_id=${userId}`)
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
-                    let progressHtml = '<h6>Projecten Voortgang</h6>';
+                    let progressHtml = '';
                     data.projects.forEach(project => {
+                        // Zorg ervoor dat de projectnaam en voortgangsgegevens correct worden weergegeven
                         progressHtml += `
-                        <div class='project-progress-item'>
-                            <h5 class="project-progress-title" onclick="toggleProgress(this)">
-                                <span style="font-size: smaller;">▶</span> ${project.project_naam}
-                            </h5>
-                            <div class="progress-details">
-                                <div>${project.remainingHours} uur resterend</div>
+                    <div class='project-progress-item'>
+                        <div class="verticaal-lijn"> | </div>
+                        <h5 class="project-progress-title">${project.project_naam}</h5>
+                        <div class="progress-details">
+                            <div class="bar-grid-template">
                                 <div class="progress-bar-container">
                                     <div class="progress-bar-popup" style="width: ${project.progressPercentage};"></div>
                                 </div>
-                                <div>${project.progressPercentage}</div>
+                                <div class="percentage">${project.progressPercentage}</div>
+                                <div class="resterende-uren">${project.remainingHours} uur resterend</div>
                             </div>
-                            <hr>
                         </div>
+                    </div>
                     `;
                     });
 
+                    // Zet de gegenereerde HTML in de popup content
                     popupContent.innerHTML = progressHtml;
                     popupOverlay.style.display = "flex";
                 } else {
@@ -147,13 +154,3 @@ function toggleDetails(projectTitle) {
     }
 }
 
-// Functie om de projectvoortgang te tonen of te verbergen
-function toggleProgress(projectTitle) {
-    const progressDetails = projectTitle.nextElementSibling;
-
-    if (progressDetails.style.display === "none" || progressDetails.style.display === "") {
-        progressDetails.style.display = "block";
-    } else {
-        progressDetails.style.display = "none";
-    }
-}
