@@ -156,12 +156,12 @@ body {
 
 
 .progress-bar-container {
-    background: rgba(255, 255, 255, 0.3);
-    height: 20px;
+    height: 15px;
     width: 100%;
     border-radius: 10px;
     overflow: hidden;
-    margin-top: 20px;
+    background-color: #e0e0e0;  /* Lichte grijs */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .progress-bar {
@@ -173,17 +173,17 @@ body {
 
 h1 {
     position: absolute;
-  color: white;
-  font-size: 25px;
-  margin-top: 60px;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
-  top: 120px;
-  text-align: center;
-  margin-right: 10px;
-  width: 13ch;
-  word-wrap: break-word;
+    color: white;
+    font-size: 25px;
+    margin-top: 60px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+    top: 120px;
+    text-align: center;
+    margin-right: 10px;
+    width: 13ch;
+    word-wrap: break-word;
 }
 
 h1.visible {
@@ -257,10 +257,12 @@ h3.visible {
     left: 50%;
     transform: translate(-50%, -50%);
     background: white;
-    padding: 20px;
+    padding: 30px;
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     z-index: 1000; /* Hoog, zodat het bovenop andere elementen komt */
+    max-height: 80vh; /* Maximaal 80% van de viewport hoogte */
+    overflow-y: auto; /* Zorgt voor scrollen als de inhoud te groot is */
 }
 
 /* Donkere overlay op de achtergrond */
@@ -279,16 +281,15 @@ h3.visible {
 
 /* Sluitknop */
 .close {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 20px;
+    font-weight: bold;
+    font-size: 25px;
     cursor: pointer;
     color: #555;
 }
 
 .close:hover {
-    color: black;
+    color: red;
+    font-weight: bold;
 }
 
 #popup-title{
@@ -317,7 +318,7 @@ h5{
 
 h6{
     font-size: 30px;
-    margin-bottom: 15px;
+    margin-bottom: 30px;
 }
 
 .progress-info-popup{
@@ -340,8 +341,53 @@ h6{
     transition: width 1s ease-in-out;
 }
 
-.progress-details{
-    display: none;
+.bar-grid-template{
+    display: grid;
+    grid-template-columns: 450px 1fr;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.percentage{
+    padding-left: 10px;
+}
+
+.resterende-uren{
+    padding: 5px 0 0 5px;
+}
+
+#popup-content{
+    width: 500px;
+}
+
+.project-progress-title{
+    cursor: none;
+}
+
+.project-progress-item{
+    position: relative;
+    margin-bottom: 30px;
+    padding-left: 15px;
+}
+
+.verticaal-lijn{
+    position: absolute;
+    top: 0;
+    left: 2px;
+    height: 100%;
+    background-color: black;
+    border-radius: 5px;
+}
+
+.popup-header{
+    display: grid;
+    grid-template-columns: 98% 1fr;
+}
+
+.progress-info-popup:hover{
+    background-color: #780303;
+    transform: scale(1.2);
+    border-radius: 10px;
 }
 
 /**/
