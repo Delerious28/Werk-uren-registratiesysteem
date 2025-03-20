@@ -124,4 +124,52 @@ $contactData = $stmtContact->fetch(PDO::FETCH_ASSOC);
 
 </body>
 <script src="js/profiel.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var toggleIcon = document.querySelector('.toggle-contact-icon');
+    var contactPopup = document.getElementById('contact-popup');
+    var contactPopupContent = document.querySelector('.contact-popup-content');
+    var closeBtn = document.querySelector('.close-popup');
+    // Duur van de transitie (in milliseconden) – zorg dat deze waarde overeenkomt met de CSS-transition (0.5s = 500ms)
+    var transitionDuration = 500;
+
+    // Functie om de popup te openen
+    function openPopup() {
+        // Zorg dat de content initieel op scale(0) staat
+        contactPopupContent.classList.remove('active');
+        // Maak de overlay zichtbaar
+        contactPopup.classList.add('active');
+        // Forceer een reflow zodat de browser de wijziging verwerkt
+        void contactPopupContent.offsetWidth;
+        // Voeg na een korte vertraging de active-class toe zodat de schaal-animatie van 0 naar 1 afspeelt
+        setTimeout(function() {
+            contactPopupContent.classList.add('active');
+        }, 10);
+    }
+
+    // Functie om de popup te sluiten
+    function closePopup() {
+        // Verwijder de active-class van de content zodat deze terug schaalt van 1 naar 0
+        contactPopupContent.classList.remove('active');
+        // Wacht tot de transitie voorbij is (hier: 500ms) voordat de overlay wordt verborgen
+        setTimeout(function() {
+            contactPopup.classList.remove('active');
+        }, transitionDuration);
+    }
+
+    // Openen bij klikken op de toggle-knop
+    toggleIcon.addEventListener('click', openPopup);
+
+    // Sluiten bij klikken op de sluitknop
+    closeBtn.addEventListener('click', closePopup);
+
+    // Sluiten bij klikken buiten de popup (op de overlay)
+    contactPopup.addEventListener('click', function(e) {
+        if (e.target === contactPopup) {
+            closePopup();
+        }
+    });
+});
+
+</script>
 </html>
