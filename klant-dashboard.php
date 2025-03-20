@@ -5,11 +5,7 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-try {
-    include 'db/conn.php';
-} catch (PDOException $e) {
-    die("Databaseverbinding mislukt: " . $e->getMessage());
-}
+require_once 'db/conn.php';
 
 // Functie om de status in de database bij te werken
 function updateStatus($pdo, $hoursId, $status) {
@@ -39,16 +35,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hours_id']) && isset(
 $filter = $_GET['filter'] ?? 'day';
 $selectedUserId = $_GET['user_id'] ?? '';
 
-// Voeg de basis SQL-query toe voordat je de filters toepast
-$sql = "SELECT h.hours_id, h.date, u.name, u.achternaam, h.hours, h.start_hours, h.eind_hours, h.accord,
-                k.bedrijfnaam AS bedrijfsnaam, p.project_naam AS projectnaam 
+// Basis SQL-query met user_id toegevoegd
+$sql = "SELECT u.user_id, h.hours_id, h.date, u.name, u.achternaam, h.hours, 
+               h.start_hours, h.eind_hours, h.accord,
+               k.bedrijfnaam AS bedrijfsnaam, p.project_naam AS projectnaam 
         FROM hours h
         JOIN users u ON h.user_id = u.user_id
         LEFT JOIN project p ON h.project_id = p.project_id
         LEFT JOIN klant k ON p.klant_id = k.klant_id
         WHERE h.date BETWEEN :start_date AND :end_date";
 
-// Voeg de extra WHERE-filter toe als een gebruiker is geselecteerd
+// Datumbereik bepaling
+$dateRange = [
+    'day'   => [date('Y-m-d'), date('Y-m-d')],
+    'week'  => [date('Y-m-d', strtotime('monday this week')), date('Y-m-d', strtotime('sunday this week'))],
+    'month' => [date('Y-m-01'), date('Y-m-t')]
+];
+[$start_date, $end_date] = $dateRange[$filter] ?? $dateRange['day'];
+
+// Parameters voor de query
+$params = ['start_date' => $start_date, 'end_date' => $end_date];
 if (!empty($selectedUserId)) {
     $sql .= " AND u.user_id = :user_id";
     $params['user_id'] = $selectedUserId;
@@ -58,25 +64,14 @@ $limit = 7;
 $page = max(1, (int)($_GET['page'] ?? 1));
 $offset = ($page - 1) * $limit;
 
-// Datumbereik bepaling
-$dateRange = [
-    'day' => [date('Y-m-d'), date('Y-m-d')],
-    'week' => [date('Y-m-d', strtotime('monday this week')), date('Y-m-d', strtotime('sunday this week'))],
-    'month' => [date('Y-m-01'), date('Y-m-t')]
-];
-[$start_date, $end_date] = $dateRange[$filter] ?? $dateRange['day'];
-
 try {
     // Query voor urengegevens, inclusief eventuele filters
     $stmt = $pdo->prepare($sql . " ORDER BY h.date ASC LIMIT :limit OFFSET :offset");
-
-    $params = ['start_date' => $start_date, 'end_date' => $end_date];
-    if (!empty($selectedUserId)) $params['user_id'] = $selectedUserId;
-
-    foreach ($params as $key => $val) $stmt->bindValue(":$key", $val);
+    foreach ($params as $key => $val) {
+        $stmt->bindValue(":$key", $val);
+    }
     $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
     $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-
     $stmt->execute();
     $hoursData = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -84,20 +79,17 @@ try {
     $gebruikers = $pdo->query("SELECT user_id, name, achternaam FROM users WHERE role = 'user' ORDER BY name ASC")
         ->fetchAll(PDO::FETCH_ASSOC);
 
-    // Haal het totaal aantal records
-    $sqlTotal = "
-        SELECT COUNT(*) FROM hours h
-        JOIN users u ON h.user_id = u.user_id
-        LEFT JOIN project p ON h.project_id = p.project_id
-        LEFT JOIN klant k ON p.klant_id = k.klant_id
-        WHERE h.date BETWEEN :start_date AND :end_date"
-        . (!empty($selectedUserId) ? " AND u.user_id = :user_id" : "");
-
+    // Haal het totaal aantal records op
+    $sqlTotal = "SELECT COUNT(*) FROM hours h
+                 JOIN users u ON h.user_id = u.user_id
+                 LEFT JOIN project p ON h.project_id = p.project_id
+                 LEFT JOIN klant k ON p.klant_id = k.klant_id
+                 WHERE h.date BETWEEN :start_date AND :end_date" . 
+                (!empty($selectedUserId) ? " AND u.user_id = :user_id" : "");
     $stmtTotal = $pdo->prepare($sqlTotal);
     $stmtTotal->execute($params);
     $totalRecords = $stmtTotal->fetchColumn();
     $totalPages = ceil($totalRecords / $limit);
-
 } catch (PDOException $e) {
     die("Fout bij het ophalen van gegevens: " . $e->getMessage());
 }
@@ -128,7 +120,7 @@ try {
             <option value="">Alle Gebruikers</option>
             <?php foreach ($gebruikers as $gebruiker): ?>
                 <option value="<?php echo htmlspecialchars($gebruiker['user_id']); ?>"
-                    <?php echo $gebruiker['user_id'] == ($_GET['user_id'] ?? '') ? 'selected' : ''; ?>>
+                    <?php echo $gebruiker['user_id'] == ($selectedUserId) ? 'selected' : ''; ?>>
                     <?php echo htmlspecialchars($gebruiker['name'] . ' ' . $gebruiker['achternaam']); ?>
                 </option>
             <?php endforeach; ?>
@@ -149,10 +141,10 @@ try {
                 <button id="dropdown-btn" class="dropdown-btn">▼</button>
                 <div id="dropdown-content" style="display: none;">
                     <div class="grid-dropdown">
-                    <select id="month-select" class="month-select">
-                        <!-- De maanden worden hier dynamisch toegevoegd -->
-                    </select>
-                    <button class="approve-month">Accordeer</button>
+                        <select id="month-select" class="month-select">
+                            <!-- Dynamisch toe te voegen maanden -->
+                        </select>
+                        <button class="approve-month">Accordeer</button>
                     </div>
                 </div>
             </th>
@@ -160,12 +152,6 @@ try {
         </tr>
         </thead>
         <tbody>
-
-        <div class="pagination">
-            <a href="?page=<?php echo max(1, $page - 1); ?>&filter=<?php echo urlencode($filter); ?>&bedrijfsnaam=<?php echo urlencode($selectedUserId); ?>" class="prev <?php echo ($page <= 1) ? 'disabled' : ''; ?>" <?php echo ($page <= 1) ? 'aria-disabled="true"' : ''; ?>>&#8592;</a>
-            <a href="?page=<?php echo min($totalPages, $page + 1); ?>&filter=<?php echo urlencode($filter); ?>&bedrijfsnaam=<?php echo urlencode($selectedUserId); ?>" class="next <?php echo ($page >= $totalPages) ? 'disabled' : ''; ?>" <?php echo ($page >= $totalPages) ? 'aria-disabled="true"' : ''; ?>>&#8594;</a>
-        </div>
-
         <?php if (empty($hoursData)): ?>
             <tr><td colspan="8">Geen gegevens gevonden.</td></tr>
         <?php else: ?>
@@ -194,6 +180,11 @@ try {
         <?php endif; ?>
         </tbody>
     </table>
+
+    <div class="pagination">
+        <a href="?page=<?php echo max(1, $page - 1); ?>&filter=<?php echo urlencode($filter); ?>&user_id=<?php echo urlencode($selectedUserId); ?>" class="prev <?php echo ($page <= 1) ? 'disabled' : ''; ?>" <?php echo ($page <= 1) ? 'aria-disabled="true"' : ''; ?>>&#8592;</a>
+        <a href="?page=<?php echo min($totalPages, $page + 1); ?>&filter=<?php echo urlencode($filter); ?>&user_id=<?php echo urlencode($selectedUserId); ?>" class="next <?php echo ($page >= $totalPages) ? 'disabled' : ''; ?>" <?php echo ($page >= $totalPages) ? 'aria-disabled="true"' : ''; ?>>&#8594;</a>
+    </div>
 </div>
 
 <!-- Pop-up voor het tonen van gebruikersgegevens -->
@@ -222,7 +213,6 @@ try {
         justify-content: center;
         align-items: center;
     }
-
     .popup-content {
         background: white;
         padding: 20px;
@@ -231,7 +221,6 @@ try {
         width: 300px;
         position: relative;
     }
-
     .close-popup {
         position: absolute;
         top: 10px;
@@ -241,44 +230,41 @@ try {
     }
 </style>
 
-<script src="js/klant-dashboard.js">
-    // JavaScript om de gegevens in de pop-up te laden
-    document.querySelectorAll('.view-user-profile').forEach(button => {
-        button.addEventListener('click', function () {
-            // Verkrijg de user_id uit de knop
-            const userId = this.getAttribute('data-user-id');
+<!-- Laad eerst je externe script -->
+<script src="js/klant-dashboard.js"></script>
 
-            // Voer een AJAX-aanroep uit om de gegevens op te halen
-            fetch('gebruiker-profiel-klant.php', {
-                method: 'POST',
-                body: JSON.stringify({ user_id: userId }),
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            })
-                .then(response => response.json())
-                .then(data => {
-                    // Vul de gegevens in de pop-up
-                    document.getElementById('popup-name').textContent = data.name + ' ' + data.achternaam;
-                    document.getElementById('popup-bedrijf').textContent = data.bedrijfnaam;
-                    document.getElementById('popup-project').textContent = data.projectnaam;
-                    document.getElementById('popup-uren').textContent = data.uren;
-                    document.getElementById('popup-tijd').textContent = data.start_hours + ' - ' + data.eind_hours;
-
-                    // Toon de pop-up
-                    document.getElementById('gebruikerPopup').style.display = 'flex';
-                })
-                .catch(error => {
-                    console.error('Fout bij het ophalen van gebruikersgegevens:', error);
-                });
+<!-- Inline JavaScript voor de pop-up functionaliteit -->
+<script>
+document.querySelectorAll('.view-user-profile').forEach(button => {
+    button.addEventListener('click', function () {
+        const userId = this.getAttribute('data-user-id');
+        fetch('gebruiker-profiel-klant.php', {
+            method: 'POST',
+            body: JSON.stringify({ user_id: userId }),
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Vul de pop-up met de opgehaalde gegevens
+            document.getElementById('popup-name').textContent = data.name + ' ' + data.achternaam;
+            document.getElementById('popup-bedrijf').textContent = data.bedrijfnaam;
+            document.getElementById('popup-project').textContent = data.projectnaam;
+            document.getElementById('popup-uren').textContent = data.uren;
+            document.getElementById('popup-tijd').textContent = data.start_hours + ' - ' + data.eind_hours;
+            document.getElementById('gebruikerPopup').style.display = 'flex';
+        })
+        .catch(error => {
+            console.error('Fout bij het ophalen van gebruikersgegevens:', error);
         });
     });
+});
 
-    // Sluit de pop-up wanneer de close knop wordt ingedrukt
-    document.querySelector('.close-popup').addEventListener('click', function () {
-        document.getElementById('gebruikerPopup').style.display = 'none';
-    });
-
+document.querySelector('.close-popup').addEventListener('click', function () {
+    document.getElementById('gebruikerPopup').style.display = 'none';
+});
 </script>
+
 </body>
 </html>

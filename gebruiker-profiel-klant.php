@@ -7,11 +7,7 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-try {
-    include 'db/conn.php';
-} catch (PDOException $e) {
-    die("Databaseverbinding mislukt: " . $e->getMessage());
-}
+require_once 'db/conn.php';
 
 $data = json_decode(file_get_contents('php://input'), true);
 $user_id = $data['user_id'] ?? '';
@@ -22,8 +18,10 @@ if (empty($user_id)) {
 }
 
 try {
-    // Haal de gegevens van de gebruiker op
-    $stmt = $pdo->prepare("SELECT u.name, u.achternaam, k.bedrijfnaam, p.project_naam AS projectnaam, h.hours AS uren, h.start_hours, h.eind_hours
+    // Haal de gegevens van de gebruiker op, inclusief enkele uren-gegevens
+    $stmt = $pdo->prepare("SELECT u.user_id, u.name, u.achternaam, k.bedrijfnaam, 
+                                  p.project_naam AS projectnaam, h.hours AS uren, 
+                                  h.start_hours, h.eind_hours
                            FROM users u
                            JOIN hours h ON u.user_id = h.user_id
                            LEFT JOIN project p ON h.project_id = p.project_id

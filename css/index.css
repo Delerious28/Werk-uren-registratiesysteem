@@ -267,17 +267,41 @@ h3.visible {
 
 /* Donkere overlay op de achtergrond */
 .popup-overlay {
-    display: none;
+    display: none;        /* Begin als verborgen */
+    opacity: 0;           /* Start volledig transparant */
+    transition: opacity 0.5s ease;  /* Overgang voor opacity */
+    justify-content: center;
+    align-items: center;
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5); /* Doorzichtige zwarte achtergrond */
-    justify-content: center;
-    align-items: center;
+    background: rgba(0, 0, 0, 0.5);
     z-index: 1001;
 }
+
+.popup-overlay {
+    display: none;        /* Start als verborgen */
+    opacity: 0;           /* Start transparant */
+    transition: opacity 0.5s ease;  /* Zorgt voor fade-in en fade-out */
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1001;
+}
+.popup-overlay.visible {
+    display: flex;        /* Zorgt dat de overlay in de layout staat */
+    opacity: 1;           /* Volledig zichtbaar */
+}
+
+
+
 
 /* Sluitknop */
 .close {
