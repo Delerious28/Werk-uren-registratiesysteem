@@ -75,175 +75,243 @@ try {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Klantenbeheer</title>
   <style>
+    /* Basis reset en body-styling */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      color: #333;
+      line-height: 1.6;
+    }
+    
+    /* Sidebar (oorspronkelijk uiterlijk) */
       .sidebar {
-          background: #f8f9fa;
-          height: 100vh;
-          width: 250px;
-          position: fixed;
-          z-index: 1000;
-          box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-          padding: 20px;
-          margin-top: 1px !important;
-          left: 10px;
-      }
-      
-      .btn-info {
-          background-color: #0d6efd !important;
-      }
-      
-      .modal {
-          position: fixed;
-          top: 220px !important;
-          left: 50% !important;
-          transform: translateX(-50%);
-          z-index: 1055;
-          display: none;
-          width: 40%;
-          max-width: 500px;
-          overflow-x: hidden;
-          overflow-y: auto;
-          outline: 0;
-      }
-      
-      .modal-content {
-          border: none;
-          padding: 20px;
-          height: auto;
-          position: relative;
-      }
-      
-      .modal-content form {
-          max-width: 320px;
-          margin: 0 auto;
-          text-align: left;
-      }
-      
-      h2 {
-          margin: auto;
-      }
-      
-      .overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background-color: rgba(0,0,0,0.7);
-          z-index: 1050;
-          display: none;
-      }
-      
-      .btn-success {
-          background-color: #6d0f10 !important;
-          border-color: transparent !important;
-          position: relative;
-          left: 50%;
-          transform: translateX(-50%);
-          padding: 8px;
-          margin-top: 0;
-      }
-      
-      /* Zorg dat de sluit-knop zichtbaar is */
-      .close-btn {
-          display: block;
-          position: absolute;
-          top: 10px;
-          right: 10px;
-          font-size: 24px;
-          cursor: pointer;
-          background: #f0f0f0;
-          border: 1px solid #ccc;
-          border-radius: 50%;
-          width: 30px;
-          height: 30px;
-          text-align: center;
-          line-height: 30px;
-      }
-      
-      .modal-content .form-control {
-          max-width: 300px;
-      }
-      
-      /* Styling voor de add customer container */
-      .add-customer-container {
-          margin: 20px auto;
-          padding: 20px;
-          background-color: #f9f9f9;
-      }
-      
-      .add-customer-container form div {
-          margin-bottom: 10px;
-      }
-      
-      .add-customer-container label {
-          display: block;
-          margin-bottom: 5px;
-      }
-      
-      .add-customer-container input[type="text"],
-      .add-customer-container input[type="email"] {
-          width: 100%;
-          padding: 8px;
-          box-sizing: border-box;
-      }
-      
-      .add-customer-container button {
-          padding: 10px 20px;
-          background-color: #0d6efd;
-          color: #fff;
-          border: none;
-          cursor: pointer;
-      }
+      background: #f8f9fa;
+      height: 100vh;
+      width: 250px;
+      position: fixed;
+      z-index: 1000;
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-top: 1px !important;
+      left: 10px;
+    }
+    .sidebar a {
+      color: #333;
+      text-decoration: none;
+      display: block;
+      margin-bottom: 10px;
+    }
+    
+    /* Main content */
+    .my-main {
+      margin-left: 270px;
+      padding: 20px;
+    }
+    
+    /* Sectie container */
+    .my-section {
+      background: #fff;
+      border: 1px solid #6d0f10;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .my-section h2 {
+      background: #6d0f10;
+      color: #fff;
+      padding: 15px;
+      font-size: 1.8rem;
+    }
+    
+    /* Formulier elementen */
+    .my-section .my-form {
+      padding: 20px;
+    }
+    .my-form div {
+      margin-bottom: 15px;
+    }
+    .my-form label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .my-form input[type="text"],
+    .my-form input[type="email"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+    .my-form input:focus {
+      border-color: #6d0f10;
+      outline: none;
+    }
+    
+    /* Knop styling */
+    .my-btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    .my-btn-info {
+      background: #0d6efd;
+      color: #fff;
+    }
+    .my-btn-success {
+      background: #6d0f10;
+      color: #fff;
+    }
+    .my-btn-danger {
+      background: #d9534f;
+      color: #fff;
+    }
+    /* Kleine marge tussen actieknoppen */
+    .my-action-btns .my-btn {
+      margin-right: 5px;
+    }
+    
+    /* Tabel styling */
+    .my-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .my-table th, .my-table td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+    }
+    .my-table th {
+      background: #6d0f10;
+      color: #fff;
+    }
+    .my-table tr:hover {
+      background: #f9f9f9;
+    }
+    
+    /* Modal styling: verschijnt precies in het midden */
+    .my-modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      width: 90%;
+      max-width: 500px;
+      display: none;
+      z-index: 1055;
+    }
+    .my-modal-content {
+      padding: 20px;
+      position: relative;
+    }
+    .my-modal-content h2 {
+      background: #6d0f10;
+      color: #fff;
+      margin: 0;
+      padding: 15px;
+      border-radius: 10px 10px 0 0;
+      font-size: 1.8rem;
+    }
+    .my-close-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #ccc;
+      color: #333;
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      text-align: center;
+      line-height: 30px;
+      cursor: pointer;
+    }
+    
+    /* Overlay voor modal */
+    .my-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      z-index: 1050;
+    }
+    
+    /* Succes notificatie */
+    .my-notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 10px 20px;
+      background-color: #28a745;
+      color: #fff;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      z-index: 10000;
+    }
   </style>
 </head>
 <body>
+  <!-- Sidebar (oorspronkelijk uiterlijk) -->
   <?php include 'admin-sidebar.php'; ?>
 
-  <main>
-    <!-- Container voor het toevoegen van een nieuwe klant -->
-    <div class="add-customer-container">
+  <main class="my-main">
+    <!-- Sectie: Nieuwe klant toevoegen -->
+    <div class="add-customer-container my-section">
       <h2>Voeg nieuwe klant toe</h2>
-      
       <?php if(isset($error)): ?>
           <p style="color: red;"><?= $error ?></p>
       <?php endif; ?>
-      <form method="post">
+      <form class="my-form" method="post">
         <input type="hidden" name="action" value="add">
         <div>
           <label for="bedrijfnaam">Bedrijfsnaam:</label>
-          <input type="text" name="bedrijfnaam" id="bedrijfnaam" required>
+          <input class="my-input" type="text" name="bedrijfnaam" id="bedrijfnaam" required>
         </div>
         <div>
           <label for="voornaam">Voornaam:</label>
-          <input type="text" name="voornaam" id="voornaam" required>
+          <input class="my-input" type="text" name="voornaam" id="voornaam" required>
         </div>
         <div>
           <label for="achternaam">Achternaam:</label>
-          <input type="text" name="achternaam" id="achternaam" required>
+          <input class="my-input" type="text" name="achternaam" id="achternaam" required>
         </div>
         <div>
           <label for="email">Email:</label>
-          <input type="email" name="email" id="email" required>
+          <input class="my-input" type="email" name="email" id="email" required>
         </div>
         <div>
           <label for="telefoon">Telefoon:</label>
-          <input type="text" name="telefoon" id="telefoon" required>
+          <input class="my-input" type="text" name="telefoon" id="telefoon" required>
         </div>
-        <button type="submit">Klant Toevoegen</button>
+        <button type="submit" class="my-btn my-btn-info">Klant Toevoegen</button>
       </form>
     </div>
 
-    <section id="clients">
+    <!-- Sectie: Klantenbeheer -->
+    <section id="clients" class="clients-container my-section">
       <h2>Klantenbeheer</h2>
-      <table class="table table-striped">
+      <table class="my-table">
         <thead>
           <tr>
             <th>Bedrijfsnaam</th>
             <th>Contactpersoon</th>
             <th>Email</th>
             <th>Telefoon</th>
-            <th>Bewerk</th>
-            <th>Verwijder</th>
+            <th>Acties</th>
           </tr>
         </thead>
         <tbody>
@@ -253,8 +321,8 @@ try {
               <td><?= htmlspecialchars($klant['voornaam']) ?> <?= htmlspecialchars($klant['achternaam']) ?></td>
               <td><?= htmlspecialchars($klant['email']) ?></td>
               <td><?= htmlspecialchars($klant['telefoon']) ?></td>
-              <td>
-                <button class="edit-btn btn btn-info"
+              <td class="my-action-btns">
+                <button class="edit-btn my-btn my-btn-info"
                         data-klant_id="<?= $klant['klant_id'] ?>"
                         data-bedrijfnaam="<?= htmlspecialchars($klant['bedrijfnaam']) ?>"
                         data-voornaam="<?= htmlspecialchars($klant['voornaam']) ?>"
@@ -263,12 +331,10 @@ try {
                         data-telefoon="<?= htmlspecialchars($klant['telefoon']) ?>">
                   Bewerk
                 </button>
-              </td>
-              <td>
-                <form method="post" onsubmit="return confirm('Weet je zeker dat je deze klant wilt verwijderen?');">
+                <form method="post" style="display:inline;" onsubmit="return confirm('Weet je zeker dat je deze klant wilt verwijderen?');">
                   <input type="hidden" name="action" value="delete">
                   <input type="hidden" name="klant_id" value="<?= $klant['klant_id'] ?>">
-                  <button type="submit" class="btn btn-danger">Verwijder</button>
+                  <button type="submit" class="my-btn my-btn-danger">Verwijder</button>
                 </form>
               </td>
             </tr>
@@ -277,72 +343,65 @@ try {
       </table>
     </section>
 
-    <!-- Overlay voor donkere achtergrond -->
-    <div id="overlay" class="overlay"></div>
+    <!-- Overlay voor modal -->
+    <div id="myOverlay" class="my-overlay"></div>
 
-    <!-- Modal Container voor bewerken -->
-    <div id="editModal" class="modal">
-      <div class="modal-content">
-        <!-- Zichtbare sluit-knop -->
-        <span id="closeModal" class="close-btn">&times;</span>
+    <!-- Modal: Klant bewerken -->
+    <div id="myModal" class="my-modal">
+      <div class="my-modal-content">
+        <span id="myCloseModal" class="my-close-btn">&times;</span>
         <h2>Bewerk Klant</h2>
-        <form method="post">
+        <form class="my-form" method="post">
           <input type="hidden" name="action" value="update">
           <input type="hidden" name="klant_id" id="edit-klant_id">
           <div>
             <label for="edit-bedrijfnaam">Bedrijfsnaam:</label>
-            <input type="text" name="bedrijfnaam" id="edit-bedrijfnaam" class="form-control" required>
+            <input class="my-input" type="text" name="bedrijfnaam" id="edit-bedrijfnaam" required>
           </div>
           <div>
             <label for="edit-voornaam">Voornaam:</label>
-            <input type="text" name="voornaam" id="edit-voornaam" class="form-control" required>
+            <input class="my-input" type="text" name="voornaam" id="edit-voornaam" required>
           </div>
           <div>
             <label for="edit-achternaam">Achternaam:</label>
-            <input type="text" name="achternaam" id="edit-achternaam" class="form-control" required>
+            <input class="my-input" type="text" name="achternaam" id="edit-achternaam" required>
           </div>
           <div>
             <label for="edit-email">Email:</label>
-            <input type="email" name="email" id="edit-email" class="form-control" required>
+            <input class="my-input" type="email" name="email" id="edit-email" required>
           </div>
           <div>
             <label for="edit-telefoon">Telefoon:</label>
-            <input type="text" name="telefoon" id="edit-telefoon" class="form-control" required>
+            <input class="my-input" type="text" name="telefoon" id="edit-telefoon" required>
           </div>
           <br>
-          <button type="submit" class="btn btn-success">Opslaan</button>
+          <button type="submit" class="my-btn my-btn-success">Opslaan</button>
         </form>
       </div>
     </div>
   </main>
 
   <script>
-    // Elementen ophalen
-    var modal = document.getElementById('editModal');
-    var closeModal = document.getElementById('closeModal');
-    var overlay = document.getElementById('overlay');
+    // Modal functionaliteit met nieuwe classnamen
+    var myModal = document.getElementById('myModal');
+    var myCloseModal = document.getElementById('myCloseModal');
+    var myOverlay = document.getElementById('myOverlay');
 
-    // Functie om modal en overlay te sluiten
-    function closeModalAndOverlay() {
-      modal.style.display = 'none';
-      overlay.style.display = 'none';
+    function closeMyModal() {
+      myModal.style.display = 'none';
+      myOverlay.style.display = 'none';
     }
 
-    // Sluit modal bij klikken op de sluit-knop
-    closeModal.addEventListener('click', closeModalAndOverlay);
-
-    // Sluit modal als er buiten de modal wordt geklikt
+    myCloseModal.addEventListener('click', closeMyModal);
     window.addEventListener('click', function(event) {
-      if (event.target === overlay) {
-        closeModalAndOverlay();
+      if (event.target === myOverlay) {
+        closeMyModal();
       }
     });
 
-    // Voeg eventlisteners toe aan alle bewerkknoppen
-    var editButtons = document.getElementsByClassName('edit-btn');
-    for (var i = 0; i < editButtons.length; i++) {
-      editButtons[i].addEventListener('click', function() {
-        // Haal data-attributen op
+    var editBtns = document.getElementsByClassName('edit-btn');
+    for (var i = 0; i < editBtns.length; i++) {
+      editBtns[i].addEventListener('click', function() {
         var klant_id    = this.getAttribute('data-klant_id');
         var bedrijfnaam = this.getAttribute('data-bedrijfnaam');
         var voornaam    = this.getAttribute('data-voornaam');
@@ -350,7 +409,6 @@ try {
         var email       = this.getAttribute('data-email');
         var telefoon    = this.getAttribute('data-telefoon');
 
-        // Vul de formuliervelden in
         document.getElementById('edit-klant_id').value = klant_id;
         document.getElementById('edit-bedrijfnaam').value = bedrijfnaam;
         document.getElementById('edit-voornaam').value = voornaam;
@@ -358,41 +416,30 @@ try {
         document.getElementById('edit-email').value = email;
         document.getElementById('edit-telefoon').value = telefoon;
 
-        // Toon de modal en overlay
-        modal.style.display = 'block';
-        overlay.style.display = 'block';
+        myModal.style.display = 'block';
+        myOverlay.style.display = 'block';
       });
     }
   </script>
+  
+  <?php if(isset($message)): ?>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      // Succes notificatie
+      var myNotification = document.createElement("div");
+      myNotification.className = "my-notification";
+      myNotification.innerText = "<?= $message ?>";
+      document.body.appendChild(myNotification);
+      
+      setTimeout(function(){
+        myNotification.style.transition = "opacity 0.5s ease";
+        myNotification.style.opacity = "0";
+        setTimeout(function(){
+          myNotification.remove();
+        }, 500);
+      }, 3000);
+    });
+  </script>
+  <?php endif; ?>
 </body>
 </html>
-<?php if(isset($message)): ?>
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-  // Maak het notificatie-element aan
-  var notification = document.createElement("div");
-  notification.innerText = "<?= $message ?>";
-  notification.style.position = "fixed";
-  notification.style.top = "20px";
-  notification.style.right = "20px";
-  notification.style.padding = "10px 20px";
-  notification.style.backgroundColor = "#28a745"; // groen voor succes
-  notification.style.color = "#fff";
-  notification.style.borderRadius = "5px";
-  notification.style.boxShadow = "0 0 10px rgba(0,0,0,0.3)";
-  notification.style.zIndex = "10000";
-  
-  // Voeg het notificatie-element toe aan de body
-  document.body.appendChild(notification);
-  
-  // Laat de notificatie na 3 seconden verdwijnen
-  setTimeout(function(){
-    notification.style.transition = "opacity 0.5s ease";
-    notification.style.opacity = "0";
-    setTimeout(function(){
-      notification.remove();
-    }, 500);
-  }, 3000);
-});
-</script>
-<?php endif; ?>
