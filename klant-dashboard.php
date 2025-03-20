@@ -173,7 +173,11 @@ try {
                 <tr>
                     <td><?php echo htmlspecialchars($row['hours_id']); ?></td>
                     <td><?php echo htmlspecialchars($row['date']); ?></td>
-                    <td><?php echo htmlspecialchars($row['name'] . ' ' . $row['achternaam']); ?></td>
+                    <td>
+                        <button class="view-user-profile" data-user-id="<?php echo htmlspecialchars($row['user_id']); ?>">
+                            <?php echo htmlspecialchars($row['name'] . ' ' . $row['achternaam']); ?>
+                        </button>
+                    </td>
                     <td><?php echo htmlspecialchars($row['bedrijfsnaam'] ?? 'N/A'); ?></td>
                     <td><?php echo htmlspecialchars($row['projectnaam'] ?? 'N/A'); ?></td>
                     <td><?php echo htmlspecialchars($row['hours']); ?></td>
@@ -192,7 +196,89 @@ try {
     </table>
 </div>
 
-<script src="js/klant-dashboard.js"></script>
+<!-- Pop-up voor het tonen van gebruikersgegevens -->
+<div id="gebruikerPopup" class="gebruiker-popup">
+    <div class="popup-content">
+        <span class="close-popup">&times;</span>
+        <h3>Gebruikersprofiel</h3>
+        <p><strong>Naam:</strong> <span id="popup-name"></span></p>
+        <p><strong>Bedrijf:</strong> <span id="popup-bedrijf"></span></p>
+        <p><strong>Project:</strong> <span id="popup-project"></span></p>
+        <p><strong>Gewerkte uren:</strong> <span id="popup-uren"></span></p>
+        <p><strong>Tijd:</strong> <span id="popup-tijd"></span></p>
+    </div>
+</div>
 
+<!-- Stijlen voor de pop-up -->
+<style>
+    .gebruiker-popup {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        justify-content: center;
+        align-items: center;
+    }
+
+    .popup-content {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+        width: 300px;
+        position: relative;
+    }
+
+    .close-popup {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        cursor: pointer;
+        font-size: 20px;
+    }
+</style>
+
+<script src="js/klant-dashboard.js">
+    // JavaScript om de gegevens in de pop-up te laden
+    document.querySelectorAll('.view-user-profile').forEach(button => {
+        button.addEventListener('click', function () {
+            // Verkrijg de user_id uit de knop
+            const userId = this.getAttribute('data-user-id');
+
+            // Voer een AJAX-aanroep uit om de gegevens op te halen
+            fetch('gebruiker-profiel-klant.php', {
+                method: 'POST',
+                body: JSON.stringify({ user_id: userId }),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // Vul de gegevens in de pop-up
+                    document.getElementById('popup-name').textContent = data.name + ' ' + data.achternaam;
+                    document.getElementById('popup-bedrijf').textContent = data.bedrijfnaam;
+                    document.getElementById('popup-project').textContent = data.projectnaam;
+                    document.getElementById('popup-uren').textContent = data.uren;
+                    document.getElementById('popup-tijd').textContent = data.start_hours + ' - ' + data.eind_hours;
+
+                    // Toon de pop-up
+                    document.getElementById('gebruikerPopup').style.display = 'flex';
+                })
+                .catch(error => {
+                    console.error('Fout bij het ophalen van gebruikersgegevens:', error);
+                });
+        });
+    });
+
+    // Sluit de pop-up wanneer de close knop wordt ingedrukt
+    document.querySelector('.close-popup').addEventListener('click', function () {
+        document.getElementById('gebruikerPopup').style.display = 'none';
+    });
+
+</script>
 </body>
 </html>
