@@ -107,7 +107,7 @@ try {
 <?php include 'sidebar.php'; ?>
 
 <div class="container">
-    <h1>Klant Dashboard</h1>
+    <h1>Dashboard</h1>
  
     <div class="filter-links">
         <a href="?filter=day&user_id=<?php echo urlencode($selectedUserId); ?>" class="<?php echo $filter === 'day' ? 'active' : ''; ?>">Per Dag</a>
@@ -159,10 +159,8 @@ try {
                 <tr>
                     <td><?php echo htmlspecialchars($row['hours_id']); ?></td>
                     <td><?php echo htmlspecialchars($row['date']); ?></td>
-                    <td>
-                        <button class="view-user-profile" data-user-id="<?php echo htmlspecialchars($row['user_id']); ?>">
-                            <?php echo htmlspecialchars($row['name'] . ' ' . $row['achternaam']); ?>
-                        </button>
+                    <td class="view-user-profile" data-user-id="<?php echo htmlspecialchars($row['user_id']); ?>">
+                        <?php echo htmlspecialchars($row['name'] . ' ' . $row['achternaam']); ?>
                     </td>
                     <td><?php echo htmlspecialchars($row['bedrijfsnaam'] ?? 'N/A'); ?></td>
                     <td><?php echo htmlspecialchars($row['projectnaam'] ?? 'N/A'); ?></td>
@@ -200,71 +198,7 @@ try {
     </div>
 </div>
 
-<!-- Stijlen voor de pop-up -->
-<style>
-    .gebruiker-popup {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        justify-content: center;
-        align-items: center;
-    }
-    .popup-content {
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        text-align: center;
-        width: 300px;
-        position: relative;
-    }
-    .close-popup {
-        position: absolute;
-        top: 10px;
-        right: 15px;
-        cursor: pointer;
-        font-size: 20px;
-    }
-</style>
-
-<!-- Laad eerst je externe script -->
 <script src="js/klant-dashboard.js"></script>
-
-<!-- Inline JavaScript voor de pop-up functionaliteit -->
-<script>
-document.querySelectorAll('.view-user-profile').forEach(button => {
-    button.addEventListener('click', function () {
-        const userId = this.getAttribute('data-user-id');
-        fetch('gebruiker-profiel-klant.php', {
-            method: 'POST',
-            body: JSON.stringify({ user_id: userId }),
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        })
-        .then(response => response.json())
-        .then(data => {
-            // Vul de pop-up met de opgehaalde gegevens
-            document.getElementById('popup-name').textContent = data.name + ' ' + data.achternaam;
-            document.getElementById('popup-bedrijf').textContent = data.bedrijfnaam;
-            document.getElementById('popup-project').textContent = data.projectnaam;
-            document.getElementById('popup-uren').textContent = data.uren;
-            document.getElementById('popup-tijd').textContent = data.start_hours + ' - ' + data.eind_hours;
-            document.getElementById('gebruikerPopup').style.display = 'flex';
-        })
-        .catch(error => {
-            console.error('Fout bij het ophalen van gebruikersgegevens:', error);
-        });
-    });
-});
-
-document.querySelector('.close-popup').addEventListener('click', function () {
-    document.getElementById('gebruikerPopup').style.display = 'none';
-});
-</script>
 
 </body>
 </html>
