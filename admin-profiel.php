@@ -174,6 +174,7 @@ try {
       margin-top: -30px !important;
       left: 10px;
     }
+    
   </style>
 </head>
 <body>
