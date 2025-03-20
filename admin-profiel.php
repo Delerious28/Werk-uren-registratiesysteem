@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         try {
             $stmt = $pdo->prepare("UPDATE chiefs SET telefoon = ?, adres = ?, bedrijfnaam = ?, stad = ?, postcode = ?, provincie = ?, land = ? WHERE chief_id = ?");
             $stmt->execute([$telefoon, $adres, $bedrijfnaam, $stad, $postcode, $provincie, $land, $chief_id]);
-            $chiefs_message = "Chief record updated successfully!";
+            $chiefs_message = "Chief data geupdate";
         } catch (PDOException $e) {
             $chiefs_error = "Error updating chiefs: " . $e->getMessage();
         }
@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         try {
             $stmt = $pdo->prepare("UPDATE contact SET voornaam = ?, achternaam = ?, email = ?, telefoon = ?, bericht = ? WHERE contact_id = ?");
             $stmt->execute([$voornaam, $achternaam, $email, $telefoon, $bericht, $contact_id]);
-            $contact_message = "Contact record updated successfully!";
+            $contact_message = "Contact data geupdate";
         } catch (PDOException $e) {
             $contact_error = "Error updating contact: " . $e->getMessage();
         }
@@ -97,15 +97,12 @@ try {
       font-size: 2em;
       color: #6d0f10;
     }
-    /* Notification styling */
+    /* Inline error notifications */
     .notification {
       padding: 10px;
       margin-bottom: 20px;
       border-radius: 5px;
       color: white;
-    }
-    .notification.success {
-      background-color: #4CAF50;
     }
     .notification.error {
       background-color: #F44336;
@@ -165,20 +162,17 @@ try {
     button:hover {
       background-color: #5a0c0d;
     }
-    /* Ensure sidebar displays correctly */
-    .admin-sidebar {
-      margin-bottom: 20px;
-    }
-    .sidebar{ 
-        background: #f8f9fa;
-  height: 120vh !important;
-  width: 250px;
-  position: fixed;
-  z-index: 1000;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  margin-top: -30px !important;
-  left: 10px;
+    /* Sidebar styling */
+    .sidebar { 
+      background: #f8f9fa;
+      height: 120vh !important;
+      width: 250px;
+      position: fixed;
+      z-index: 1000;
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-top: -30px !important;
+      left: 10px;
     }
   </style>
 </head>
@@ -194,9 +188,6 @@ try {
     <!-- Chiefs Section -->
     <div class="container">
       <h2>Chiefs Information</h2>
-      <?php if (isset($chiefs_message)): ?>
-          <div class="notification success"><?= htmlspecialchars($chiefs_message) ?></div>
-      <?php endif; ?>
       <?php if (isset($chiefs_error)): ?>
           <div class="notification error"><?= htmlspecialchars($chiefs_error) ?></div>
       <?php endif; ?>
@@ -241,9 +232,6 @@ try {
     <!-- Contact Section -->
     <div class="container">
       <h2>Contact Information</h2>
-      <?php if (isset($contact_message)): ?>
-          <div class="notification success"><?= htmlspecialchars($contact_message) ?></div>
-      <?php endif; ?>
       <?php if (isset($contact_error)): ?>
           <div class="notification error"><?= htmlspecialchars($contact_error) ?></div>
       <?php endif; ?>
@@ -282,5 +270,43 @@ try {
     </div>
   </div>
   
+  <!-- Toast Notificatie voor succesberichten -->
+  <?php if(isset($chiefs_message) || isset($contact_message)): ?>
+  <script>
+  document.addEventListener("DOMContentLoaded", function() {
+    let notifications = [];
+    <?php if(isset($chiefs_message)): ?>
+      notifications.push("<?= addslashes($chiefs_message) ?>");
+    <?php endif; ?>
+    <?php if(isset($contact_message)): ?>
+      notifications.push("<?= addslashes($contact_message) ?>");
+    <?php endif; ?>
+  
+    notifications.forEach(function(msg, index) {
+      var notification = document.createElement("div");
+      notification.innerText = msg;
+      notification.style.position = "fixed";
+      notification.style.top = (20 + index * 60) + "px"; // Zet elke notificatie iets lager
+      notification.style.right = "20px";
+      notification.style.padding = "10px 20px";
+      notification.style.backgroundColor = "#28a745"; // groen voor succes
+      notification.style.color = "#fff";
+      notification.style.borderRadius = "5px";
+      notification.style.boxShadow = "0 0 10px rgba(0,0,0,0.3)";
+      notification.style.zIndex = "10000";
+      
+      document.body.appendChild(notification);
+      
+      setTimeout(function(){
+        notification.style.transition = "opacity 0.5s ease";
+        notification.style.opacity = "0";
+        setTimeout(function(){
+          notification.remove();
+        }, 500);
+      }, 3000);
+    });
+  });
+  </script>
+  <?php endif; ?>
 </body>
 </html>
