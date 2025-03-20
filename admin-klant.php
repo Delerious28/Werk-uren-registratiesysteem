@@ -10,7 +10,7 @@ if (!isset($_SESSION['role'])) {
     die("Geen toegang!");
 }
 
-// Verwerk update of delete actie als er een POST-request is
+// Verwerk update, delete of add actie als er een POST-request is
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     if ($_POST['action'] === 'update') {
         // Update klantgegevens
@@ -35,6 +35,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $stmt = $pdo->prepare("DELETE FROM klant WHERE klant_id = ?");
             $stmt->execute([$klant_id]);
             $message = "Klant succesvol verwijderd!";
+        } catch (PDOException $e) {
+            $error = "Database fout: " . $e->getMessage();
+        }
+    } elseif ($_POST['action'] === 'add') {
+        // Voeg nieuwe klant toe
+        $voornaam    = $_POST['voornaam'];
+        $achternaam  = $_POST['achternaam'];
+        $email       = $_POST['email'];
+        $telefoon    = $_POST['telefoon'];
+        $bedrijfnaam = $_POST['bedrijfnaam'];
+        try {
+            $stmt = $pdo->prepare("INSERT INTO klant (voornaam, achternaam, email, telefoon, bedrijfnaam) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([$voornaam, $achternaam, $email, $telefoon, $bedrijfnaam]);
+            $message = "Klant succesvol toegevoegd!";
         } catch (PDOException $e) {
             $error = "Database fout: " . $e->getMessage();
         }
@@ -89,7 +103,6 @@ try {
           overflow-x: hidden;
           overflow-y: auto;
           outline: 0;
-          
       }
       
       .modal-content {
@@ -150,12 +163,76 @@ try {
       .modal-content .form-control {
           max-width: 300px;
       }
+      
+      /* Styling voor de add customer container */
+      .add-customer-container {
+          margin: 20px auto;
+          padding: 20px;
+          background-color: #f9f9f9;
+      }
+      
+      .add-customer-container form div {
+          margin-bottom: 10px;
+      }
+      
+      .add-customer-container label {
+          display: block;
+          margin-bottom: 5px;
+      }
+      
+      .add-customer-container input[type="text"],
+      .add-customer-container input[type="email"] {
+          width: 100%;
+          padding: 8px;
+          box-sizing: border-box;
+      }
+      
+      .add-customer-container button {
+          padding: 10px 20px;
+          background-color: #0d6efd;
+          color: #fff;
+          border: none;
+          cursor: pointer;
+      }
   </style>
 </head>
 <body>
   <?php include 'admin-sidebar.php'; ?>
 
   <main>
+    <!-- Container voor het toevoegen van een nieuwe klant -->
+    <div class="add-customer-container">
+      <h2>Voeg nieuwe klant toe</h2>
+      
+      <?php if(isset($error)): ?>
+          <p style="color: red;"><?= $error ?></p>
+      <?php endif; ?>
+      <form method="post">
+        <input type="hidden" name="action" value="add">
+        <div>
+          <label for="bedrijfnaam">Bedrijfsnaam:</label>
+          <input type="text" name="bedrijfnaam" id="bedrijfnaam" required>
+        </div>
+        <div>
+          <label for="voornaam">Voornaam:</label>
+          <input type="text" name="voornaam" id="voornaam" required>
+        </div>
+        <div>
+          <label for="achternaam">Achternaam:</label>
+          <input type="text" name="achternaam" id="achternaam" required>
+        </div>
+        <div>
+          <label for="email">Email:</label>
+          <input type="email" name="email" id="email" required>
+        </div>
+        <div>
+          <label for="telefoon">Telefoon:</label>
+          <input type="text" name="telefoon" id="telefoon" required>
+        </div>
+        <button type="submit">Klant Toevoegen</button>
+      </form>
+    </div>
+
     <section id="clients">
       <h2>Klantenbeheer</h2>
       <table class="table table-striped">
@@ -289,3 +366,33 @@ try {
   </script>
 </body>
 </html>
+<?php if(isset($message)): ?>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  // Maak het notificatie-element aan
+  var notification = document.createElement("div");
+  notification.innerText = "<?= $message ?>";
+  notification.style.position = "fixed";
+  notification.style.top = "20px";
+  notification.style.right = "20px";
+  notification.style.padding = "10px 20px";
+  notification.style.backgroundColor = "#28a745"; // groen voor succes
+  notification.style.color = "#fff";
+  notification.style.borderRadius = "5px";
+  notification.style.boxShadow = "0 0 10px rgba(0,0,0,0.3)";
+  notification.style.zIndex = "10000";
+  
+  // Voeg het notificatie-element toe aan de body
+  document.body.appendChild(notification);
+  
+  // Laat de notificatie na 3 seconden verdwijnen
+  setTimeout(function(){
+    notification.style.transition = "opacity 0.5s ease";
+    notification.style.opacity = "0";
+    setTimeout(function(){
+      notification.remove();
+    }, 500);
+  }, 3000);
+});
+</script>
+<?php endif; ?>
