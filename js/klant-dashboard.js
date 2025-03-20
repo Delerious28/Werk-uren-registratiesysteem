@@ -158,6 +158,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 showFailMessage('Er is een fout opgetreden bij het verzenden van de aanvraag.');
             });
     }
+
 });
 
 function updateGebruikerFilter() {
@@ -172,3 +173,39 @@ function updateGebruikerFilter() {
 
     window.location.search = urlParams.toString();
 }
+
+document.querySelectorAll('.view-user-profile').forEach(td => {
+    td.addEventListener('click', function () {
+        // Verkrijg de user_id uit de data-attribute van de td
+        const userId = this.getAttribute('data-user-id');
+
+        // Voer een AJAX-aanroep uit om de gegevens op te halen
+        fetch('gebruiker-profiel-klant.php', {
+            method: 'POST',
+            body: JSON.stringify({ user_id: userId }),
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+            .then(response => response.json())
+            .then(data => {
+                // Vul de pop-up met de opgehaalde gegevens
+                document.getElementById('popup-name').textContent = data.name + ' ' + data.achternaam;
+                document.getElementById('popup-bedrijf').textContent = data.bedrijfnaam;
+                document.getElementById('popup-project').textContent = data.projectnaam;
+                document.getElementById('popup-uren').textContent = data.uren;
+                document.getElementById('popup-tijd').textContent = data.start_hours + ' - ' + data.eind_hours;
+
+                // Toon de pop-up
+                document.getElementById('gebruikerPopup').style.display = 'flex';
+            })
+            .catch(error => {
+                console.error('Fout bij het ophalen van gebruikersgegevens:', error);
+            });
+    });
+});
+
+// Sluit de pop-up wanneer de close knop wordt ingedrukt
+document.querySelector('.close-popup').addEventListener('click', function () {
+    document.getElementById('gebruikerPopup').style.display = 'none';
+});
