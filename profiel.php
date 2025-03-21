@@ -159,9 +159,9 @@ $contactData = $stmtContact->fetch(PDO::FETCH_ASSOC);
                 <div class="popup-gegevens">
                     <div class="verticaal-lijn"> | </div>
                     <div class="info-item-naam"><span class="info-label">Naam:</span> <?php echo htmlspecialchars($contactData['voornaam'] . " " . $contactData['achternaam']); ?></div>
-                    <div class="info-item"><span class="info-label">Email:</span> <?php echo htmlspecialchars($contactData['email']); ?></div>
+                    <div class="info-item-email"><span class="info-label">Email:</span> <?php echo htmlspecialchars($contactData['email']); ?></div>
                     <div class="info-item-telefoon"><span class="info-label">Telefoon:</span> <?php echo htmlspecialchars($contactData['telefoon']); ?></div>
-                    <div class="info-item"><span class="info-label">Bericht:</span> <?php echo htmlspecialchars($contactData['bericht']); ?></div>
+                    <div class="info-item-bericht"><span class="info-label">Bericht:</span> <?php echo htmlspecialchars($contactData['bericht']); ?></div>
                     <div class="info-item-verstuurd"><span class="info-label">Verstuurd op:</span> <?php echo htmlspecialchars($contactData['created_at']); ?></div>
                 </div>
             <?php else: ?>
@@ -170,6 +170,7 @@ $contactData = $stmtContact->fetch(PDO::FETCH_ASSOC);
         </div>
     </div>
     <?php if ($_SESSION['role'] !== 'klant'): ?>
+        <!-- Klantinformatie Popup -->
         <div class="Klanten-popup" id="klanten-popup">
             <div class="klanten-popup-content">
                 <div class="popup-header">
@@ -178,21 +179,22 @@ $contactData = $stmtContact->fetch(PDO::FETCH_ASSOC);
                 </div>
                 <div class="klanten-popup-gegevens">
                     <?php
+                    // Haal alle klantgegevens op inclusief projectnaam
                     $stmtClient->execute();
                     $clients = $stmtClient->fetchAll(PDO::FETCH_ASSOC);
                     if ($clients):
                         foreach ($clients as $client): ?>
-                            <div class="info-item">
+                            <div class="klanten-verticaal-lijn"> | </div>
+                            <div class="info-item-projectnaam">
                                 <span class="info-label">Project:</span> <?php echo htmlspecialchars($client['projectnaam']); ?>
                             </div>
-                            <div class="klanten-verticaal-lijn"> | </div>
-                            <div class="info-item-naam">
+                            <div class="info-item-bedrijfsnaam">
                                 <span class="info-label">Bedrijfsnaam:</span> <?php echo htmlspecialchars($client['bedrijfnaam']); ?>
                             </div>
                             <div class="info-item-contactpersoon">
                                 <span class="info-label">Contactpersoon:</span> <?php echo htmlspecialchars($client['voornaam'] . " " . $client['achternaam']); ?>
                             </div>
-                            <div class="info-item">
+                            <div class="info-item-email">
                                 <span class="info-label">Email:</span> <?php echo htmlspecialchars($client['email']); ?>
                             </div>
                             <div class="info-item-k-telefoon">
