@@ -146,6 +146,21 @@
     border: none;
     border-radius: 10px;
   }
+
+.card-body::-webkit-scrollbar {
+  width: 8px; /* Pas de breedte aan naar wens */
+  background: transparent; /* Verwijdert de achtergrond */
+}
+
+.card-body::-webkit-scrollbar-thumb {
+  background-color: #6d0f10; /* Kies een kleur voor de scrollbar */
+  border-radius: 4px;     /* Afronding voor een nette look */
+}
+
+/* Verwijdert de pijltjes (scrollbar buttons) */
+.card-body::-webkit-scrollbar-button {
+  display: none;
+}
   
   .card-header {
     background-color: #6d0f10 !important;
@@ -275,7 +290,7 @@
 }
 .overlay-content {
   background: #fff;
-  border-radius: 8px;
+  border-radius: 12px;
   width: 90%;
   max-width: 900px;
   position: relative;
