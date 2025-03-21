@@ -1,53 +1,46 @@
 document.addEventListener('DOMContentLoaded', function() {
-    var toggleIcon = document.querySelector('.toggle-contact-icon');
+    var toggleContactIcon = document.querySelector('.toggle-contact-icon');
     var contactPopup = document.getElementById('contact-popup');
-    var clientPopup = document.querySelector('.Klanten-popup'); // Popup voor klanten
-    var contactPopupContent = document.querySelector('.contact-popup-content');
-    var closeBtn = document.querySelector('.close-popup');
-    var closeClientPopup = document.querySelector('.close-popup'); // Sluitknop voor klanten popup
-    var transitionDuration = 500;
-
-    // Functie om de contact-popup te openen
+    var toggleKlantenInfo = document.querySelector('.toggle-klanten-info');
+    var klantenPopup = document.getElementById('klanten-popup');
+    var closeContactBtn = document.getElementById('close-contact');
+    var closeKlantenBtn = document.getElementById('close-klant');
+    
+    // Open de contact-popup via fade-in
     function openContactPopup() {
-        contactPopupContent.classList.remove('active');
         contactPopup.classList.add('active');
-        void contactPopupContent.offsetWidth;
-        setTimeout(function() {
-            contactPopupContent.classList.add('active');
-        }, 10);
     }
 
-    // Functie om de klanten-popup te openen
-    function openClientPopup() {
-        clientPopup.classList.add('active');
+    // Open de klantinformatie-popup via fade-in
+    function openKlantenPopup() {
+        klantenPopup.classList.add('active');
     }
 
-    // Functie om de popup te sluiten
-    function closePopup() {
-        contactPopupContent.classList.remove('active');
-        setTimeout(function() {
-            contactPopup.classList.remove('active');
-        }, transitionDuration);
+    // Sluit de contact-popup via fade-out
+    function closeContactPopup() {
+        contactPopup.classList.remove('active');
     }
 
-    // Openen bij klikken op de toggle-knop voor contactinformatie
-    toggleIcon.addEventListener('click', openContactPopup);
+    // Sluit de klantinformatie-popup via fade-out
+    function closeKlantenPopup() {
+        klantenPopup.classList.remove('active');
+    }
 
-    // Openen bij klikken op een knop voor klanten (als je die toevoegt in de HTML)
-    document.querySelector('.toggle-klanten-info').addEventListener('click', openClientPopup);
+    // Eventlisteners
+    toggleContactIcon.addEventListener('click', openContactPopup);
+    toggleKlantenInfo.addEventListener('click', openKlantenPopup);
+    closeContactBtn.addEventListener('click', closeContactPopup);
+    closeKlantenBtn.addEventListener('click', closeKlantenPopup);
 
-    // Sluiten bij klikken op de sluitknop van de contact-popup
-    closeBtn.addEventListener('click', closePopup);
-
-    // Sluiten bij klikken op de sluitknop van de klanten-popup
-    closeClientPopup.addEventListener('click', function() {
-        clientPopup.classList.remove('active');
+    // Sluit de popups wanneer er buiten de content wordt geklikt
+    contactPopup.addEventListener('click', function(e) {
+        if (e.target === contactPopup) {
+            closeContactPopup();
+        }
     });
-
-    // Sluiten bij klikken buiten de popup (op de overlay)
-    clientPopup.addEventListener('click', function(e) {
-        if (e.target === clientPopup) { // Check of we buiten de inhoud van de popup hebben geklikt
-            clientPopup.classList.remove('active');
+    klantenPopup.addEventListener('click', function(e) {
+        if (e.target === klantenPopup) {
+            closeKlantenPopup();
         }
     });
 });
