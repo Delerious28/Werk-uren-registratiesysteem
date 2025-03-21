@@ -1,121 +1,110 @@
-body {
-    background-image: url("../img/achtergrond(nieuw).png");
-    background-size: 100% 100%;
-    font-family: sans-serif;
+* {
+    box-sizing: border-box;
+  }
+  body {
     margin: 0;
     padding: 0;
+    font-family: 'Roboto', sans-serif;
+    background: url("../img/achtergrond(nieuw).png") no-repeat center center fixed;
+    background-size: cover;
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-}
-
-html{
+  }
+  .login-wrapper {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-}
-
-header{
-    position: absolute;
-    top: 0;
-}
-
-main{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-h1{
-    background-color: #6D0F10;
-    color: white;
-    width: 400px;
-    height: 60px;
-    text-align: center;
-    border-top-right-radius: 5px;
-    border-top-left-radius: 5px;
-    margin: 0;
-    line-height: 60px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-.form{
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-    justify-content: center;
-    background-color: #EEEEEE;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-    width: 400px;
-    height: 250px;
-    margin: 0;
-}
-
-.form-row{
-    margin: 15px;
-}
-
-input{
-    background-color: white;
-    border: none;
-    border-radius: 5px;
-    width: 200px;
-    height: 50px;
-    text-align: center;
-}
-
-.submit-btn{
-    width: 100px;
-    height: 40px;
-    border-radius: 5px;
-    background-color: #6D0F10;
-    color: white;
-    font-size: 20px;
-    margin: 10px;
-    cursor: pointer;
-    transition:  0.3s, transform 0.2s;
-}
-
-.submit-btn:hover{
-    transform: scale(1.05);
-}
-
-p{
-    width: 400px;
-    height: 50px;
-    background-color: #F0EFEF;
-    font-size: 20px;
-    color: red;
-    text-align: center;
-    line-height: 50px;
-}
-
-/*Registreren.php*/
-.registreren-form{
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-    justify-content: center;
-    background-color: #F0EFEF;
-    width: 400px;
-    height: 330px;
-    margin: 0;
-}
-
-.registreer-submit-btn{
-    height: 40px;
+    width: 800px;
+    max-width: 90%;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+  }
+  .login-info {
     background-color: #6D0F10;
-    color: white;
-    font-size: 20px;
-    margin: 10px;
-    cursor: pointer;
+    color: #fff;
+    padding: 40px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .login-info h2 {
+    margin: 0 0 20px;
+    font-size: 2em;
+  }
+  .login-info p {
+    font-size: 1em;
+    line-height: 1.5;
+  }
+  .login-form-container {
+    flex: 1;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .login-header {
+    font-size: 1.8em;
+    margin-bottom: 30px;
+    color: #6D0F10;
     text-align: center;
-}
-
-.registreer-submit-btn:hover{
-    border: 2px solid white;
-}
-/**/
+    font-weight: 700;
+  }
+  .login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .login-form input {
+    padding: 15px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    outline: none;
+    transition: border 0.3s;
+  }
+  .login-form input:focus {
+    border-color: #6D0F10;
+  }
+  .login-form button {
+    padding: 15px;
+    background-color: #6D0F10;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  .login-form button:hover {
+    background-color: #8a1c1e;
+  }
+  .forgot-password {
+    margin-top: 15px;
+    text-align: right;
+    font-size: 0.9em;
+    color: #6D0F10;
+    text-decoration: none;
+    transition: color 0.3s;
+  }
+  .forgot-password:hover {
+    color: #8a1c1e;
+  }
+  .error-message {
+    text-align: center;
+    color: #fff;
+    background: #e74c3c;
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 20px;
+  }
+  @media (max-width: 768px) {
+    .login-wrapper {
+      flex-direction: column;
+    }
+    .login-info, .login-form-container {
+      padding: 30px;
+    }
+  }
