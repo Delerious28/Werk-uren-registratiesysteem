@@ -259,6 +259,22 @@ h1{
     overflow-y: auto; /* Zorgt voor een verticale scrollbar als de inhoud te groot is */
 }
 
+.klanten-popup-content::-webkit-scrollbar {
+    width: 8px; 
+    background: transparent; 
+}
+
+.klanten-popup-content::-webkit-scrollbar-thumb {
+    background-color: #630101;
+    border-radius: 4px;
+}
+
+/* Verwijdert de pijltjes (scrollbar buttons) */
+.klanten-popup-content::-webkit-scrollbar-button {
+    display: none;
+}
+
+.klanten-popup-content::we
 /* Optioneel: Als je een gesloten knop wilt stylen */
 .close-popup {
     font-size: 24px;

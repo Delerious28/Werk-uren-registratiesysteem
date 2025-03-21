@@ -146,6 +146,21 @@
     border: none;
     border-radius: 10px;
   }
+
+.card-body::-webkit-scrollbar {
+  width: 8px;
+  background: transparent;
+}
+
+.card-body::-webkit-scrollbar-thumb {
+  background-color: #630101;
+  border-radius: 4px;
+}
+
+/* Verwijdert de pijltjes (scrollbar buttons) */
+.card-body::-webkit-scrollbar-button {
+  display: none;
+}
   
   .card-header {
     background-color: #6d0f10 !important;
