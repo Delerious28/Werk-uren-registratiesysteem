@@ -1,6 +1,13 @@
 <?php
 require __DIR__ . '/db/conn.php';
 
+// Helperfunctie om alleen actieve projecten op te halen
+function getActiveProjects($pdo) {
+    $stmt = $pdo->prepare("SELECT * FROM project WHERE status = 'actief'");
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
 // Controleer of het een AJAX-request is voor e-mailvalidatie
 if (isset($_GET['action']) && $_GET['action'] === 'check_email' && isset($_GET['email'])) {
     $email = $_GET['email'];
@@ -65,23 +72,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_project'])) {
     try {
         $stmt = $pdo->prepare("INSERT INTO project (project_naam, klant_id, beschrijving, contract_uren, status) VALUES (?, ?, ?, ?, 'actief')");
         $stmt->execute([$project_naam, $klant_id, $beschrijving, $contract_uren]);
-        
-        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
-            header('Content-Type: application/json');
-            echo json_encode(['success' => true, 'message' => 'Project succesvol toegevoegd']);
-            exit();
-        } else {
-            header("Location: admin-dashboard.php?success_project_added=1#projects");
-            exit();
-        }
+        header("Location: admin-dashboard.php?success_project_added=1#projects");
+        exit();
     } catch (PDOException $e) {
-        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
-            header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'message' => "Fout bij toevoegen project: " . $e->getMessage()]);
-            exit();
-        } else {
-            die("Fout bij toevoegen project: " . $e->getMessage());
-        }
+        die("Fout bij toevoegen project: " . $e->getMessage());
     }
 }
 
@@ -105,23 +99,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $stmt = $pdo->prepare("UPDATE users SET name = ?, achternaam = ?, email = ?, telefoon = ?, role = ? WHERE user_id = ?");
             $stmt->execute([$name, $achternaam, $email, $telefoon, $role, $userId]);
-            
-            if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
-                header('Content-Type: application/json');
-                echo json_encode(['success' => true, 'message' => 'Gebruiker succesvol bijgewerkt']);
-                exit();
-            } else {
-                header("Location: admin-dashboard.php?success_user_updated=1#users");
-                exit();
-            }
+            header("Location: admin-dashboard.php?success_user_updated=1#users");
+            exit();
         } catch (PDOException $e) {
-            if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
-                header('Content-Type: application/json');
-                echo json_encode(['success' => false, 'message' => "Fout bij bijwerken: " . $e->getMessage()]);
-                exit();
-            } else {
-                die("Fout bij bijwerken: " . $e->getMessage());
-            }
+            die("Fout bij bijwerken: " . $e->getMessage());
         }
     }
 
@@ -183,32 +164,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->execute([$project_id, $user_id]);
 
                 if ($stmt->rowCount() > 0) {
-                    echo "<script>
-                        document.addEventListener('DOMContentLoaded', function() {
-                            showNotification('Gebruiker succesvol gekoppeld!', 'success');
-                        });
-                      </script>";
+                    header("Location: admin-dashboard.php?success_project_user_added=1#projects");
+                    exit();
                 }
             } else {
-                echo "<script>
-                    document.addEventListener('DOMContentLoaded', function() {
-                        showNotification('Project of gebruiker bestaat niet!', 'danger');
-                    });
-                  </script>";
+                header("Location: admin-dashboard.php?error=project_of_gebruiker_bestaat_niet#projects");
+                exit();
             }
         } catch (PDOException $e) {
             if ($e->errorInfo[1] == 1062) {
-                echo "<script>
-                    document.addEventListener('DOMContentLoaded', function() {
-                        showNotification('Deze gebruiker is al gekoppeld aan het project', 'danger');
-                    });
-                  </script>";
+                header("Location: admin-dashboard.php?error=gebruiker_al_gekoppeld#projects");
+                exit();
             } else {
-                echo "<script>
-                    document.addEventListener('DOMContentLoaded', function() {
-                        showNotification('Fout bij koppelen: " . addslashes($e->getMessage()) . "', 'danger');
-                    });
-                  </script>";
+                header("Location: admin-dashboard.php?error=" . urlencode("Fout bij koppelen: " . $e->getMessage()) . "#projects");
+                exit();
             }
         }
     }
@@ -253,23 +222,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $stmt = $pdo->prepare("UPDATE project SET project_naam = ?, klant_id = ?, contract_uren = ?, beschrijving = ? WHERE project_id = ?");
             $stmt->execute([$project_naam, $klant_id, $contract_uren, $beschrijving, $project_id]);
-
-            if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
-                header('Content-Type: application/json');
-                echo json_encode(['success' => true, 'message' => 'Project succesvol bijgewerkt']);
-                exit();
-            } else {
-                header("Location: admin-dashboard.php?success_project_updated=1#projects");
-                exit();
-            }
+            header("Location: admin-dashboard.php?success_project_updated=1#projects");
+            exit();
         } catch (PDOException $e) {
-            if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
-                header('Content-Type: application/json');
-                echo json_encode(['success' => false, 'message' => "Fout bij projectupdate: " . $e->getMessage()]);
-                exit();
-            } else {
-                die("Fout bij projectupdate: " . $e->getMessage());
-            }
+            die("Fout bij projectupdate: " . $e->getMessage());
         }
     }
 
@@ -311,7 +267,7 @@ try {
     $klantenCount = $pdo->query("SELECT COUNT(*) FROM klant")->fetchColumn();
     $pendingHoursCount = $pdo->query("SELECT COUNT(*) FROM hours WHERE accord = 'Pending'")->fetchColumn();
     $projects = $pdo->query("SELECT * FROM project")->fetchAll(PDO::FETCH_ASSOC);
-    $activeProjects = $pdo->query("SELECT * FROM project WHERE status = 'actief'")->fetchAll(PDO::FETCH_ASSOC);
+    $activeProjects = getActiveProjects($pdo);
     $hours = $pdo->query("SELECT * FROM hours")->fetchAll(PDO::FETCH_ASSOC);
     $klanten = $pdo->query("SELECT * FROM klant")->fetchAll(PDO::FETCH_ASSOC);
     $users = $pdo->query("SELECT * FROM users")->fetchAll(PDO::FETCH_ASSOC);
@@ -520,6 +476,7 @@ foreach ($hours as $h) {
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
+                            <!-- Let op: We hebben de submit-handler verwijderd zodat het formulier nu gewoon wordt gesubmit -->
                             <form method="POST" id="editUserForm">
                                 <input type="hidden" name="update_user" value="1">
                                 <input type="hidden" name="user_id" id="editUserId">
@@ -604,7 +561,7 @@ foreach ($hours as $h) {
                                     <div class="mb-3">
                                         <select name="project_id" class="form-select" required>
                                             <option value="">Selecteer project</option>
-                                            <?php foreach ($projects as $project): ?>
+                                            <?php foreach ($activeProjects as $project): ?>
                                             <option value="<?= $project['project_id'] ?>">
                                                 <?= htmlspecialchars($project['project_naam']) ?>
                                             </option>
@@ -770,6 +727,7 @@ foreach ($hours as $h) {
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
+                            <!-- Ook hier verwijderen we de AJAX-submit zodat het formulier normaal submit -->
                             <form method="POST" id="editProjectForm">
                                 <input type="hidden" name="update_project" value="1">
                                 <input type="hidden" name="project_id" id="editProjectId">
@@ -809,7 +767,7 @@ foreach ($hours as $h) {
 </div>
 
 <script>
-// Toon notificaties op basis van URL-parameters
+// Toon notificaties op basis van URL-parameters (notificatie wordt pas na refresh getoond)
 document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     if(urlParams.has('success_user_deleted')) {
@@ -861,64 +819,22 @@ const hoursChart = new Chart(ctx, {
     }
 });
 
-// Edit Project Modal handler
-document.getElementById('editProjectForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const formData = new FormData(this);
-
-    fetch('admin-dashboard.php', {
-         method: 'POST',
-         body: formData,
-         headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    })
-    .then(response => response.json())
-    .then(data => {
-         if (data.success) {
-             // Verberg eerst de modal
-             let modalEl = document.getElementById('editProjectModal');
-             let modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-             modalInstance.hide();
-             
-             // Wacht tot de modal volledig gesloten is
-             modalEl.addEventListener('hidden.bs.modal', function() {
-                 showNotification(data.message, 'success');
-                 // Werk de URL bij zodat oude parameters verdwijnen
-                 history.replaceState(null, null, window.location.href.split('?')[0]);
-                 setTimeout(() => { window.location.reload(); }, 1500);
-             }, { once: true });
-         } else {
-             showNotification(data.message, 'danger');
-         }
-    })
-    .catch(error => {
-         console.error('Error:', error);
-         showNotification('Er is een fout opgetreden', 'danger');
-    });
-});
-
-
-
 // Vul de Edit Project Modal met data
 document.querySelectorAll('.edit-project-btn').forEach(button => {
     button.addEventListener('click', function(e) {
-        e.preventDefault(); // voorkom de standaard modal-actie
+        e.preventDefault(); // voorkom standaard modal-actie
         const modalEl = document.getElementById('editProjectModal');
         document.getElementById('editProjectId').value = this.dataset.projectid;
         document.getElementById('editProjectNaam').value = this.dataset.projectnaam;
         document.getElementById('editKlantId').value = this.dataset.klantid;
         document.getElementById('editContracturen').value = this.dataset.contracturen;
         document.getElementById('editBeschrijving').value = this.dataset.beschrijving;
-        
-        // Voeg de custom backdrop toe
         addCustomBackdrop();
-        // Maak een nieuwe Bootstrap Modal-instantie en toon de modal
         let editProjectModalInstance = new bootstrap.Modal(modalEl);
         editProjectModalInstance.show();
-        // Verwijder de custom backdrop zodra de modal sluit
         modalEl.addEventListener('hidden.bs.modal', removeCustomBackdrop, { once: true });
     });
 });
-
 
 // Role selection handler (indien er een bedrijfnaam-veld bestaat)
 document.getElementById('roleSelect').addEventListener('change', function() {
@@ -955,7 +871,6 @@ document.querySelectorAll('.edit-btn').forEach(button => {
         document.getElementById('editEmail').value = this.dataset.email;
         document.getElementById('editTelefoon').value = this.dataset.telefoon;
         document.getElementById('editRole').value = this.dataset.role;
-        
         addCustomBackdrop();
         editUserModalInstance = new bootstrap.Modal(modalEl);
         editUserModalInstance.show();
@@ -1001,43 +916,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
-
-// Formulier voor Edit User Modal
-document.getElementById('editUserForm').addEventListener('submit', function(e) {
-    e.preventDefault(); // voorkom standaard form submission
-    const formData = new FormData(this);
-
-    fetch('admin-dashboard.php', {
-         method: 'POST',
-         body: formData,
-         headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    })
-    .then(response => response.json())
-    .then(data => {
-         if (data.success) {
-             // Eerst de modal verbergen
-             editUserModalInstance.hide();
-             // Wacht tot de modal volledig is gesloten
-             document.getElementById('editUserModal').addEventListener('hidden.bs.modal', function() {
-                 // Nu de notificatie tonen
-                 showNotification(data.message, 'success');
-                 // Werk de URL bij zodat POST-data niet opnieuw wordt verstuurd
-                 history.replaceState(null, null, window.location.href.split('?')[0]);
-                 setTimeout(() => {
-                     window.location.reload();
-                 }, 1500);
-             }, { once: true });
-         } else {
-             showNotification(data.message, 'danger');
-         }
-    })
-    .catch(error => {
-         console.error('Error:', error);
-         showNotification('Er is een fout opgetreden', 'danger');
-    });
-});
-
-
 
 // Functie om een custom backdrop toe te voegen
 function addCustomBackdrop() {

@@ -1,4 +1,31 @@
 <?php
+// Als er een live email-check wordt uitgevoerd, handel die dan direct af
+if (isset($_GET['check_email']) && isset($_GET['email'])) {
+    require __DIR__ . '/db/conn.php';
+    $email = trim($_GET['email']);
+
+    // Controleer in de tabel 'klant'
+    $stmtKlant = $pdo->prepare("SELECT COUNT(*) FROM klant WHERE email = ?");
+    $stmtKlant->execute([$email]);
+    $countKlant = $stmtKlant->fetchColumn();
+
+    // Controleer in de tabel 'users'
+    $stmtUser = $pdo->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
+    $stmtUser->execute([$email]);
+    $countUser = $stmtUser->fetchColumn();
+
+    if ($countKlant > 0 || $countUser > 0) {
+        $exists = true;
+        $message = "Deze email is al in gebruik!";
+    } else {
+        $exists = false;
+        $message = "Deze email is beschikbaar.";
+    }
+    header('Content-Type: application/json');
+    echo json_encode(['exists' => $exists, 'message' => $message]);
+    exit;
+}
+
 require __DIR__ . '/db/conn.php';
 session_start();
 
@@ -13,20 +40,33 @@ if (!isset($_SESSION['role'])) {
 // Verwerk update, delete of add actie als er een POST-request is
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     if ($_POST['action'] === 'update') {
-        // Update klantgegevens
+        // Update klantgegevens (wachtwoord blijft ongewijzigd)
         $klant_id    = $_POST['klant_id'];
         $voornaam    = $_POST['voornaam'];
         $achternaam  = $_POST['achternaam'];
         $email       = $_POST['email'];
         $telefoon    = $_POST['telefoon'];
         $bedrijfnaam = $_POST['bedrijfnaam'];
-         
-        try {
-            $stmt = $pdo->prepare("UPDATE klant SET voornaam = ?, achternaam = ?, email = ?, telefoon = ?, bedrijfnaam = ? WHERE klant_id = ?");
-            $stmt->execute([$voornaam, $achternaam, $email, $telefoon, $bedrijfnaam, $klant_id]);
-            $message = "Klant succesvol bijgewerkt!";
-        } catch (PDOException $e) {
-            $error = "Database fout: " . $e->getMessage();
+
+        // Controleer of de e-mail al in gebruik is in de tabel klant (anders dan deze klant) of in de tabel users
+        $stmtEmailKlant = $pdo->prepare("SELECT COUNT(*) FROM klant WHERE email = ? AND klant_id != ?");
+        $stmtEmailKlant->execute([$email, $klant_id]);
+        $countKlant = $stmtEmailKlant->fetchColumn();
+
+        $stmtEmailUser = $pdo->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
+        $stmtEmailUser->execute([$email]);
+        $countUser = $stmtEmailUser->fetchColumn();
+
+        if ($countKlant > 0 || $countUser > 0) {
+            $error = "Deze email is al in gebruik!";
+        } else {
+            try {
+                $stmt = $pdo->prepare("UPDATE klant SET voornaam = ?, achternaam = ?, email = ?, telefoon = ?, bedrijfnaam = ? WHERE klant_id = ?");
+                $stmt->execute([$voornaam, $achternaam, $email, $telefoon, $bedrijfnaam, $klant_id]);
+                $message = "Klant succesvol bijgewerkt!";
+            } catch (PDOException $e) {
+                $error = "Database fout: " . $e->getMessage();
+            }
         }
     } elseif ($_POST['action'] === 'delete') {
         // Verwijder klant
@@ -45,12 +85,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $email       = $_POST['email'];
         $telefoon    = $_POST['telefoon'];
         $bedrijfnaam = $_POST['bedrijfnaam'];
-        try {
-            $stmt = $pdo->prepare("INSERT INTO klant (voornaam, achternaam, email, telefoon, bedrijfnaam) VALUES (?, ?, ?, ?, ?)");
-            $stmt->execute([$voornaam, $achternaam, $email, $telefoon, $bedrijfnaam]);
-            $message = "Klant succesvol toegevoegd!";
-        } catch (PDOException $e) {
-            $error = "Database fout: " . $e->getMessage();
+        $wachtwoord  = $_POST['wachtwoord'];
+
+        // Controleer of de e-mail al in gebruik is in zowel de tabel klant als users
+        $stmtEmailKlant = $pdo->prepare("SELECT COUNT(*) FROM klant WHERE email = ?");
+        $stmtEmailKlant->execute([$email]);
+        $countKlant = $stmtEmailKlant->fetchColumn();
+
+        $stmtEmailUser = $pdo->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
+        $stmtEmailUser->execute([$email]);
+        $countUser = $stmtEmailUser->fetchColumn();
+
+        if ($countKlant > 0 || $countUser > 0) {
+            $error = "Deze email is al in gebruik!";
+        } else {
+            try {
+                // Hash het wachtwoord
+                $hashedPassword = password_hash($wachtwoord, PASSWORD_DEFAULT);
+                // Voeg de klant inclusief wachtwoord toe (let op: kolomnaam is 'password')
+                $stmt = $pdo->prepare("INSERT INTO klant (voornaam, achternaam, email, telefoon, bedrijfnaam, password) VALUES (?, ?, ?, ?, ?, ?)");
+                $stmt->execute([$voornaam, $achternaam, $email, $telefoon, $bedrijfnaam, $hashedPassword]);
+                $message = "Klant succesvol toegevoegd!";
+            } catch (PDOException $e) {
+                $error = "Database fout: " . $e->getMessage();
+            }
         }
     }
 }
@@ -74,201 +132,7 @@ try {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Klantenbeheer</title>
-  <style>
-    /* Basis reset en body-styling */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      color: #333;
-      line-height: 1.6;
-    }
-    
-    /* Sidebar (oorspronkelijk uiterlijk) */
-    .sidebar {
-      background: #f8f9fa;
-      height: 100vh;
-      width: 250px;
-      position: fixed;
-      z-index: 1000;
-      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-      padding: 20px;
-      margin-top: 1px !important;
-      left: 10px;
-    }
-    .sidebar a {
-      color: #333;
-      text-decoration: none;
-      display: block;
-      margin-bottom: 10px;
-    }
-    
-    /* Main content */
-    .my-main {
-      margin-left: 270px;
-      padding: 20px;
-    }
-    
-    /* Sectie container */
-    .my-section {
-      background: #fff;
-      border: 1px solid #6d0f10;
-      border-radius: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
-      overflow: hidden;
-    }
-    .my-section h2 {
-      background: #6d0f10;
-      color: #fff;
-      padding: 15px;
-      font-size: 1.8rem;
-    }
-    
-    /* Formulier elementen */
-    .my-section .my-form {
-      padding: 20px;
-    }
-    .my-form div {
-      margin-bottom: 15px;
-    }
-    .my-form label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
-    }
-    .my-form input[type="text"],
-    .my-form input[type="email"] {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 1rem;
-    }
-    .my-form input:focus {
-      border-color: #6d0f10;
-      outline: none;
-    }
-    
-    /* Knop styling */
-    .my-btn {
-      padding: 10px 16px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 1rem;
-    }
-    /* Klant Toevoegen: blauw */
-    .my-btn-info {
-      background: green;
-      color: #fff;
-    }
-    /* Bewerk: oranje */
-    .my-btn-warning {
-      background: #FFA500;
-      color: #fff;
-    }
-    .my-btn-success {
-      background: #6d0f10;
-      color: #fff;
-    }
-    .my-btn-danger {
-      background: #d9534f;
-      color: #fff;
-    }
-    /* Kleine marge tussen actieknoppen */
-    .my-action-btns .my-btn {
-      margin-right: 5px;
-    }
-    
-    /* Tabel styling */
-    .my-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    .my-table th, .my-table td {
-      padding: 12px 15px;
-      border-bottom: 1px solid #ddd;
-      text-align: left;
-    }
-    .my-table th {
-      background: #6d0f10;
-      color: #fff;
-    }
-    .my-table tr:hover {
-      background: #f9f9f9;
-    }
-    
-    /* Modal styling: verschijnt precies in het midden */
-    .my-modal {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-      width: 90%;
-      max-width: 500px;
-      display: none;
-      z-index: 1055;
-    }
-    .my-modal-content {
-      padding: 20px;
-      position: relative;
-    }
-    .my-modal-content h2 {
-      background: #6d0f10;
-      color: #fff;
-      margin: 0;
-      padding: 15px;
-      border-radius: 10px 10px 0 0;
-      font-size: 1.8rem;
-    }
-    .my-close-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: #ccc;
-      color: #333;
-      border: none;
-      border-radius: 50%;
-      width: 30px;
-      height: 30px;
-      text-align: center;
-      line-height: 30px;
-      cursor: pointer;
-    }
-    
-    /* Overlay voor modal */
-    .my-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.7);
-      display: none;
-      z-index: 1050;
-    }
-    
-    /* Succes notificatie */
-    .my-notification {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 10px 20px;
-      background-color: #28a745;
-      color: #fff;
-      border-radius: 5px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.3);
-      z-index: 10000;
-    }
-  </style>
+  <link rel="stylesheet" href="css/admin-klant.css">
 </head>
 <body>
   <!-- Sidebar (oorspronkelijk uiterlijk) -->
@@ -298,6 +162,13 @@ try {
         <div>
           <label for="email">Email:</label>
           <input class="my-input" type="email" name="email" id="email" required>
+          <!-- Feedback element -->
+          <span id="emailFeedback" style="margin-left:10px;"></span>
+        </div>
+        <!-- Nieuw: Wachtwoord invoeren -->
+        <div>
+          <label for="wachtwoord">Wachtwoord:</label>
+          <input class="my-input" type="password" name="wachtwoord" id="wachtwoord" required>
         </div>
         <div>
           <label for="telefoon">Telefoon:</label>
@@ -352,7 +223,7 @@ try {
     <!-- Overlay voor modal -->
     <div id="myOverlay" class="my-overlay"></div>
 
-    <!-- Modal: Klant bewerken -->
+    <!-- Modal: Klant bewerken (zonder wachtwoord veld) -->
     <div id="myModal" class="my-modal">
       <div class="my-modal-content">
         <span id="myCloseModal" class="my-close-btn">&times;</span>
@@ -388,7 +259,37 @@ try {
   </main>
 
   <script>
-    // Modal functionaliteit met nieuwe classnamen
+    // Live email check voor de 'nieuwe klant toevoegen'-form
+    document.getElementById('email').addEventListener('input', function() {
+      const email = this.value;
+      const feedbackEl = document.getElementById('emailFeedback');
+      const submitBtn = document.querySelector('form.my-form button[type="submit"]');
+
+      if (email.length > 0) {
+        fetch("<?php echo basename(__FILE__); ?>?check_email=1&email=" + encodeURIComponent(email))
+          .then(response => response.json())
+          .then(data => {
+            if (data.exists) {
+              feedbackEl.textContent = data.message;
+              feedbackEl.style.color = "red";
+              submitBtn.disabled = true;
+            } else {
+              feedbackEl.textContent = data.message;
+              feedbackEl.style.color = "green";
+              submitBtn.disabled = false;
+            }
+          })
+          .catch(() => {
+            feedbackEl.textContent = "";
+            submitBtn.disabled = false;
+          });
+      } else {
+        feedbackEl.textContent = "";
+        submitBtn.disabled = false;
+      }
+    });
+
+    // Modal functionaliteit
     var myModal = document.getElementById('myModal');
     var myCloseModal = document.getElementById('myCloseModal');
     var myOverlay = document.getElementById('myOverlay');
