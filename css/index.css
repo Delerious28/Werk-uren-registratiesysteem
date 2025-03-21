@@ -265,6 +265,36 @@ h3.visible {
     overflow-y: auto; /* Zorgt voor scrollen als de inhoud te groot is */
 }
 
+/* Voor Webkit browsers (Chrome, Safari, Edge) */
+#popup::-webkit-scrollbar {
+    width: 8px; /* Pas de breedte aan naar wens */
+    background: transparent; /* Verwijdert de achtergrond */
+}
+
+#popup::-webkit-scrollbar-thumb {
+    background-color: #630101; /* Kies een kleur voor de scrollbar */
+    border-radius: 4px;
+}
+
+/* Verwijdert de pijltjes (scrollbar buttons) */
+#popup::-webkit-scrollbar-button {
+    display: none;
+}/* Voor Webkit browsers (Chrome, Safari, Edge) */
+#popup::-webkit-scrollbar {
+    width: 8px; /* Pas de breedte aan naar wens */
+    background: transparent; /* Verwijdert de achtergrond */
+}
+
+#popup::-webkit-scrollbar-thumb {
+    background-color: #630101; /* Kies een kleur voor de scrollbar */
+    border-radius: 4px;
+}
+
+/* Verwijdert de pijltjes (scrollbar buttons) */
+#popup::-webkit-scrollbar-button {
+    display: none;
+}
+
 /* Donkere overlay op de achtergrond */
 .popup-overlay {
     display: none;        /* Begin als verborgen */
@@ -299,9 +329,6 @@ h3.visible {
     display: flex;        /* Zorgt dat de overlay in de layout staat */
     opacity: 1;           /* Volledig zichtbaar */
 }
-
-
-
 
 /* Sluitknop */
 .close {
