@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var klantenPopup = document.getElementById('klanten-popup');
     var closeContactBtn = document.getElementById('close-contact');
     var closeKlantenBtn = document.getElementById('close-klant');
-    
+
     // Open de contact-popup via fade-in
     function openContactPopup() {
         contactPopup.classList.add('active');

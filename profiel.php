@@ -46,24 +46,6 @@ $contactData = $stmtContact->fetch(PDO::FETCH_ASSOC);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Informatie</title>
     <link rel="stylesheet" href="css/profiel.css">
-    <!-- Inline override om de scale-animatie te verwijderen en een fade-in te gebruiken -->
-    <style>
-      .contact-popup-content {
-        transform: none !important;
-        opacity: 0;
-        transition: opacity 0.5s ease;
-      }
-      .contact-popup.active .contact-popup-content {
-        opacity: 1;
-      }
-      .klanten-popup-content {
-        opacity: 0;
-        transition: opacity 0.5s ease;
-      }
-      .Klanten-popup.active .klanten-popup-content {
-        opacity: 1;
-      }
-    </style>
 </head>
 <body>
     <header>
