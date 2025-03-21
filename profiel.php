@@ -151,8 +151,8 @@ $contactData = $stmtContact->fetch(PDO::FETCH_ASSOC);
         <div class="klanten-popup-content">
             <div class="popup-header">
                 <h3>Gekoppelde klanten informatie</h3>
-                <span class="close-klant-popup" id="close-klant">&times;</span>
-            </div>
+                <span class="close-popup" id="close-klant">&times;</span>
+                </div>
             <div class="klanten-popup-gegevens">
                 <?php
                 // Haal alle klantgegevens op inclusief projectnaam
