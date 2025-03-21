@@ -40,8 +40,8 @@ $isDownloadPage = ($currentPage === 'admin-download.php');
     <?php elseif ($role === 'user'): ?>
         <a href="index.php">Home</a>
         <a href="uren-registreren.php">Uren registreren</a>
-        <a href="gebruiker_uren.php">Dashboard</a>
-        <a href="profiel.php">Profiel</a>
+        <a href="gebruiker_uren.php">Urenoverzicht</a>
+        <a href="profiel.php">Bedrijfsinformatie </a>
     <?php endif; ?>
 
     <a href="uitloggen.php" class="logout-btn">Uitloggen</a>

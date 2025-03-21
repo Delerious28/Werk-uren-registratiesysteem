@@ -85,6 +85,9 @@ if (isset($_GET['user_id']) && isset($_GET['month']) && isset($_GET['year'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Urenoverzicht Downloaden</title>
     <link rel="stylesheet" href="css/download.css">
+    <style>
+        
+    </style>
 </head>
 <body> 
     <h1>Download Urenoverzicht</h1>
@@ -141,73 +144,59 @@ if (isset($_GET['user_id']) && isset($_GET['month']) && isset($_GET['year'])) {
     </div>
 
     <script>
-    let currentUserId = null;
+        let currentUserId = null;
 
-    function openModal(userId, userName) {
-    currentUserId = userId;
-    document.getElementById('userName').textContent = userName;
-    document.getElementById('downloadModal').classList.add('active');
-}
-
-function closeModal() {
-    document.getElementById('downloadModal').classList.remove('active');
-}
-
-function closeModal() {
-    document.getElementById('downloadModal').classList.remove('active');
-}
-function closeModal() {
-    document.getElementById('downloadModal').classList.remove('active');
-}
-
-window.onclick = function(event) {
-    const modal = document.getElementById('downloadModal');
-    if (event.target === modal || event.target.classList.contains('modal-overlay')) {
-        closeModal();
-    }
-}
-
-    function downloadPDF() {
-        const month = document.getElementById('monthSelect').value;
-        const year = document.getElementById('yearSelect').value;
-
-        if (!month || !year) {
-            alert('Selecteer een maand en jaar');
-            return;
+        function openModal(userId, userName) {
+            currentUserId = userId;
+            document.getElementById('userName').textContent = userName;
+            document.getElementById('downloadModal').classList.add('active');
         }
 
-        const url = `?user_id=${currentUserId}&month=${month}&year=${year}`;
-
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'urenoverzicht.pdf';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        closeModal();
-    }
-
-    document.getElementById('searchInput').addEventListener('input', function() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    const userItems = document.querySelectorAll('#userList .user-item');
-
-    userItems.forEach(item => {
-        const userName = item.textContent.toLowerCase();
-        if (searchTerm === '' || userName.includes(searchTerm)) {
-            item.classList.remove('hidden'); // Toon het item
-        } else {
-            item.classList.add('hidden'); // Verberg het item
+        function closeModal() {
+            document.getElementById('downloadModal').classList.remove('active');
         }
-    });
-});
 
-    window.onclick = function(event) {
-        const modal = document.getElementById('downloadModal');
-        if (event.target === modal || event.target.classList.contains('modal-overlay')) {
+        window.onclick = function(event) {
+            const modal = document.getElementById('downloadModal');
+            if (event.target === modal || event.target.classList.contains('modal-overlay')) {
+                closeModal();
+            }
+        }
+
+        function downloadPDF() {
+            const month = document.getElementById('monthSelect').value;
+            const year = document.getElementById('yearSelect').value;
+
+            if (!month || !year) {
+                alert('Selecteer een maand en jaar');
+                return;
+            }
+
+            const url = `?user_id=${currentUserId}&month=${month}&year=${year}`;
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'urenoverzicht.pdf';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
             closeModal();
         }
-    }
+
+        document.getElementById('searchInput').addEventListener('input', function() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const userItems = document.querySelectorAll('#userList .user-item');
+
+            userItems.forEach(item => {
+                const userName = item.textContent.toLowerCase();
+                if (searchTerm === '' || userName.includes(searchTerm)) {
+                    item.classList.remove('hidden'); // Toon het item
+                } else {
+                    item.classList.add('hidden'); // Verberg het item
+                }
+            });
+        });
     </script>
 </body>
 </html>
