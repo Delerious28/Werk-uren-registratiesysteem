@@ -6,41 +6,33 @@ document.addEventListener('DOMContentLoaded', function() {
     var closeContactBtn = document.getElementById('close-contact');
     var closeKlantenBtn = document.getElementById('close-klant');
 
-    // Open de contact-popup via fade-in
-    function openContactPopup() {
-        contactPopup.classList.add('active');
+    function togglePopup(popup) {
+        if (popup) {
+            popup.classList.toggle('active');
+        }
     }
 
-    // Open de klantinformatie-popup via fade-in
-    function openKlantenPopup() {
-        klantenPopup.classList.add('active');
-    }
+    if (toggleContactIcon) toggleContactIcon.addEventListener('click', function() { togglePopup(contactPopup); });
+    if (toggleKlantenInfo) toggleKlantenInfo.addEventListener('click', function() { togglePopup(klantenPopup); });
+    if (closeContactBtn) closeContactBtn.addEventListener('click', function() { togglePopup(contactPopup); });
+    if (closeKlantenBtn) closeKlantenBtn.addEventListener('click', function() { togglePopup(klantenPopup); });
 
-    // Sluit de contact-popup via fade-out
-    function closeContactPopup() {
-        contactPopup.classList.remove('active');
-    }
-
-    // Sluit de klantinformatie-popup via fade-out
-    function closeKlantenPopup() {
-        klantenPopup.classList.remove('active');
-    }
-
-    // Eventlisteners
-    toggleContactIcon.addEventListener('click', openContactPopup);
-    toggleKlantenInfo.addEventListener('click', openKlantenPopup);
-    closeContactBtn.addEventListener('click', closeContactPopup);
-    closeKlantenBtn.addEventListener('click', closeKlantenPopup);
-
-    // Sluit de popups wanneer er buiten de content wordt geklikt
-    contactPopup.addEventListener('click', function(e) {
-        if (e.target === contactPopup) {
-            closeContactPopup();
+    // Sluiten bij klikken buiten de popup
+    [contactPopup, klantenPopup].forEach(function(popup) {
+        if (popup) {
+            popup.addEventListener('click', function(e) {
+                if (e.target === popup) {
+                    popup.classList.remove('active');
+                }
+            });
         }
     });
-    klantenPopup.addEventListener('click', function(e) {
-        if (e.target === klantenPopup) {
-            closeKlantenPopup();
+
+    // Escape-toets om popups te sluiten
+    document.addEventListener('keydown', function(e) {
+        if (e.key === "Escape") {
+            if (contactPopup?.classList.contains('active')) contactPopup.classList.remove('active');
+            if (klantenPopup?.classList.contains('active')) klantenPopup.classList.remove('active');
         }
     });
 });
