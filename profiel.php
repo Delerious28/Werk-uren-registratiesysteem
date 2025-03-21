@@ -28,8 +28,7 @@ $queryClient = "SELECT k.klant_id, k.voornaam, k.achternaam, k.email, k.telefoon
                 FROM project_users pu
                 JOIN project p ON pu.project_id = p.project_id
                 JOIN klant k ON p.klant_id = k.klant_id
-                WHERE pu.user_id = :user_id
-                LIMIT 1";
+                WHERE pu.user_id = :user_id";
 $stmtClient = $pdo->prepare($queryClient);
 $stmtClient->bindParam(':user_id', $user_id, PDO::PARAM_INT);
 $stmtClient->execute();
@@ -43,133 +42,121 @@ $contactData = $stmtContact->fetch(PDO::FETCH_ASSOC);
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Informatie</title>
-  <link rel="stylesheet" href="css/profiel.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informatie</title>
+    <link rel="stylesheet" href="css/profiel.css">
 </head>
 <body>
 <header>
-  <h1>Bedrijfsinformatie Portal</h1>
+    <h1>Bedrijfsinformatie Portal</h1>
 </header>
 <?php include 'sidebar.php'; ?>
 
 <div class="profiel-container">
-<!-- Bedrijfsinformatie-container met toggle -->
-<div class="info-section bedrijfs-container">
-    <!-- Toggle: Contacttekst + icoon -->
-    <div class="toggle-contact">
-        <span class="contact-text">Contact</span>
-        <img src="img/info-icon.png" alt="Toon contactinformatie" class="toggle-contact-icon">
+    <!-- Bedrijfsinformatie-container met toggle -->
+    <div class="info-section bedrijfs-container">
+        <!-- Toggle: Contacttekst + icoon -->
+        <div class="toggle-contact">
+            <span class="contact-text">Contact</span>
+            <img src="img/info-icon.png" alt="Toon contactinformatie" class="toggle-contact-icon">
+        </div>
+
+        <h2>Bedrijfsinformatie</h2>
+        <?php if ($chiefsData): ?>
+            <div class="info-item"><span class="info-label">Bedrijfsnaam:</span> <?php echo htmlspecialchars($chiefsData['bedrijfnaam']); ?></div>
+            <div class="info-item"><span class="info-label">Adres:</span> <?php echo htmlspecialchars($chiefsData['adres']); ?></div>
+            <div class="info-item"><span class="info-label">Telefoon:</span> <?php echo htmlspecialchars($chiefsData['telefoon']); ?></div>
+            <div class="info-item"><span class="info-label">Stad:</span> <?php echo htmlspecialchars($chiefsData['stad']); ?></div>
+            <div class="info-item"><span class="info-label">Postcode:</span> <?php echo htmlspecialchars($chiefsData['postcode']); ?></div>
+            <div class="info-item"><span class="info-label">Provincie:</span> <?php echo htmlspecialchars($chiefsData['provincie']); ?></div>
+            <div class="info-item"><span class="info-label">Land:</span> <?php echo htmlspecialchars($chiefsData['land']); ?></div>
+        <?php else: ?>
+            <p>Geen bedrijfsinformatie beschikbaar.</p>
+        <?php endif; ?>
+
     </div>
 
-    <h2>Bedrijfsinformatie</h2>
-    <?php if ($chiefsData): ?>
-        <div class="info-item"><span class="info-label">Bedrijfsnaam:</span> <?php echo htmlspecialchars($chiefsData['bedrijfnaam']); ?></div>
-        <div class="info-item"><span class="info-label">Adres:</span> <?php echo htmlspecialchars($chiefsData['adres']); ?></div>
-        <div class="info-item"><span class="info-label">Telefoon:</span> <?php echo htmlspecialchars($chiefsData['telefoon']); ?></div>
-        <div class="info-item"><span class="info-label">Stad:</span> <?php echo htmlspecialchars($chiefsData['stad']); ?></div>
-        <div class="info-item"><span class="info-label">Postcode:</span> <?php echo htmlspecialchars($chiefsData['postcode']); ?></div>
-        <div class="info-item"><span class="info-label">Provincie:</span> <?php echo htmlspecialchars($chiefsData['provincie']); ?></div>
-        <div class="info-item"><span class="info-label">Land:</span> <?php echo htmlspecialchars($chiefsData['land']); ?></div>
-    <?php else: ?>
-        <p>Geen bedrijfsinformatie beschikbaar.</p>
-    <?php endif; ?>
+    <!-- Klantinformatie -->
+    <div class="info-section">
+        <h2>Klantinformatie</h2>
+        <button class="toggle-klanten-info">
+            <img src="img/info-icon.png" alt="Toon contactinformatie" class="toggle-contact-icon">
+        </button>
+        <?php if ($clientData): ?>
+            <div class="info-item"><span class="info-label">Bedrijfsnaam:</span> <?php echo htmlspecialchars($clientData['bedrijfnaam']); ?></div>
+            <div class="info-item"><span class="info-label">Contactpersoon:</span> <?php echo htmlspecialchars($clientData['voornaam'] . " " . $clientData['achternaam']); ?></div>
+            <div class="info-item"><span class="info-label">Email:</span> <?php echo htmlspecialchars($clientData['email']); ?></div>
+            <div class="info-item"><span class="info-label">Telefoon:</span> <?php echo htmlspecialchars($clientData['telefoon']); ?></div>
+        <?php else: ?>
+            <p>Geen klant gekoppeld.</p>
+        <?php endif; ?>
+    </div>
 
-</div>
-
-<!-- Klantinformatie -->
-<div class="info-section">
-    <h2>Klantinformatie</h2>
-    <?php if ($clientData): ?>
-        <div class="info-item"><span class="info-label">Bedrijfsnaam:</span> <?php echo htmlspecialchars($clientData['bedrijfnaam']); ?></div>
-        <div class="info-item"><span class="info-label">Contactpersoon:</span> <?php echo htmlspecialchars($clientData['voornaam'] . " " . $clientData['achternaam']); ?></div>
-        <div class="info-item"><span class="info-label">Email:</span> <?php echo htmlspecialchars($clientData['email']); ?></div>
-        <div class="info-item"><span class="info-label">Telefoon:</span> <?php echo htmlspecialchars($clientData['telefoon']); ?></div>
-    <?php else: ?>
-        <p>Geen klant gekoppeld.</p>
-    <?php endif; ?>
-</div>
-
-<!-- Mijn Gegevens -->
-<div class="info-section">
-    <h2>Mijn Gegevens</h2>
-    <?php if ($userData): ?>
-        <div class="info-item"><span class="info-label">Naam:</span> <?php echo htmlspecialchars($userData['name'] . " " . $userData['achternaam']); ?></div>
-        <div class="info-item"><span class="info-label">Email:</span> <?php echo htmlspecialchars($userData['email']); ?></div>
-        <div class="info-item"><span class="info-label">Telefoon:</span> <?php echo htmlspecialchars($userData['telefoon']); ?></div>
-    <?php else: ?>
-        <p>Geen gegevens beschikbaar.</p>
-    <?php endif; ?>
-</div>
+    <!-- Mijn Gegevens -->
+    <div class="info-section">
+        <h2>Mijn Gegevens</h2>
+        <?php if ($userData): ?>
+            <div class="info-item"><span class="info-label">Naam:</span> <?php echo htmlspecialchars($userData['name'] . " " . $userData['achternaam']); ?></div>
+            <div class="info-item"><span class="info-label">Email:</span> <?php echo htmlspecialchars($userData['email']); ?></div>
+            <div class="info-item"><span class="info-label">Telefoon:</span> <?php echo htmlspecialchars($userData['telefoon']); ?></div>
+        <?php else: ?>
+            <p>Geen gegevens beschikbaar.</p>
+        <?php endif; ?>
+    </div>
 
 </div>
 
 <!-- Contactinformatie Popup -->
 <div class="contact-popup" id="contact-popup">
     <div class="contact-popup-content">
-        <span class="close-popup">&times;</span>
-        <h3>Contactinformatie</h3>
+        <div class="popup-header">
+            <h3>Contact informatie</h3>
+            <span class="close-popup">&times;</span>
+        </div>
         <?php if ($contactData): ?>
-            <div class="info-item"><span class="info-label">Naam:</span> <?php echo htmlspecialchars($contactData['voornaam'] . " " . $contactData['achternaam']); ?></div>
-            <div class="info-item"><span class="info-label">Email:</span> <?php echo htmlspecialchars($contactData['email']); ?></div>
-            <div class="info-item"><span class="info-label">Telefoon:</span> <?php echo htmlspecialchars($contactData['telefoon']); ?></div>
-            <div class="info-item"><span class="info-label">Bericht:</span> <?php echo htmlspecialchars($contactData['bericht']); ?></div>
-            <div class="info-item"><span class="info-label">Verstuurd op:</span> <?php echo htmlspecialchars($contactData['created_at']); ?></div>
+            <div class="popup-gegevens">
+                <div class="verticaal-lijn"> | </div>
+                <div class="info-item-naam"><span class="info-label">Naam:</span> <?php echo htmlspecialchars($contactData['voornaam'] . " " . $contactData['achternaam']); ?></div>
+                <div class="info-item"><span class="info-label">Email:</span> <?php echo htmlspecialchars($contactData['email']); ?></div>
+                <div class="info-item-telefoon"><span class="info-label">Telefoon:</span> <?php echo htmlspecialchars($contactData['telefoon']); ?></div>
+                <div class="info-item"><span class="info-label">Bericht:</span> <?php echo htmlspecialchars($contactData['bericht']); ?></div>
+                <div class="info-item-verstuurd"><span class="info-label">Verstuurd op:</span> <?php echo htmlspecialchars($contactData['created_at']); ?>
+                </div>
+            </div>
         <?php else: ?>
             <p>Geen contactinformatie beschikbaar.</p>
         <?php endif; ?>
     </div>
 </div>
 
-</body>
+<div class="Klanten-popup">
+    <div class="klanten-popup-content">
+    <div class="popup-header">
+        <h3>Gekoppelde klanten informatie</h3>
+        <span class="close-popup">&times;</span>
+    </div>
+    <div class="klanten-popup-gegevens">
+        <?php
+        // Haal alle klantgegevens op
+        $stmtClient->execute();
+        $clients = $stmtClient->fetchAll(PDO::FETCH_ASSOC);
+
+        if ($clients):
+            foreach ($clients as $client): ?>
+                <div class="klanten-verticaal-lijn"> | </div>
+                <div class="info-item-naam"><span class="info-label">Bedrijfsnaam:</span> <?php echo htmlspecialchars($client['bedrijfnaam']); ?></div>
+                <div class="info-item-contactpersoon"><span class="info-label">Contactpersoon:</span> <?php echo htmlspecialchars($client['voornaam'] . " " . $client['achternaam']); ?></div>
+                <div class="info-item-naam"><span class="info-label">Email:</span> <?php echo htmlspecialchars($client['email']); ?></div>
+                <div class="info-item-k-telefoon"><span class="info-label">Telefoon:</span> <?php echo htmlspecialchars($client['telefoon']); ?></div>
+                <hr>
+            <?php endforeach;
+        else: ?>
+            <p>Geen klanten gekoppeld.</p>
+        <?php endif; ?>
+    </div>
+</div>
+</div>
+
 <script src="js/profiel.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    var toggleIcon = document.querySelector('.toggle-contact-icon');
-    var contactPopup = document.getElementById('contact-popup');
-    var contactPopupContent = document.querySelector('.contact-popup-content');
-    var closeBtn = document.querySelector('.close-popup');
-    // Duur van de transitie (in milliseconden) – zorg dat deze waarde overeenkomt met de CSS-transition (0.5s = 500ms)
-    var transitionDuration = 500;
-
-    // Functie om de popup te openen
-    function openPopup() {
-        // Zorg dat de content initieel op scale(0) staat
-        contactPopupContent.classList.remove('active');
-        // Maak de overlay zichtbaar
-        contactPopup.classList.add('active');
-        // Forceer een reflow zodat de browser de wijziging verwerkt
-        void contactPopupContent.offsetWidth;
-        // Voeg na een korte vertraging de active-class toe zodat de schaal-animatie van 0 naar 1 afspeelt
-        setTimeout(function() {
-            contactPopupContent.classList.add('active');
-        }, 10);
-    }
-
-    // Functie om de popup te sluiten
-    function closePopup() {
-        // Verwijder de active-class van de content zodat deze terug schaalt van 1 naar 0
-        contactPopupContent.classList.remove('active');
-        // Wacht tot de transitie voorbij is (hier: 500ms) voordat de overlay wordt verborgen
-        setTimeout(function() {
-            contactPopup.classList.remove('active');
-        }, transitionDuration);
-    }
-
-    // Openen bij klikken op de toggle-knop
-    toggleIcon.addEventListener('click', openPopup);
-
-    // Sluiten bij klikken op de sluitknop
-    closeBtn.addEventListener('click', closePopup);
-
-    // Sluiten bij klikken buiten de popup (op de overlay)
-    contactPopup.addEventListener('click', function(e) {
-        if (e.target === contactPopup) {
-            closePopup();
-        }
-    });
-});
-
-</script>
 </html>
