@@ -72,9 +72,8 @@ $contactData = $stmtContact->fetch(PDO::FETCH_ASSOC);
     <?php include 'sidebar.php'; ?>
 
     <div class="profiel-container">
-        <!-- Bedrijfsinformatie -->
+        <!-- Bedrijfsinformatie blijft altijd getoond -->
         <div class="info-section bedrijfs-container">
-            <!-- Toggle: Contacttekst + icoon -->
             <div class="toggle-contact">
                 <span class="contact-text">Contact</span>
                 <img src="img/info-icon.png" alt="Toon contactinformatie" class="toggle-contact-icon">
@@ -93,35 +92,60 @@ $contactData = $stmtContact->fetch(PDO::FETCH_ASSOC);
             <?php endif; ?>
         </div>
 
-        <!-- Klantinformatie -->
-        <div class="info-section">
-            <h2>Klantinformatie</h2>
-            <button class="toggle-klanten-info">
-                <img src="img/info-icon.png" alt="Toon klantinformatie" class="toggle-contact-icon">
-            </button>
-            <?php if ($clientData): ?>
-                <div class="info-item"><span class="info-label">Bedrijfsnaam:</span> <?php echo htmlspecialchars($clientData['bedrijfnaam']); ?></div>
-                <div class="info-item"><span class="info-label">Contactpersoon:</span> <?php echo htmlspecialchars($clientData['voornaam'] . " " . $clientData['achternaam']); ?></div>
-                <div class="info-item"><span class="info-label">Email:</span> <?php echo htmlspecialchars($clientData['email']); ?></div>
-                <div class="info-item"><span class="info-label">Telefoon:</span> <?php echo htmlspecialchars($clientData['telefoon']); ?></div>
-                <!-- Weergeven welk project gekoppeld is -->
-                <div class="info-item"><span class="info-label">Project:</span> <?php echo htmlspecialchars($clientData['projectnaam']); ?></div>
-            <?php else: ?>
-                <p>Geen klant gekoppeld.</p>
-            <?php endif; ?>
-        </div>
+        <?php if ($_SESSION['role'] === 'klant'): ?>
+            <div class="info-section">
+                <h2>Mijn Gegevens</h2>
+                <?php if ($clientData): ?>
+                    <div class="info-item"><span class="info-label">Bedrijfsnaam:</span> <?php echo htmlspecialchars($clientData['bedrijfnaam']); ?></div>
+                    <div class="info-item"><span class="info-label">Contactpersoon:</span> <?php echo htmlspecialchars($clientData['voornaam'] . " " . $clientData['achternaam']); ?></div>
+                    <div class="info-item"><span class="info-label">Email:</span> <?php echo htmlspecialchars($clientData['email']); ?></div>
+                    <div class="info-item"><span class="info-label">Telefoon:</span> <?php echo htmlspecialchars($clientData['telefoon']); ?></div>
+                    <div class="info-item"><span class="info-label">Project:</span> <?php echo htmlspecialchars($clientData['projectnaam']); ?></div>
+                <?php else: ?>
+                    <p>Geen klantgegevens beschikbaar.</p>
+                <?php endif; ?>
+            </div>
 
-        <!-- Mijn Gegevens -->
-        <div class="info-section">
-            <h2>Mijn Gegevens</h2>
-            <?php if ($userData): ?>
-                <div class="info-item"><span class="info-label">Naam:</span> <?php echo htmlspecialchars($userData['name'] . " " . $userData['achternaam']); ?></div>
-                <div class="info-item"><span class="info-label">Email:</span> <?php echo htmlspecialchars($userData['email']); ?></div>
-                <div class="info-item"><span class="info-label">Telefoon:</span> <?php echo htmlspecialchars($userData['telefoon']); ?></div>
-            <?php else: ?>
-                <p>Geen gegevens beschikbaar.</p>
-            <?php endif; ?>
-        </div>
+            <!-- toon "Klantinformatie" een Admin-sectie met de usergegevens -->
+            <div class="info-section">
+                <h2>Admin</h2>
+                <?php if ($userData): ?>
+                    <div class="info-item"><span class="info-label">Naam:</span> <?php echo htmlspecialchars($userData['name'] . " " . $userData['achternaam']); ?></div>
+                    <div class="info-item"><span class="info-label">Email:</span> <?php echo htmlspecialchars($userData['email']); ?></div>
+                    <div class="info-item"><span class="info-label">Telefoon:</span> <?php echo htmlspecialchars($userData['telefoon']); ?></div>
+                <?php else: ?>
+                    <p>Geen admin gegevens beschikbaar.</p>
+                <?php endif; ?>
+            </div>
+        <?php else: ?>
+            <!-- Voor users: behoud de huidige weergave -->
+            <div class="info-section">
+                <h2>Mijn Gegevens</h2>
+                <?php if ($userData): ?>
+                    <div class="info-item"><span class="info-label">Naam:</span> <?php echo htmlspecialchars($userData['name'] . " " . $userData['achternaam']); ?></div>
+                    <div class="info-item"><span class="info-label">Email:</span> <?php echo htmlspecialchars($userData['email']); ?></div>
+                    <div class="info-item"><span class="info-label">Telefoon:</span> <?php echo htmlspecialchars($userData['telefoon']); ?></div>
+                <?php else: ?>
+                    <p>Geen gegevens beschikbaar.</p>
+                <?php endif; ?>
+            </div>
+
+            <div class="info-section">
+                <h2>Klantinformatie</h2>
+                <button class="toggle-klanten-info">
+                    <img src="img/info-icon.png" alt="Toon klantinformatie" class="toggle-contact-icon">
+                </button>
+                <?php if ($clientData): ?>
+                    <div class="info-item"><span class="info-label">Bedrijfsnaam:</span> <?php echo htmlspecialchars($clientData['bedrijfnaam']); ?></div>
+                    <div class="info-item"><span class="info-label">Contactpersoon:</span> <?php echo htmlspecialchars($clientData['voornaam'] . " " . $clientData['achternaam']); ?></div>
+                    <div class="info-item"><span class="info-label">Email:</span> <?php echo htmlspecialchars($clientData['email']); ?></div>
+                    <div class="info-item"><span class="info-label">Telefoon:</span> <?php echo htmlspecialchars($clientData['telefoon']); ?></div>
+                    <div class="info-item"><span class="info-label">Project:</span> <?php echo htmlspecialchars($clientData['projectnaam']); ?></div>
+                <?php else: ?>
+                    <p>Geen klant gekoppeld.</p>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
     </div>
 
     <!-- Contactinformatie Popup -->
@@ -145,45 +169,44 @@ $contactData = $stmtContact->fetch(PDO::FETCH_ASSOC);
             <?php endif; ?>
         </div>
     </div>
-
-    <!-- Klantinformatie Popup -->
-    <div class="Klanten-popup" id="klanten-popup">
-        <div class="klanten-popup-content">
-            <div class="popup-header">
-                <h3>Gekoppelde klanten informatie</h3>
-                <span class="close-popup" id="close-klant">&times;</span>
+    <?php if ($_SESSION['role'] !== 'klant'): ?>
+        <div class="Klanten-popup" id="klanten-popup">
+            <div class="klanten-popup-content">
+                <div class="popup-header">
+                    <h3>Gekoppelde klanten informatie</h3>
+                    <span class="close-popup" id="close-klant">&times;</span>
                 </div>
-            <div class="klanten-popup-gegevens">
-                <?php
-                // Haal alle klantgegevens op inclusief projectnaam
-                $stmtClient->execute();
-                $clients = $stmtClient->fetchAll(PDO::FETCH_ASSOC);
-                if ($clients):
-                    foreach ($clients as $client): ?>
-                    <div class="info-item">
-                            <span class="info-label">Project:</span> <?php echo htmlspecialchars($client['projectnaam']); ?>
-                        </div>
-                        <div class="klanten-verticaal-lijn"> | </div>
-                        <div class="info-item-naam">
-                            <span class="info-label">Bedrijfsnaam:</span> <?php echo htmlspecialchars($client['bedrijfnaam']); ?>
-                        </div>
-                        <div class="info-item-contactpersoon">
-                            <span class="info-label">Contactpersoon:</span> <?php echo htmlspecialchars($client['voornaam'] . " " . $client['achternaam']); ?>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Email:</span> <?php echo htmlspecialchars($client['email']); ?>
-                        </div>
-                        <div class="info-item-k-telefoon">
-                            <span class="info-label">Telefoon:</span> <?php echo htmlspecialchars($client['telefoon']); ?>
-                        </div>
-                                                <hr>
-                    <?php endforeach;
-                else: ?>
-                    <p>Geen klanten gekoppeld.</p>
-                <?php endif; ?>
+                <div class="klanten-popup-gegevens">
+                    <?php
+                    $stmtClient->execute();
+                    $clients = $stmtClient->fetchAll(PDO::FETCH_ASSOC);
+                    if ($clients):
+                        foreach ($clients as $client): ?>
+                            <div class="info-item">
+                                <span class="info-label">Project:</span> <?php echo htmlspecialchars($client['projectnaam']); ?>
+                            </div>
+                            <div class="klanten-verticaal-lijn"> | </div>
+                            <div class="info-item-naam">
+                                <span class="info-label">Bedrijfsnaam:</span> <?php echo htmlspecialchars($client['bedrijfnaam']); ?>
+                            </div>
+                            <div class="info-item-contactpersoon">
+                                <span class="info-label">Contactpersoon:</span> <?php echo htmlspecialchars($client['voornaam'] . " " . $client['achternaam']); ?>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Email:</span> <?php echo htmlspecialchars($client['email']); ?>
+                            </div>
+                            <div class="info-item-k-telefoon">
+                                <span class="info-label">Telefoon:</span> <?php echo htmlspecialchars($client['telefoon']); ?>
+                            </div>
+                            <hr>
+                        <?php endforeach;
+                    else: ?>
+                        <p>Geen klanten gekoppeld.</p>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
-    </div>
+    <?php endif; ?>
 
     <script src="js/profiel.js"></script>
 </body>
