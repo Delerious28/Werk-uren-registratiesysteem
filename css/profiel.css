@@ -236,14 +236,18 @@ h1{
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
     z-index: 1000;
-    display: none; /* Standaard niet zichtbaar */
-    justify-content: center; /* Horizontaal centreren */
-    align-items: center; /* Verticaal centreren */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
 }
 
 /* Overlay actief: zichtbaar */
 .Klanten-popup.active {
-    display: flex; /* Popup tonen */
+    opacity: 1;
+    visibility: visible;
 }
 
 /* Popup-content in het midden van het scherm */
@@ -255,9 +259,17 @@ h1{
     width: 80%;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
     position: relative;
-    max-height: 400px; /* Stel een maximale hoogte in, pas deze waarde aan naar wens */
-    overflow-y: auto; /* Zorgt voor een verticale scrollbar als de inhoud te groot is */
+    max-height: 400px;
+    overflow-y: auto;
+    /* Optioneel: fade in voor de inhoud zelf */
+    opacity: 0;
+    transition: opacity 0.5s ease;
 }
+
+.Klanten-popup.active .klanten-popup-content {
+    opacity: 1;
+}
+
 
 /* Optioneel: Als je een gesloten knop wilt stylen */
 .close-popup {
