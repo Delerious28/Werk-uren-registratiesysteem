@@ -388,4 +388,20 @@ hr {
 .Klanten-popup.active .klanten-popup-content {
     opacity: 1;
 }
+
+.contact-popup-content {
+    transform: none !important;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+.contact-popup.active .contact-popup-content {
+    opacity: 1;
+}
+.klanten-popup-content {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+.Klanten-popup.active .klanten-popup-content {
+    opacity: 1;
+}
 /**/
