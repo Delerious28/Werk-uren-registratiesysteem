@@ -190,73 +190,21 @@ try {
 <!-- Popup voor het tonen van het volledige gebruikersprofiel -->
 <div id="gebruikerPopup" class="gebruiker-popup">
     <div class="popup-content">
-        <span class="close-popup">&times;</span>
-        <h3>Gebruikersprofiel</h3>
-        <p><strong>Naam:</strong> <span id="popup-name"></span></p>
-        <p><strong>Achternaam:</strong> <span id="popup-achternaam"></span></p>
-        <p><strong>Email:</strong> <span id="popup-email"></span></p>
-        <p><strong>Telefoon:</strong> <span id="popup-telefoon"></span></p>
-        <p><strong>Role:</strong> <span id="popup-role"></span></p>
+        <div class="profiel-header">
+            <h3>Gebruikersprofiel</h3>
+            <span class="close-popup">&times;</span>
+        </div>
+        <div class="verticaal-lijn"> | </div>
+        <div class="popup-gegevens">
+        <p class="popup-name"><strong>Naam:</strong> <span id="popup-name"></span></p>
+        <p class="popup-achternaam"><strong>Achternaam:</strong> <span id="popup-achternaam"></span></p>
+        <p class="popup-email"><strong>Email:</strong> <span id="popup-email"></span></p>
+        <p class="popup-telefoon"><strong>Telefoon:</strong> <span id="popup-telefoon"></span></p>
+        <p class="popup-role"><strong>Role:</strong> <span id="popup-role"></span></p>
+        </div>
     </div>
 </div>
 
 <script src="js/klant-dashboard.js"></script>
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-    // Functie om de gebruiker filter dropdown te verwerken
-    window.updateGebruikerFilter = function() {
-        const select = document.getElementById('gebruikerFilter');
-        const userId = select.value;
-        window.location.href = '?user_id=' + encodeURIComponent(userId);
-    };
-
-    // Voeg click events toe aan alle elementen met de class view-user-profile
-    const userProfileElements = document.querySelectorAll('.view-user-profile');
-    userProfileElements.forEach(function(element) {
-        element.addEventListener('click', function() {
-            const userId = this.getAttribute('data-user-id');
-            fetchUserProfile(userId);
-        });
-    });
-
-    // Functie om het gebruikersprofiel op te halen en de pop-up te tonen
-    function fetchUserProfile(userId) {
-        fetch('gebruiker-profiel-klant.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: userId })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                alert(data.error);
-            } else {
-                // Vul de popup velden in
-                document.getElementById('popup-name').textContent = data.name || '';
-                document.getElementById('popup-achternaam').textContent = data.achternaam || '';
-                document.getElementById('popup-email').textContent = data.email || '';
-                document.getElementById('popup-telefoon').textContent = data.telefoon || '';
-                document.getElementById('popup-role').textContent = data.role || '';
-                // Toon de pop-up
-                document.getElementById('gebruikerPopup').style.display = 'block';
-            }
-        })
-        .catch(error => console.error('Fout bij ophalen gebruikersprofiel:', error));
-    }
-
-    // Sluit de popup wanneer op de sluitknop wordt geklikt
-    document.querySelector('.close-popup').addEventListener('click', function() {
-        document.getElementById('gebruikerPopup').style.display = 'flex';
-    });
-
-    // Optioneel: sluit de popup als er buiten de popup wordt geklikt
-    window.addEventListener('click', function(event) {
-        if (event.target == document.getElementById('gebruikerPopup')) {
-            document.getElementById('gebruikerPopup').style.display = 'none';
-        }
-    });
-});
-
-</script>
 </body>
 </html>

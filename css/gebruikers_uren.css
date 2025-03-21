@@ -372,38 +372,41 @@ select.status-dropdown::after {
 }
 
 /*POPUP VOOR KLANT_DASHBOARD*/
+#gebruikerPopup{
+    display: none;
+}
+
 .gebruiker-popup {
-    display: none; /* Verberg standaard */
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.5);
-    display: flex;             /* Zorgt dat het een flex-container is */
-    justify-content: center;   /* Centreer horizontaal */
-    align-items: center;       /* Centreer verticaal */
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
-
 
 .popup-content {
     background: white;
     padding: 20px;
     border-radius: 8px;
     text-align: center;
-    width: 300px;
-    position: relative;
-}
-.close-popup {
+    width: 400px;
     position: absolute;
-    top: 10px;
-    right: 15px;
-    cursor: pointer;
-    font-size: 20px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
-#gebruikerPopup{
-    display: none;
+.close-popup {
+    cursor: pointer;
+    font-size: 22px;
+}
+
+.close-popup:hover{
+    color: red;
 }
 
 .view-user-profile{
@@ -412,7 +415,58 @@ select.status-dropdown::after {
 
 .view-user-profile:hover{
     color: #0000FF;
+    text-decoration: underline;
 }
 
+h3{
+    padding: 2px 0 0 10px;
+    text-align: left;
+    margin: 0;
+}
 
+.profiel-header{
+    display: grid;
+    grid-template-columns: 95% 1fr;
+    align-items: start;
+    height: 50px;
+}
+
+.popup-gegevens{
+    text-align: left;
+    padding-left: 10px;
+}
+
+.verticaal-lijn{
+    position: absolute;
+    top: 70px;
+    height: 62%;
+    left: 15px;
+    background-color: black;
+    border-radius: 5px;
+}
+
+.popup-name{
+    background-color: #e0e0e0;
+}
+
+.popup-achternaam{
+    background-color: white;
+}
+
+.popup-email{
+    background-color: #e0e0e0;
+}
+
+.popup-telefoon{
+    background-color: white;
+}
+
+.popup-role{
+    background-color: #e0e0e0;
+}
+
+p{
+    line-height: 30px;
+    margin: 0;
+}
 /**/
