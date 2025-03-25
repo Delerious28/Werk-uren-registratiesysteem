@@ -4,8 +4,9 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 require_once 'db/conn.php';
 
-if (!isset($_SESSION['role'])) {
-    die("Geen toegang. Log in om verder te gaan.");
+if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['user', 'klant'])) {
+    header("Location: inloggen.php");
+    exit();
 }
 
 $role = $_SESSION['role'];
