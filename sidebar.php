@@ -4,7 +4,8 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 require_once 'db/conn.php';
 
-if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['user', 'klant'])) {
+// Controleer of de gebruiker is ingelogd en of de rol geldig is (gebruiker of klant)
+if (!isset($_SESSION['user_id']) && !isset($_SESSION['klant_id']) || !in_array($_SESSION['role'], ['user', 'klant'])) {
     header("Location: inloggen.php");
     exit();
 }
@@ -15,6 +16,7 @@ $role = $_SESSION['role'];
 $currentPage = basename($_SERVER['PHP_SELF']);
 $isDownloadPage = ($currentPage === 'admin-download.php');
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">

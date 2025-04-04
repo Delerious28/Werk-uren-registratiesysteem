@@ -1,11 +1,13 @@
 <?php
 session_start();
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['klant_id'])) {
     header("Location: inloggen.php");
     exit();
 }
-
 require_once 'db/conn.php';
+
+// Haal de klant-ID uit de sessie (deze moet worden ingesteld bij het inloggen)
+$klantId = $_SESSION['klant_id'] ?? '';  // Gebruik 'klant_id' in plaats van 'user_id'
 
 // Functie om de status in de database bij te werken
 function updateStatus($pdo, $hoursId, $status) {
@@ -35,8 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hours_id']) && isset(
 $filter = $_GET['filter'] ?? 'day';
 $selectedUserId = $_GET['user_id'] ?? '';
 
-// Basis SQL-query waarbij we alle kolommen van de users-tabel ophalen (u.*)
-// Let op: de kolomnaam is 'bedrijfnaam' en niet 'bedrijfsnaam'
+// Basis SQL-query
 $sql = "SELECT u.*, 
                h.hours_id, h.date, h.hours, h.start_hours, h.eind_hours, h.accord,
                k.bedrijfnaam AS bedrijfsnaam, 
@@ -57,9 +58,15 @@ $dateRange = [
 
 // Parameters voor de query
 $params = ['start_date' => $start_date, 'end_date' => $end_date];
+
 if (!empty($selectedUserId)) {
-    $sql .= " AND u.user_id = :user_id";
+    $sql .= " AND u.user_id = :user_id";  // Als er een geselecteerde gebruiker is, filter op user_id
     $params['user_id'] = $selectedUserId;
+}
+
+if (!empty($klantId)) {
+    $sql .= " AND p.klant_id = :klant_id";  // Filter op klant_id als deze is ingesteld
+    $params['klant_id'] = $klantId;
 }
 
 $limit = 7;
@@ -69,25 +76,48 @@ $offset = ($page - 1) * $limit;
 try {
     // Query voor urengegevens, inclusief eventuele filters en paginering
     $stmt = $pdo->prepare($sql . " ORDER BY h.date ASC LIMIT :limit OFFSET :offset");
+
+    // Bind de parameters
     foreach ($params as $key => $val) {
         $stmt->bindValue(":$key", $val);
     }
+
+    // Bind de limiet en offset voor paginering
     $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
     $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+
+    // Voer de query uit
     $stmt->execute();
     $hoursData = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Gebruikersfilter ophalen (voor de dropdown)
-    $gebruikers = $pdo->query("SELECT user_id, name, achternaam FROM users WHERE role = 'user' ORDER BY name ASC")
-                     ->fetchAll(PDO::FETCH_ASSOC);
+    $gebruikers = [];
+    if (!empty($klantId)) {
+        // Haal de gebruikers op die gekoppeld zijn aan de klant via projecten
+        $stmt = $pdo->prepare("
+            SELECT u.user_id, u.name, u.achternaam 
+            FROM users u
+            JOIN project_users pu ON u.user_id = pu.user_id
+            JOIN project p ON pu.project_id = p.project_id
+            WHERE p.klant_id = :klant_id
+            ORDER BY u.name ASC
+        ");
+        $stmt->execute(['klant_id' => $klantId]);
+        $gebruikers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } else {
+        // In geval er geen klant_id in de sessie staat, haal je alle gebruikers op
+        $gebruikers = $pdo->query("SELECT user_id, name, achternaam FROM users WHERE role = 'user' ORDER BY name ASC")
+            ->fetchAll(PDO::FETCH_ASSOC);
+    }
 
     // Totaal aantal records ophalen voor paginering
     $sqlTotal = "SELECT COUNT(*) FROM hours h
                  JOIN users u ON h.user_id = u.user_id
                  LEFT JOIN project p ON h.project_id = p.project_id
                  LEFT JOIN klant k ON p.klant_id = k.klant_id
-                 WHERE h.date BETWEEN :start_date AND :end_date" . 
-                (!empty($selectedUserId) ? " AND u.user_id = :user_id" : "");
+                 WHERE h.date BETWEEN :start_date AND :end_date" .
+        (!empty($selectedUserId) ? " AND u.user_id = :user_id" : "") .
+        (!empty($klantId) ? " AND p.klant_id = :klant_id" : "");
     $stmtTotal = $pdo->prepare($sqlTotal);
     $stmtTotal->execute($params);
     $totalRecords = $stmtTotal->fetchColumn();
@@ -122,7 +152,7 @@ try {
             <option value="">Alle Gebruikers</option>
             <?php foreach ($gebruikers as $gebruiker): ?>
                 <option value="<?php echo htmlspecialchars($gebruiker['user_id']); ?>"
-                    <?php echo $gebruiker['user_id'] == ($selectedUserId) ? 'selected' : ''; ?>>
+                    <?php echo $gebruiker['user_id'] == $selectedUserId ? 'selected' : ''; ?>>
                     <?php echo htmlspecialchars($gebruiker['name'] . ' ' . $gebruiker['achternaam']); ?>
                 </option>
             <?php endforeach; ?>
