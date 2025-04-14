@@ -89,6 +89,7 @@ try {
       align-items: center;
       gap: 20px;
       margin-bottom: 20px;
+        width: 60%;
     } 
     header .logo {
       max-width: 150px;

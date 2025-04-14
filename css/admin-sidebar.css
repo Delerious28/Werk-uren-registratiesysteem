@@ -7,7 +7,7 @@
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
     padding: 20px;
     margin-top: -80px;
-    left: 10px;
+    left: 0;
   }
   /* Mobile Sidebar */
   @media (max-width: 768px) {
