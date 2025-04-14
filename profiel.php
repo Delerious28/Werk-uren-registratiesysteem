@@ -168,23 +168,28 @@ $contactData = $stmtContact->fetch(PDO::FETCH_ASSOC);
                 $clients = $stmtClient->fetchAll(PDO::FETCH_ASSOC);
                 if ($clients):
                     foreach ($clients as $client): ?>
-                        <div class="klanten-verticaal-lijn"> | </div>
-                        <div class="info-item-projectnaam">
-                            <span class="info-label">Project:</span> <?php echo htmlspecialchars($client['projectnaam']); ?>
+                    <div class="klant-gegevens-ctn">
+                        <div class="verticaal-lijn-ctn">
+                            <div class="klanten-verticaal-lijn"> | </div>
                         </div>
-                        <div class="info-item-bedrijfsnaam">
-                            <span class="info-label">Bedrijfsnaam:</span> <?php echo htmlspecialchars($client['bedrijfnaam']); ?>
+                        <div class="klant-gegevens">
+                            <div class="info-item-projectnaam">
+                                <span class="info-label">Project:</span> <?php echo htmlspecialchars($client['projectnaam']); ?>
+                            </div>
+                            <div class="info-item-bedrijfsnaam">
+                                <span class="info-label">Bedrijfsnaam:</span> <?php echo htmlspecialchars($client['bedrijfnaam']); ?>
+                            </div>
+                            <div class="info-item-contactpersoon">
+                                <span class="info-label">Contactpersoon:</span> <?php echo htmlspecialchars($client['voornaam'] . " " . $client['achternaam']); ?>
+                            </div>
+                            <div class="info-item-email">
+                                <span class="info-label">Email:</span> <?php echo htmlspecialchars($client['email']); ?>
+                            </div>
+                            <div class="info-item-k-telefoon">
+                                <span class="info-label">Telefoon:</span> <?php echo htmlspecialchars($client['telefoon']); ?>
+                            </div>
                         </div>
-                        <div class="info-item-contactpersoon">
-                            <span class="info-label">Contactpersoon:</span> <?php echo htmlspecialchars($client['voornaam'] . " " . $client['achternaam']); ?>
-                        </div>
-                        <div class="info-item-email">
-                            <span class="info-label">Email:</span> <?php echo htmlspecialchars($client['email']); ?>
-                        </div>
-                        <div class="info-item-k-telefoon">
-                            <span class="info-label">Telefoon:</span> <?php echo htmlspecialchars($client['telefoon']); ?>
-                        </div>
-                        <hr>
+                    </div>
                     <?php endforeach;
                 else: ?>
                     <p>Geen klanten gekoppeld.</p>
