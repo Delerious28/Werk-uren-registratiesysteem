@@ -619,7 +619,7 @@ foreach ($hours as $h) {
                                         </small>
                                     </td>
                                     <td><?= number_format($project['contract_uren'], 2, ',', '.') ?> uur</td>
-                                    <td><?= htmlspecialchars($project['beschrijving']) ?></td>
+                                    <td class="beschrijving-td"><?= htmlspecialchars($project['beschrijving']) ?></td>
                                     <td>
                                         <button type="button" class="btn btn-sm btn-primary edit-project-btn" 
                                                 data-bs-toggle="modal" data-bs-target="#editProjectModal"
