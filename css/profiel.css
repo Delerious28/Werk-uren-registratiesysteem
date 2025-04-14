@@ -326,7 +326,7 @@ hr {
 
 .klanten-verticaal-lijn{
     position: absolute;
-    height: 31%;
+    height: 50%;
     left: 15px;
     background-color: #630101;
     border-radius: 5px;
