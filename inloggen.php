@@ -24,19 +24,15 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
         if ($user) {
             if (password_verify($password, $user['password'])) {
                 $_SESSION['login'] = true;
-                $_SESSION['user'] = $user['name'] ?? $user['voornaam'];  // Voornaam of naam, afhankelijk van de tabel
+                $_SESSION['user'] = $user['name'] ?? $user['voornaam'];
                 $_SESSION['role'] = $user['role'];
 
-                // Stel de juiste user_id of klant_id in op basis van de ingelogde gebruiker
                 if (isset($user['user_id'])) {
-                    // Stel user_id in voor gebruikers
                     $_SESSION['user_id'] = $user['user_id'];
                 } else {
-                    // Stel klant_id in voor klanten
                     $_SESSION['klant_id'] = $user['klant_id'];
                 }
 
-                // Redirect op basis van rol
                 if ($user['role'] == 'admin') {
                     header("Location: admin-dashboard.php");
                 } elseif ($user['role'] == 'klant') {
@@ -60,6 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
+    <!-- Essentiële viewport meta voor mobiel -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Inloggen</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
@@ -67,6 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 </head>
 <body>
 <div class="login-wrapper">
+    <!-- Dit gedeelte wordt op mobiel verborgen -->
     <div class="login-info">
         <h2>Welkom Terug</h2>
         <p>Log in op uw account om toegang te krijgen. Mocht u nog geen account hebben, neem dan gerust contact met ons op voor meer informatie.</p>
