@@ -1,12 +1,6 @@
 <?php
 session_start();
 
-// Controleer of de gebruiker is ingelogd
-if (!isset($_SESSION['user_id'])) {
-    header("Location: inloggen.php");
-    exit();
-}
-
 require_once 'db/conn.php';
 
 // Verkrijg de data (bijvoorbeeld via een JSON-request)
